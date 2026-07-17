@@ -77,7 +77,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://cooltech-jexz.vercel.app"
+  "https://cooltech.vercel.app/"
 ];
 
 app.use(cors({
