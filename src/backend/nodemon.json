@@ -1,0 +1,11 @@
+{
+  "ignore": [
+    ".wwebjs_auth/*",
+    ".wwebjs_cache/*",
+    "uploads/*"
+  ],
+  "watch": [
+    "./"
+  ],
+  "ext": "js,mjs,cjs,json"
+}

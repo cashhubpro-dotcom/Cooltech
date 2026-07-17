@@ -1,0 +1,26 @@
+{
+  "name": "tech-panel",
+  "version": "1.0.0",
+  "description": "A field technician self-service portal for **CoolTech AC Services**.   Matches the CoolTech admin panel theme exactly — dark navy sidebar (`#1A1A2E`) + orange brand (`#EA580C`).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^7.15.1",
+    "recharts": "^3.9.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "vite": "^8.0.13"
+  }
+}

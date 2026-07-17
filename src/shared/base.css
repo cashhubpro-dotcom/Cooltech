@@ -1,0 +1,606 @@
+/* ============================================================
+   CoolTech — Shared Base Styles
+   ============================================================
+   Imported by admin/styles/main.css, client-panel/src/styles/main.css,
+   and tech-panel/src/styles/main.css.
+
+   WHAT LIVES HERE (and why it's safe to share):
+   - A universal box-sizing reset — byte-identical in all three
+     panels already.
+   - The `.hide-scrollbar` utility + a combined list of every
+     modal-box-style class across all three panels that should
+     have its scrollbar hidden. Consolidates what used to be
+     copy-pasted per panel.
+   - Default color/spacing tokens that Admin and the Client
+     Portal already shared 1:1. The Technician Panel defines its
+     own token names/values further down in its own main.css —
+     because @import is always resolved before the rest of a
+     file's rules, those later declarations safely take
+     precedence, so this changes nothing visually for the
+     Technician Panel.
+
+   WHAT DOES NOT LIVE HERE (on purpose):
+   - .btn / .btn-primary etc. — padding, radius, and color differ
+     by panel in ways that reflect real design differences, not
+     accidental drift.
+   - .modal-overlay / .modal-box — each panel uses a different
+     z-index scale, background opacity, and (for tech) a
+     backdrop-filter + entrance animation. Forcing these
+     identical risks stacking-order regressions against each
+     panel's own toasts/dropdowns, so they stay local.
+   ============================================================ */
+
+/* ── Universal reset ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Hide-scrollbar utility ───────────────────────────────────
+   Apply `hide-scrollbar` to any scrollable element to hide its
+   scrollbar while keeping it scrollable. */
+.hide-scrollbar {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* legacy Edge/IE */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;              /* Chrome/Safari/Edge (Chromium) */
+}
+
+/* Every existing modal-box-style class across all three panels —
+   centralized here instead of being redeclared per panel. */
+.modal-box,
+.cal-modal-card,
+.gp-modal,
+.dcm-card,
+.cjp-modal,
+.cpay-modal,
+.pdf-modal-body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.modal-box::-webkit-scrollbar,
+.cal-modal-card::-webkit-scrollbar,
+.gp-modal::-webkit-scrollbar,
+.dcm-card::-webkit-scrollbar,
+.cjp-modal::-webkit-scrollbar,
+.cpay-modal::-webkit-scrollbar,
+.pdf-modal-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Shared default tokens (Admin + Client Portal) ────────────
+   Technician Panel uses its own names (--h1, --brand-d, --sidebar-w,
+   etc.) declared in its own main.css and is unaffected by these. */
+:root {
+  --brand:        #EA580C;
+  --brand-light:  #FFF7ED;
+  --brand-dark:   #C2410C;
+
+  --text-h1:    #0F172A;
+  --text-h2:    #1E293B;
+  --text-body:  #374151;
+  --text-muted: #64748B;
+  --text-faint: #94A3B8;
+  --border:     #E5E7EB;
+  --bg:         #F5F6FA;
+  --white:      #FFFFFF;
+  --text-white: #FFFFFF;
+  --text-date: #1E293B;
+  --text-title: #0F172A;
+
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'Fira Code', monospace;
+
+  --radius-sm:  5px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  14px;
+  --radius-2xl: 18px;
+
+  --shadow-card:  0 1px 4px rgba(0,0,0,.05);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,.25);
+  --shadow-brand: 0 3px 10px rgba(234,88,12,.4);
+
+  /* ── Semantic status/palette tokens (added by codemod) ──────────── */
+  --success: #22C55E;
+  --success-text: #16A34A;
+  --success-bg: #F0FDF4;
+  --success-border: #BBF7D0;
+  --danger: #EF4444;
+  --danger-text: #DC2626;
+  --danger-bg: #FEF2F2;
+  --danger-border: #FECACA;
+  --warning: #F59E0B;
+  --warning-text: #B45309;
+  --warning-bg: #FFFBEB;
+  --warning-border: #FDE68A;
+  --info: #3B82F6;
+  --info-text: #1D4ED8;
+  --info-bg: #EFF6FF;
+  --info-border: #BFDBFE;
+  --purple: #8B5CF6;
+  --purple-text: #6D28D9;
+  --purple-bg: #F5F3FF;
+  --purple-border: #DDD6FE;
+  --brand-overlay-strong: #EA580C30;
+  --success-overlay-strong: #15803D66;
+  --success-overlay-soft: #15803D22;
+  --disabled: #CBD5E1;
+  --navy2: #1a2e5c;
+  --border-overlay-soft: #E5E7EB22;
+  --brand-overlay-soft: #EA580C22;
+  --brand-border: #FED7AA;
+  --info-strong-bg: #1E3A5F;
+
+  /* ── Additional palette tokens (added by codemod) ──── */
+  --xfed7aa: #FED7AA;
+  --xfef3c7: #FEF3C7;
+  --xea580c12: #EA580C12;
+  --xeef0f3: #EEF0F3;
+  --xfffbf5: #FFFBF5;
+  --xea580c40: #EA580C40;
+  --xe65100: #E65100;
+  --x78350f: #78350f;
+  --x1a1a1a: #1a1a1a;
+  --xea580c22: #EA580C22;
+  --xea580c44: #EA580C44;
+  --xea580c10: #EA580C10;
+  --brand-facebook: #1877F2;
+  --brand-instagram: #E1306C;
+  --brand-twitter: #1DA1F2;
+  --brand-linkedin: #0A66C2;
+  --xff0000: #FF0000;
+  --brand-google-yellow: #FBBC05;
+  --brand-whatsapp: #25D366;
+  --x1a2e5c: #1a2e5c;
+  --x666: #666;
+  --xfef9c3: #FEF9C3;
+  --x854d0e: #854D0E;
+  --xfef08a: #FEF08A;
+  --x18181b: #18181B;
+  --xfb923c: #FB923C;
+  --xfecaca22: #FECACA22;
+  --xea580c08: #EA580C08;
+  --xea580c20: #EA580C20;
+  --xec4899: #EC4899;
+  --x06b6d4: #06B6D4;
+  --x1a2e5c22: #1a2e5c22;
+  --xea580c30: #EA580C30;
+  --xea580c0d: #EA580C0D;
+  --xea580c15: #EA580C15;
+  --xea580c18: #EA580C18;
+  --xea580c06: #EA580C06;
+  --x3b82f680: #3B82F680;
+  --x10b98180: #10B98180;
+  --xa32d2d: #A32D2D;
+  --xca8a04: #CA8A04;
+  --xfcd34d: #FCD34D;
+  --x6ee7b7: #6EE7B7;
+  --x93c5fd: #93C5FD;
+  --xc4b5fd: #C4B5FD;
+  --xf9a8d4: #F9A8D4;
+  --xe5e7eb22: #E5E7EB22;
+  --xe2e0db: #E2E0DB;
+  --xf0ede8: #f0ede8;
+  --xfafaf9: #fafaf9;
+  --x15803d66: #15803D66;
+  --x15803d22: #15803D22;
+  --xcbd5e1: #CBD5E1;
+  --x065f46: #065F46;
+  --xecfeff: #ECFEFF;
+  --xfefce8: #FEFCE8;
+  --x0073cf: #0073CF;
+  --xe8171e: #E8171E;
+  --x003da5: #003DA5;
+  --xa50034: #A50034;
+  --x1428a0: #1428A0;
+  --xe60000: #E60000;
+  --x004b8d: #004B8D;
+  --xe4002b: #E4002B;
+  --x0047bb: #0047BB;
+  --x007b5e: #007B5E;
+  --xe5e7eb88: #E5E7EB88;
+  --xfda97a: #FDA97A;
+  --xfff5f5: #FFF5F5;
+  --xd62626: #D62626;
+  --x1a1a2e: #1A1A2E;
+  --xfdba74: #FDBA74;
+  --xea580c50: #EA580C50;
+  --xeaf3de: #EAF3DE;
+  --x3b6d11: #3B6D11;
+  --xe6f1fb: #E6F1FB;
+  --x185fa5: #185FA5;
+  --xfaeeda: #FAEEDA;
+  --x854f0b: #854F0B;
+  --xfcebeb: #FCEBEB;
+  --xeeedfe: #EEEDFE;
+  --x3c3489: #3C3489;
+  --xfbeaf0: #FBEAF0;
+  --x72243e: #72243E;
+  --xe1f5ee: #E1F5EE;
+  --x0f6e56: #0F6E56;
+  --xe1f8ee: #E1F8EE;
+  --x0f5e56: #0F5E56;
+  --xf1efe8: #F1EFE8;
+  --x5f5e5a: #5F5E5A;
+  --xfff3e0: #FFF3E0;
+  --xe8f4fd: #E8F4FD;
+  --x1565c0: #1565C0;
+  --xf3e5f5: #F3E5F5;
+  --x6a1b9a: #6A1B9A;
+  --xfdf4ff: #FDF4FF;
+  --x7e22ce: #7E22CE;
+  --x9a3412: #9A3412;
+  --x0c4a6e: #0C4A6E;
+  --xfff1f2: #FFF1F2;
+  --xbe123c: #BE123C;
+  --x1e40af: #1E40AF;
+  --xf7f6f3: #F7F6F3;
+  --x999: #999;
+  --xe8520a: #E8520A;
+  --xd8d5cf: #d8d5cf;
+  --xece9e4: #ece9e4;
+  --xfdf9f6: #fdf9f6;
+  --x252540: #252540;
+  --x450a0a: #450A0A;
+  --x2a2a4a: #2A2A4A;
+  --xebeef3: #EBEEF3;
+  --xdc262630: #DC262630;
+  --xea580c25: #EA580C25;
+  --xfaf9f7: #faf9f7;
+  --x2a2a2a: #2a2a2a;
+  --xe24b4a: #E24B4A;
+  --xfee9e0: #FEE9E0;
+  --xe8622a: #E8622A;
+  --xe3f9ee: #E3F9EE;
+  --x1a7a4a: #1A7A4A;
+  --xe0f0ff: #E0F0FF;
+  --x1d6fb8: #1D6FB8;
+  --xfff4e0: #FFF4E0;
+  --xc07800: #C07800;
+  --xf0eeff: #F0EEFF;
+  --x6b4ee8: #6B4EE8;
+  --xe0ddd8: #e0ddd8;
+  --xeee: #eee;
+  --xe8e6e0: #e8e6e0;
+  --xfcc: #fcc;
+  --xea580c14: #EA580C14;
+  --xef9f27: #EF9F27;
+  --x633806: #633806;
+  --x378add: #378ADD;
+  --x042c53: #042C53;
+  --x7f77dd: #7F77DD;
+  --x26215c: #26215C;
+  --x1d9e75: #1D9E75;
+  --x04342c: #04342C;
+  --x888780: #888780;
+  --x2c2c2a: #2C2C2A;
+  --xd85a30: #D85A30;
+  --xfaece7: #FAECE7;
+  --x4a1b0c: #4A1B0C;
+  --xf1f1f1: #F1F1F1;
+  --x26282b: #26282B;
+  --x639922: #639922;
+  --x1e3a5f: #1E3A5F;
+  --x993c1d: #993c1d;
+  --x534ab7: #534ab7;
+  --x16a34a30: #16A34A30;
+  --xb4530930: #B4530930;
+  --x7c3aed30: #7C3AED30;
+  --x0369a130: #0369A130;
+  --xd9770630: #D9770630;
+  --xe5e7eb20: #E5E7EB20;
+  --xea580c33: #EA580C33;
+  --xeef2ff: #EEF2FF;
+  --xef444420: #EF444420;
+  --x16a34a40: #16A34A40;
+  --xe85d26: #e85d26;
+  --x7f1d1d: #7F1D1D;
+  --xfff0f6: #FFF0F6;
+  --xe8f5fd: #E8F5FD;
+  --xeef5fb: #EEF5FB;
+  --xfff0f0: #FFF0F0;
+  --xedfbf3: #EDFBF3;
+  --x0891b2: #0891B2;
+  --brand-google-red: #EA4335;
+  --x0c4da8: #0C4DA8;
+  --x1877f240: #1877F240;
+  --brand-whatsapp-dark: #128C7E;
+  --x25d36640: #25D36640;
+  --xf43f5e: #F43F5E;
+  --x14b8a6: #14B8A6;
+  --x6366f1: #6366F1;
+  --brand-whatsapp-accent: #00A884;
+  --x5b5fc7: #5B5FC7;
+  --xd88c2b: #D88C2B;
+  --xc2516b: #C2516B;
+  --x3b82c4: #3B82C4;
+  --xf0f2f5: #F0F2F5;
+  --x41525d: #41525D;
+  --xd1d7db: #D1D7DB;
+  --x667781: #667781;
+  --x111b21: #111B21;
+  --x2a3942: #2A3942;
+  --x202c33: #202C33;
+  --xe9edef: #E9EDEF;
+  --x8696a0: #8696A0;
+  --x062014: #062014;
+  --x0b141a: #0B141A;
+  --x005c4b: #005C4B;
+}
+
+[data-theme="dark"] {
+  --brand:        #FB923C;
+  --brand-light:  #2A1608;
+  --brand-dark:   #EA580C;
+
+  --text-h1:    #F1F5F9;
+  --text-h2:    #E2E8F0;
+  --text-body:  #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-faint: #64748B;
+  --border:     #334155;
+  --bg:         #0F172A;
+  --white:      #1E293B;
+  --text-white: #FFFFFF;
+  --text-date: #1E293B;
+  --text-title: #0F172A;
+
+  --shadow-card:  0 1px 4px rgba(0,0,0,.3);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,.55);
+  --shadow-brand: 0 3px 10px rgba(251,146,60,.35);
+
+  /* ── Semantic status/palette tokens (added by codemod) ──────────── */
+  --success: #4ADE80;
+  --success-text: #4ADE80;
+  --success-bg: #052e16;
+  --success-border: #14532D;
+  --danger: #F87171;
+  --danger-text: #F87171;
+  --danger-bg: #2a1215;
+  --danger-border: #7F1D1D;
+  --warning: #FBBF24;
+  --warning-text: #FBBF24;
+  --warning-bg: #2a1f0a;
+  --warning-border: #78350F;
+  --info: #60A5FA;
+  --info-text: #60A5FA;
+  --info-bg: #0f1f33;
+  --info-border: #1e3a5f;
+  --purple: #A78BFA;
+  --purple-text: #A78BFA;
+  --purple-bg: #241b33;
+  --purple-border: #4c3575;
+  --brand-overlay-strong: #9b1555;
+  --success-overlay-strong: #b0598e;
+  --success-overlay-soft: #bc5a32;
+  --disabled: #e5eaf0;
+  --navy2: #2b4c98;
+  --border-overlay-soft: #eff168;
+  --brand-overlay-soft: #9b153c;
+  --brand-border: #ffecd7;
+  --info-strong-bg: #305d99;
+  --xfed7aa: #ffecd7;
+  --xfef3c7: #fef6d7;
+  --xea580c12: #9b1520;
+  --xeef0f3: #e7eaee;
+  --xfffbf5: #ffefd6;
+  --xea580c40: #9b1571;
+  --xe65100: #ff7b34;
+  --x78350f: #bc5318;
+  --x1a1a1a: #404040;
+  --xea580c22: #9b153c;
+  --xea580c44: #9b1578;
+  --xea580c10: #9b151c;
+  --brand-facebook: #60a2f6;
+  --brand-instagram: #eb739b;
+  --brand-twitter: #65bff6;
+  --brand-linkedin: #258cf4;
+  --xff0000: #ff4d4d;
+  --brand-google-yellow: #fcd050;
+  --brand-whatsapp: #61e392;
+  --x1a2e5c: #1a2e5c;
+  --x666: #8c8c8c;
+  --xfef9c3: #fefbd7;
+  --x854d0e: #ca7515;
+  --xfef08a: #fffad6;
+  --x18181b: #3c3c44;
+  --xfb923c: #fdbc87;
+  --xfecaca22: #e3e356;
+  --xea580c08: #9e160e;
+  --xea580c20: #9b1538;
+  --xec4899: #f38dc0;
+  --x06b6d4: #2ddbf9;
+  --x1a2e5c22: #4a9437;
+  --xea580c30: #9b1555;
+  --xea580c0d: #9b1517;
+  --xea580c15: #9b1525;
+  --xea580c18: #9b152a;
+  --xea580c06: #a0160b;
+  --x3b82f680: #c8fbc7;
+  --x10b98180: #d4b2b1;
+  --xa32d2d: #ce4e4e;
+  --xca8a04: #fbb420;
+  --xfcd34d: #fde698;
+  --x6ee7b7: #b0f2d8;
+  --x93c5fd: #d7e9fe;
+  --xc4b5fd: #dfd7fe;
+  --xf9a8d4: #fcd9ec;
+  --xe5e7eb22: #eff168;
+  --xe2e0db: #edece8;
+  --xf0ede8: #efece6;
+  --xfafaf9: #ecece9;
+  --x15803d66: #b0598e;
+  --x15803d22: #bc5a32;
+  --xcbd5e1: #e5eaf0;
+  --x065f46: #0ba77b;
+  --xecfeff: #d6fdff;
+  --xfefce8: #fdfad8;
+  --x0073cf: #1d9aff;
+  --xe8171e: #ef5d62;
+  --x003da5: #0059f2;
+  --xa50034: #f2004c;
+  --x1428a0: #1e3ae3;
+  --xe60000: #ff3434;
+  --x004b8d: #0074da;
+  --xe4002b: #ff3258;
+  --x0047bb: #0866ff;
+  --x007b5e: #00c898;
+  --xe5e7eb88: #f4f6c9;
+  --xfda97a: #fedac5;
+  --xfff5f5: #ffd6d6;
+  --xd62626: #e46565;
+  --x1a1a2e: #36365f;
+  --xfdba74: #fedfbf;
+  --xea580c50: #9b158d;
+  --xeaf3de: #ecf4e1;
+  --x3b6d11: #5faf1b;
+  --xe6f1fb: #dcebf9;
+  --x185fa5: #2a85e0;
+  --xfaeeda: #faeedb;
+  --x854f0b: #cc7911;
+  --xfcebeb: #fadcdc;
+  --xeeedfe: #dad8fd;
+  --x3c3489: #584ebc;
+  --xfbeaf0: #f8dde7;
+  --x72243e: #ac365e;
+  --xe1f5ee: #e0f5ee;
+  --x0f6e56: #18b18b;
+  --xe1f8ee: #def7ec;
+  --x0f5e56: #1aa092;
+  --xf1efe8: #f0ede6;
+  --x5f5e5a: #86857f;
+  --xfff3e0: #ffefd6;
+  --xe8f4fd: #d9edfc;
+  --x1565c0: #388be9;
+  --xf3e5f5: #f1e2f4;
+  --x6a1b9a: #9628d9;
+  --xfdf4ff: #f8d6ff;
+  --x7e22ce: #a359e4;
+  --x9a3412: #de4b1a;
+  --x0c4a6e: #1478b3;
+  --xfff1f2: #ffd6d9;
+  --xbe123c: #eb315f;
+  --x1e40af: #3c62de;
+  --xf7f6f3: #efede7;
+  --x999: #bfbfbf;
+  --xe8520a: #f78047;
+  --xd8d5cf: #edebe8;
+  --xece9e4: #eeebe7;
+  --xfdf9f6: #f8e9de;
+  --x252540: #414170;
+  --x450a0a: #881414;
+  --x2a2a4a: #46467b;
+  --xebeef3: #e6e9f0;
+  --xdc262630: #48485b;
+  --xea580c25: #9b1541;
+  --xfaf9f7: #efece6;
+  --x2a2a2a: #505050;
+  --xe24b4a: #ed8d8c;
+  --xfee9e0: #fee3d7;
+  --xe8622a: #ef956f;
+  --xe3f9ee: #ddf8eb;
+  --x1a7a4a: #27b970;
+  --xe0f0ff: #d6ebff;
+  --x1d6fb8: #4195e1;
+  --xfff4e0: #fff1d6;
+  --xc07800: #ffa40e;
+  --xf0eeff: #dbd6ff;
+  --x6b4ee8: #a492f1;
+  --xe0ddd8: #edebe8;
+  --xeee: #ebebeb;
+  --xe8e6e0: #eeece8;
+  --xfcc: #ffd6d6;
+  --xea580c14: #9b1523;
+  --xef9f27: #f4bf6e;
+  --x633806: #ab610a;
+  --x378add: #78b0e8;
+  --x042c53: #08539c;
+  --x7f77dd: #b9b4ec;
+  --x26215c: #3d3594;
+  --x1d9e75: #2fd9a3;
+  --x04342c: #097b68;
+  --x888780: #adaca7;
+  --x2c2c2a: #53534f;
+  --xd85a30: #e48d70;
+  --xfaece7: #f8e4dd;
+  --x4a1b0c: #8c3317;
+  --xf1f1f1: #ebebeb;
+  --x26282b: #4a4e54;
+  --x639922: #8bd235;
+  --x1e3a5f: #305d99;
+  --x993c1d: #d7562c;
+  --x534ab7: #8781cd;
+  --x16a34a30: #cc6f53;
+  --xb4530930: #981058;
+  --x7c3aed30: #7df376;
+  --x0369a130: #8fcb52;
+  --xd9770630: #c00a4d;
+  --xe5e7eb20: #eff166;
+  --xea580c33: #9b155a;
+  --xeef2ff: #d6e0ff;
+  --xef444420: #787838;
+  --x16a34a40: #c5746b;
+  --xe85d26: #ef916b;
+  --x7f1d1d: #bd2b2b;
+  --xfff0f6: #ffd6e7;
+  --xe8f5fd: #d9effc;
+  --xeef5fb: #deecf7;
+  --xfff0f0: #ffd6d6;
+  --xedfbf3: #def8e9;
+  --x0891b2: #12c8f4;
+  --brand-google-red: #f1837a;
+  --x0c4da8: #126eee;
+  --x1877f240: #aaf788;
+  --brand-whatsapp-dark: #1bd0bb;
+  --x25d36640: #e1987e;
+  --xf43f5e: #f8879b;
+  --x14b8a6: #30e9d4;
+  --x6366f1: #a9abf7;
+  --brand-whatsapp-accent: #00f4c0;
+  --x5b5fc7: #9497da;
+  --xd88c2b: #e4af6c;
+  --xc2516b: #d68a9b;
+  --x3b82c4: #76a8d6;
+  --xf0f2f5: #e7eaef;
+  --x41525d: #607a8a;
+  --xd1d7db: #e8ebed;
+  --x667781: #8e9da6;
+  --x111b21: #2b4453;
+  --x2a3942: #486171;
+  --x202c33: #3d5562;
+  --xe9edef: #e7ecee;
+  --x8696a0: #b1bbc2;
+  --x062014: #12603c;
+  --x0b141a: #223d50;
+  --x005c4b: #00a989;
+}
+
+/* ── Shared page base (Admin + Client Portal) ─────────────────
+   Technician Panel's own `body { ... }` rule (declared after this
+   import in its own file) overrides this with its own values. */
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text-body);
+}
+
+/* ── Shared scrollbar look (Admin + Client Portal) ────────────
+   Technician Panel previously used slightly different sizing —
+   left untouched in its own file, which loads after this and
+   overrides it. */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: #F1F5F9; border-radius: 10px; }
+::-webkit-scrollbar-thumb  { background: #CBD5E1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--brand); }
+
+/* ── Shared fade/slide keyframes (Admin + Client Portal) ──────
+   Identical in both today. Technician Panel defines its own
+   separate set of keyframes (pulse, tjpFade, etc.) under
+   different names, so there's no collision. */
+@keyframes fadeUp  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn  { from { opacity: 0; } to   { opacity: 1; } }
+@keyframes blink   { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
