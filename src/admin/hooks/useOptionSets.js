@@ -17,7 +17,7 @@ import {
   ticketIssueTypesApi, ticketChannelsApi, adminRolesApi, paymentMethodsApi,
   priceItemCategoriesApi, priceItemUnitsApi, reminderTypesApi, leaveTypesApi,
   gasTypesApi, gasReasonsApi, gasRegulationRefsApi, gasDisposalMethodsApi,
-  taskCategoriesApi, taskLabelsApi, activityTypesApi, recoveryPlansApi,
+  taskCategoriesApi, taskLabelsApi, activityTypesApi, recoveryPlansApi, incentiveTypesApi
 } from '../services/api';
 
 // ── Jobs / Quotations / Ops ────────────────────────────────────────────────
@@ -123,3 +123,6 @@ export const useActivityTypes = () =>
 
 export const useRecoveryPlans = () =>
   useOptionSet(recoveryPlansApi, ['1 month (full)', '2 months (split)', '3 months (split)']);
+
+export const useIncentiveTypes = () =>
+  useOptionSet(incentiveTypesApi, ['Performance Bonus', 'Referral Bonus', 'Festival Bonus', 'Overtime Incentive', 'Other']);

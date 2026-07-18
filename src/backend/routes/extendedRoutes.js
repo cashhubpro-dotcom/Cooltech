@@ -25,7 +25,7 @@ import {
   PartWarrantyType, NoticeCategory, TicketIssueType, TicketChannel, AdminRole,
   PaymentMethod, PriceItemCategory, PriceItemUnit, ReminderType, LeaveType,
   GasType, GasReason, GasRegulationRef, GasDisposalMethod, TaskCategory,
-  TaskLabel, ActivityType, RecoveryPlan,
+  TaskLabel, ActivityType, RecoveryPlan, IncentiveType,
 } from '../models/optionSetModels.js';
 
 const router = express.Router();
@@ -543,6 +543,7 @@ const OPTION_SET_ROUTES = [
   { path: 'task-labels',           model: TaskLabel },
   { path: 'activity-types',        model: ActivityType },
   { path: 'recovery-plans',        model: RecoveryPlan },
+  { path: 'incentive-types',       model: IncentiveType },
 ];
 
 for (const { path, model } of OPTION_SET_ROUTES) {

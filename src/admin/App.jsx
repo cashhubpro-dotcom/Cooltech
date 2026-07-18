@@ -34,7 +34,7 @@ import {
   useUnitWarrantyTypes, usePartWarrantyTypes, useAdminRoles, usePaymentMethods,
   usePriceItemCategories, usePriceItemUnits, useReminderTypes, useLeaveTypes,
   useGasTypes, useGasReasons, useGasRegulationRefs, useGasDisposalMethods,
-  useTaskCategories, useTaskLabels, useActivityTypes, useRecoveryPlans,
+  useTaskCategories, useTaskLabels, useActivityTypes, useRecoveryPlans, useIncentiveTypes
 } from './hooks/useOptionSets';
 import {
   jobsApi, quotationsApi, customersApi, amcApi, invoicesApi,
@@ -398,6 +398,7 @@ function AppShell() {
   const { activeItems: activeTaskLabels, add: addTaskLabel } = useTaskLabels();
   const { activeItems: activeActivityTypes, add: addActivityType } = useActivityTypes();
   const { activeItems: activeRecoveryPlans, add: addRecoveryPlan } = useRecoveryPlans();
+  const { activeItems: activeIncentiveTypes, add: addIncentiveType } = useIncentiveTypes();
 
   const [clockStatus,    setClockStatus]    = useState('out');
   const [clockInTime,    setClockInTime]    = useState(null);
@@ -593,6 +594,8 @@ function AppShell() {
             onPrefillConsumed={() => setPrefillAdvance(null)}
             recoveryPlans={activeRecoveryPlans}
             onAddRecoveryPlan={addRecoveryPlan}
+             incentiveTypes={activeIncentiveTypes}
+            onAddIncentiveType={addIncentiveType}
           />
         );
       default:

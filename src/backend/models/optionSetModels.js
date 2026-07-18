@@ -66,6 +66,7 @@ const OPTION_SET_DEFS = [
   ['TaskLabel',           'TaskLabel',           'TSL'],
   ['ActivityType',        'ActivityType',        'ACV'],
   ['RecoveryPlan',        'RecoveryPlan',         'RCP'],
+  ['IncentiveType',       'IncentiveType',        'INT'],
 ];
 
 const models = {};
@@ -79,5 +80,5 @@ export const {
   PartWarrantyType, NoticeCategory, TicketIssueType, TicketChannel, AdminRole,
   PaymentMethod, PriceItemCategory, PriceItemUnit, ReminderType, LeaveType,
   GasType, GasReason, GasRegulationRef, GasDisposalMethod, TaskCategory,
-  TaskLabel, ActivityType, RecoveryPlan,
+  TaskLabel, ActivityType, RecoveryPlan, IncentiveType,
 } = models;

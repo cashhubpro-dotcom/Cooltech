@@ -10,6 +10,8 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { tasksApi, techsApi } from '../../services/api';
+import { useTaskCategories, useTaskLabels } from '../../hooks/useOptionSets';
+import { DynamicSelect } from '../../components/modals/Modals';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TASK_STATUS_MAP = {
@@ -50,7 +52,11 @@ const PRIO_COLOR = {
   }
 };
 const COLUMNS = ['todo', 'in_progress', 'done'];
-const CATEGORIES = ['Sales', 'HR', 'Operations', 'Service', 'Admin', 'Finance'];
+// Fallback defaults — used only until the TaskCategory / TaskLabel option
+// sets have data, same convention as every other DynamicSelect-backed field
+// in the app (see useOptionSets.js). Kept in sync with those hooks' fallbacks.
+const TASK_CATEGORY_DEFAULTS = ['Service', 'Installation', 'Repair', 'AMC', 'Sales', 'Finance', 'HR', 'Operations', 'Admin'];
+const TASK_LABEL_DEFAULTS = ['Urgent Follow-up', 'Customer Complaint', 'AMC Related', 'Internal', 'Revenue Critical'];
 const PRIORITIES = ['urgent', 'high', 'normal', 'low'];
 const TASK_COLUMNS = [{
   label: 'ID',
@@ -99,14 +105,21 @@ const EMPTY_FORM = {
   due: '',
   priority: 'normal',
   status: 'todo',
+  label: '',
   notes: ''
 };
 function TaskModal({
   mode,
   task,
   onClose,
-  onSave
+  onSave,
+  taskCategories = [],
+  onAddTaskCategory,
+  taskLabels = [],
+  onAddTaskLabel
 }) {
+  const taskCategoryList = taskCategories.length ? taskCategories : TASK_CATEGORY_DEFAULTS;
+  const taskLabelList = taskLabels.length ? taskLabels : TASK_LABEL_DEFAULTS;
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -130,6 +143,7 @@ function TaskModal({
         due: task.due || '',
         priority: task.priority || 'normal',
         status: task.status || 'todo',
+        label: task.label || '',
         notes: task.notes || ''
       });
     } else {
@@ -203,9 +217,14 @@ function TaskModal({
             <div className="ap-task-manager-page-11">
               <div>
                 <label className="ap-task-manager-page-9">Category *</label>
-                <select value={form.category} onChange={e => set('category', e.target.value)} className="ap-task-manager-page-10">
-                  {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                </select>
+                <DynamicSelect
+                  options={taskCategoryList}
+                  value={form.category}
+                  onChange={v => set('category', v)}
+                  onAddOption={v => onAddTaskCategory?.(v)}
+                  addLabel="Task Category"
+                  addPlaceholder="e.g. Marketing, Compliance…"
+                />
               </div>
               <div>
                 <label className="ap-task-manager-page-9">Assigned To *</label>
@@ -232,6 +251,18 @@ function TaskModal({
                     </option>)}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="ap-task-manager-page-9">Label</label>
+              <DynamicSelect
+                options={taskLabelList}
+                value={form.label}
+                onChange={v => set('label', v)}
+                onAddOption={v => onAddTaskLabel?.(v)}
+                addLabel="Label"
+                addPlaceholder="e.g. Escalated, Warranty Claim…"
+              />
             </div>
 
             <div>
@@ -405,6 +436,7 @@ function TaskDetailModal({
               color: prio.color
             }} className="ap-task-manager-page-26">{task.priority}</span>
               <TypeTag type={task.category} />
+              {task.label && <TypeTag type={task.label} />}
             </div>
             <div style={{
             color: task.status === 'done' ? "var(--text-faint)" : "var(--text-h1)",
@@ -429,6 +461,7 @@ function TaskDetailModal({
             </div>
             {row('Due Date', task.due)}
             {row('Task ID', task.id)}
+            {row('Label', task.label)}
             {row('Status', m.label)}
           </div>
 
@@ -668,6 +701,14 @@ const TaskManagerPage = () => {
   const [deleteModal, setDeleteModal] = useState(null);
   const [detailTask, setDetailTask] = useState(null); // NEW: detail view state
   const [actionSaving, setActionSaving] = useState(false);
+
+  // ── Task Categories / Labels — DynamicSelect-backed option sets ───────────
+  // This page manages its own local modal state (unlike most other pages,
+  // which route their "New X" modal through App.jsx's global `modal` state
+  // and openModal()), so the option-set hooks are called directly here
+  // rather than being passed down as props from App.jsx.
+  const { activeItems: activeTaskCategories, add: addTaskCategory } = useTaskCategories();
+  const { activeItems: activeTaskLabels, add: addTaskLabel } = useTaskLabels();
 
   // drag state
   const [draggingId, setDraggingId] = useState(null);
@@ -1058,7 +1099,16 @@ const TaskManagerPage = () => {
         </div>}
 
       {/* Modals */}
-      {taskModal && <TaskModal mode={taskModal.mode} task={taskModal.task} onClose={() => setTaskModal(null)} onSave={taskModal.mode === 'new' ? handleCreate : handleEdit} />}
+      {taskModal && <TaskModal
+        mode={taskModal.mode}
+        task={taskModal.task}
+        onClose={() => setTaskModal(null)}
+        onSave={taskModal.mode === 'new' ? handleCreate : handleEdit}
+        taskCategories={activeTaskCategories}
+        onAddTaskCategory={addTaskCategory}
+        taskLabels={activeTaskLabels}
+        onAddTaskLabel={addTaskLabel}
+      />}
 
       {/* NEW: detail view modal, opened by clicking any task card/row */}
       <TaskDetailModal task={detailTask} onClose={() => setDetailTask(null)} onEdit={task => {

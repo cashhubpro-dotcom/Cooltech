@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
 import OptionListPanel from '../../components/settings/OptionListPanel';
-import { useJobTypes, useExpenseCategories, useNoticeCategories, useTicketIssueTypes, useTicketChannels, useItemCategories, useInventoryUnits, usePoTypes, useVehicleSubtypes, useEquipmentSubtypes, usePartTypes, useAcTypes, useUnitWarrantyTypes, usePartWarrantyTypes, useAdminRoles, usePaymentMethods, usePriceItemCategories, usePriceItemUnits, useReminderTypes, useLeaveTypes, useGasTypes, useGasReasons, useGasRegulationRefs, useGasDisposalMethods, useTaskCategories, useTaskLabels, useActivityTypes, useRecoveryPlans } from '../../hooks/useOptionSets';
+import { useJobTypes, useExpenseCategories, useNoticeCategories, useTicketIssueTypes, useTicketChannels, useItemCategories, useInventoryUnits, usePoTypes, useVehicleSubtypes, useEquipmentSubtypes, usePartTypes, useAcTypes, useUnitWarrantyTypes, usePartWarrantyTypes, useAdminRoles, usePaymentMethods, usePriceItemCategories, usePriceItemUnits, useReminderTypes, useLeaveTypes, useGasTypes, useGasReasons, useGasRegulationRefs, useGasDisposalMethods, useTaskCategories, useTaskLabels, useActivityTypes, useRecoveryPlans, useIncentiveTypes } from '../../hooks/useOptionSets';
 
 // Groups mirror how the option sets are actually used across the app, so an
 // admin looking for "Job Type" finds it under Jobs & Service, not buried in
@@ -168,6 +168,13 @@ const GROUPS = [{
     icon: '💵',
     hook: useRecoveryPlans,
     note: 'Used by Advance Requests to set how a technician\u2019s advance is recovered from payroll.'
+  },{
+    key: 'incentiveTypes',
+    label: 'Incentive Types',
+    addLabel: 'Incentive Type',
+    icon: '🎁',
+    hook: useIncentiveTypes,
+    note: 'Used by Advance Requests to categorize the type of incentive being requested.'
   },{
     key: 'taskCategories',
     label: 'Task Categories',

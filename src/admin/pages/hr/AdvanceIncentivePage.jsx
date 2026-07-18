@@ -28,6 +28,9 @@ function generateMonthOptions(monthsBack = 6, monthsForward = 12) {
 
 const MONTHS = generateMonthOptions();
 
+// Fallback defaults — used only until the API has data, same convention as
+// RECOVERY_PLAN_DEFAULTS below. Once IncentiveType option-set records exist,
+// the DynamicSelect in NewRequestModal renders those instead.
 const INCENTIVE_TYPES = ['Performance', 'Customer Rating', 'Special Duty', 'Referral', 'Project Bonus'];
 // const RECOVERY_OPTIONS = [{
 //   label: '1 month (full)',
@@ -264,11 +267,14 @@ const NewRequestModal = ({
   onSubmit,
   onClose,
   prefillTech = null,
-  recoveryPlans = [],       
-  onAddRecoveryPlan 
+  recoveryPlans = [],
+  onAddRecoveryPlan,
+  incentiveTypes = [],
+  onAddIncentiveType
 }) => {
   const isAdv = mode === 'advance';
   const recoveryPlanList = recoveryPlans.length ? recoveryPlans : RECOVERY_PLAN_DEFAULTS;
+  const incentiveTypeList = incentiveTypes.length ? incentiveTypes : INCENTIVE_TYPES;
 
   const [form, setForm] = useState({
     techId: prefillTech?._id || '',
@@ -276,7 +282,7 @@ const NewRequestModal = ({
     month: 'April 2026',
     reason: '',
     recoveryPlan: recoveryPlanList[0] || '1 month (full)',
-    type: 'Performance'
+    type: incentiveTypeList[0] || 'Performance'
   });
   const [errors, setErrors] = useState({});
   const set = (k, v) => setForm(f => ({
@@ -398,9 +404,14 @@ const NewRequestModal = ({
         addPlaceholder="e.g. 4 months (split), 6 months (split)…"
       />
                 </Field> : <Field label="INCENTIVE TYPE" required>
-                  <select value={form.type} onChange={e => set('type', e.target.value)} style={inputSt(false)}>
-                    {INCENTIVE_TYPES.map(t => <option key={t}>{t}</option>)}
-                  </select>
+                  <DynamicSelect
+                    options={incentiveTypeList}
+                    value={form.type}
+                    onChange={v => set('type', v)}
+                    onAddOption={v => onAddIncentiveType?.(v)}
+                    addLabel="Incentive Type"
+                    addPlaceholder="e.g. Team Bonus, Safety Award…"
+                  />
                 </Field>}
           </div>
 
@@ -621,8 +632,8 @@ const AdvanceTab = ({
   technicians = [],
   prefillTech = null,
   onClearPrefill,
-  recoveryPlans = [],        
-  onAddRecoveryPlan  
+  recoveryPlans = [],
+  onAddRecoveryPlan
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -831,7 +842,7 @@ const AdvanceTab = ({
         <Pagination page={page} totalPages={totalPages} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} from={from} to={to} total={total} />
       </div>
 
-      {showNew && <NewRequestModal mode="advance" technicians={technicians} prefillTech={activePrefill} recoveryPlans={recoveryPlans}           
+      {showNew && <NewRequestModal mode="advance" technicians={technicians} prefillTech={activePrefill} recoveryPlans={recoveryPlans}
   onAddRecoveryPlan={onAddRecoveryPlan} onSubmit={async payload => {
       setSaving(true);
       try {
@@ -864,7 +875,11 @@ function splitIncentiveReason(reason = '') {
   return m ? { category: m[1], rest: m[2] } : { category: 'Other', rest: reason };
 }
 
-const IncentiveTab = ({ technicians = [] }) => {
+const IncentiveTab = ({
+  technicians = [],
+  incentiveTypes = [],
+  onAddIncentiveType
+}) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -876,6 +891,7 @@ const IncentiveTab = ({ technicians = [] }) => {
     }).catch(e => setLoadError(e.message || 'Could not load incentive requests')).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
+  const incentiveTypeList = incentiveTypes.length ? incentiveTypes : INCENTIVE_TYPES;
   const [selMonth, setSelMonth] = useState('April 2026');
   const [showNew, setShowNew] = useState(false);
   const [remarksModal, setRemarksModal] = useState(null);
@@ -990,7 +1006,7 @@ const IncentiveTab = ({ technicians = [] }) => {
         <div className="ap-advance-incentive-page-123">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by name, type, reason…" />
           <FilterSelect value={activeFilters.status} onChange={val => setFilter('status', val)} options={['pending', 'approved', 'paid', 'rejected']} allLabel="All Statuses" />
-          <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={INCENTIVE_TYPES} allLabel="All Types" />
+          <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={incentiveTypeList} allLabel="All Types" />
           <select value={selMonth} onChange={e => setSelMonth(e.target.value)} className="ap-advance-incentive-page-124">
             {MONTHS.map(m => <option key={m}>{m}</option>)}
           </select>
@@ -1069,7 +1085,7 @@ const IncentiveTab = ({ technicians = [] }) => {
         <Pagination page={page} totalPages={totalPages} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} from={from} to={to} total={total} />
       </div>
 
-      {showNew && <NewRequestModal mode="incentive" technicians={technicians} onSubmit={async payload => {
+      {showNew && <NewRequestModal mode="incentive" technicians={technicians} incentiveTypes={incentiveTypes} onAddIncentiveType={onAddIncentiveType} onSubmit={async payload => {
       setSaving(true);
       try {
         await advanceIncentiveApi.create(payload);
@@ -1221,8 +1237,10 @@ const TABS = [{
 const AdvanceIncentivePage = ({
   prefillAdvance = null,
   onPrefillConsumed,
-  recoveryPlans = [],        
-  onAddRecoveryPlan  
+  recoveryPlans = [],
+  onAddRecoveryPlan,
+  incentiveTypes = [],
+  onAddIncentiveType
 }) => {
   const [activeTab, setActiveTab] = useState('advance');
   const [prefillTech, setPrefillTech] = useState(prefillAdvance);
@@ -1258,9 +1276,9 @@ const AdvanceIncentivePage = ({
       }} className="ap-advance-incentive-page-160">{tab.label}</button>)}
       </div>
 
-      {activeTab === 'advance' && <AdvanceTab technicians={technicians} prefillTech={prefillTech} onClearPrefill={() => setPrefillTech(null)} recoveryPlans={recoveryPlans}         // ← new
+      {activeTab === 'advance' && <AdvanceTab technicians={technicians} prefillTech={prefillTech} onClearPrefill={() => setPrefillTech(null)} recoveryPlans={recoveryPlans}
     onAddRecoveryPlan={onAddRecoveryPlan}/>}
-      {activeTab === 'incentive' && <IncentiveTab technicians={technicians} />}
+      {activeTab === 'incentive' && <IncentiveTab technicians={technicians} incentiveTypes={incentiveTypes} onAddIncentiveType={onAddIncentiveType} />}
       {activeTab === 'history' && <HistoryTab />}
     </div>;
 };
