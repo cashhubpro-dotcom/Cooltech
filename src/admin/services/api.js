@@ -253,7 +253,10 @@ export const servicesApi   = crud('services');
 export const priceItemsApi = crud('pricelist');
 export const usersApi      = crud('users');
 export const dashboardApi  = () => req('GET', '/dashboard/stats');
-export const dashboardOverviewApi = () => req('GET', '/dashboard/overview');
+export const dashboardOverviewApi = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return req('GET', `/dashboard/overview${qs ? '?' + qs : ''}`);
+};
 
 export const leavesApi = {
   list:    (params = {}) => {
@@ -466,6 +469,7 @@ export const taskCategoriesApi    = crud('task-categories');    // HR NewTaskMod
 export const taskLabelsApi        = crud('task-labels');        // HR NewTaskModal
 export const activityTypesApi     = crud('activity-types');     // HR LogTimeModal
 export const recoveryPlansApi = crud('recovery-plans'); // HR NewRequestModal (Advance) Recovery Plan
+export const incentiveTypesApi = crud('incentive-types'); // HR NewRequestModal (Advance) Incentive Type
 
 export const leadSourcesApi = {
   ...crud('lead-sources'),
