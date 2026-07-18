@@ -74,7 +74,7 @@ export const NAV=[
 ];
 
 export const TITLES = {
-  dashboard:"Overview Dashboard",   calendar:"My Calendar", jobs:"Work Orders",          quotations:"Quotations",
+  dashboard:"Dashboard",   calendar:"My Calendar", jobs:"Work Orders",          quotations:"Quotations",
   leads:"Leads & CRM",              lead_sources:"Lead Sources",
   customers:"Customers",            customer_type:"Customer Types", 
   amc:"AMC Contracts",              invoices:"Invoices", create_invoice:"Create Invoices",

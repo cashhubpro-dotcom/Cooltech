@@ -717,6 +717,24 @@
   transition: all .14s;
 }
 .btn-icon:hover { background: #F3F4F6; }
+
+/* ── Style the dark-mode toggle to match the other header icon buttons ── */
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .14s;
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: #F3F4F6; }
+
 .btn-ghost {
   padding: 7px 14px;
   border-radius: var(--radius-md);
@@ -3712,12 +3730,19 @@ html {
 /* ── Responsive Header ────────────────────────────────────── */
 @media (max-width: 479px) {
   .header { padding: 0 12px; gap: 8px; }
-  .header-right { gap: 4px; }
-  /* Hide less critical header items on very small screens */
-  .header-right .btn-icon:not(.hamburger-btn):nth-child(n+4) { display: none; }
+  .header-right { gap: 3px; }
+  .btn-logout { padding: 6px 9px; }
+}
+@media (max-width: 767px) {
+  .header-right { gap: 5px; }
 }
 @media (max-width: 639px) {
-  .header { padding: 0 14px; }
+  .header { padding: 0 10px; gap: 6px; }
+  .header-right { gap: 4px; }
+
+  /* Collapse the clock in/out button to just its status dot + timer */
+  .clock-btn-label { display: none; }
+  .btn.ap-header-22 { padding: 7px 9px !important; }
 }
 
 /* ── Responsive Sidebar ───────────────────────────────────── */

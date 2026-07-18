@@ -330,13 +330,17 @@ useEffect(() => {
       {/* ── Left: breadcrumb ────────────────────────────────────── */}
       <div className="header-left">
         {/* Persistent sidebar-toggle icon — visible on all screen sizes */}
-        {/* <button className="header-menu-btn ap-header-20" onClick={() => setSidebarOpen(o => !o)} aria-label="Toggle sidebar" onMouseEnter={e => {
-        e.currentTarget.style.background = '#F3F4F6';
-      }} onMouseLeave={e => {
-        e.currentTarget.style.background = 'transparent';
-      }}>
-          <Grid3x3 size={18} color={COLORS.muted} strokeWidth={2} />
-        </button> */}
+        
+        <button
+    className="header-hamburger-btn"
+    onClick={() => setSidebarOpen(o => !o)}
+    aria-label="Toggle sidebar"
+  >
+    <span className="hamburger-line" />
+    <span className="hamburger-line" />
+    <span className="hamburger-line" />
+  </button>
+
         <div className="breadcrumb">
           <span className="breadcrumb-root">CoolTech</span>
           <span className="breadcrumb-sep breadcrumb-root">›</span>
@@ -372,7 +376,7 @@ useEffect(() => {
             background: clockStatus === 'out' ? '#fff' : clockBg.color,
             animation: clockStatus === 'in' ? "blink 1.6s ease-in-out infinite" : "none"
           }} className="ap-header-23" />
-            {clockBg.label}
+            <span className="clock-btn-label">{clockBg.label}</span>
             {clockStatus === 'in' && <span className="ap-header-24">
                 {fmtTime(elapsed)}
               </span>}
