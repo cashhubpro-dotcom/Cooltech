@@ -6,9 +6,6 @@ import { SBadge, TypeTag, PBadge, Avatar } from '../components/ui/Badges';
 import { KCard, SectionHdr, BackBtn, Thead } from '../components/ui/Cards';
 import { FRow, FInput, FSelect, FTextarea, FBtn } from '../components/ui/Form';
 import { RevenueChart, Donut, BarChart } from '../components/charts/Charts';
-// NOTIF_TYPE_CFG is a color/icon *styling* lookup keyed by notification type,
-// not mock content — kept as the source of per-type bg/color/fallback-icon
-// since the Notification model itself doesn't store colors.
 import { NOTIF_TYPE_CFG } from '../data/mockData';
 
 // ─── Breakpoint Hook ──────────────────────────────────────────────────────────

@@ -888,12 +888,12 @@ function AppShell() {
       <Sidebar
         page={activePage}
         setPage={setPage}
-        onLogout={handleLogout}
+        // onLogout={handleLogout}
         setOpenJob={setOpenJob}
         badges={badges}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        clockStatus={clockStatus}
+        // clockStatus={clockStatus}
         NAV={NAV}
       />
 

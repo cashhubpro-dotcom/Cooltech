@@ -625,12 +625,12 @@
   background: var(--bg);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  display: none;
+  display: block; /* was: display: none */
 }
-@media (min-width: 768px) { .clock-display { display: block; } }
+/* @media (min-width: 768px) { .clock-display { display: block; } } */
 
 .live-badge {
-  display: none;
+  display: flex; /* was: display: none */
   align-items: center;
   gap: 5px;
   padding: 4px 11px;
@@ -638,7 +638,7 @@
   border: 1px solid #A7F3D0;
   border-radius: var(--radius-md);
 }
-@media (min-width: 640px) { .live-badge { display: flex; } }
+
 .live-dot  { width: 6px; height: 6px; border-radius: 50%; background: #22C55E; display: block; }
 .live-text { font-size: 11px; font-weight: 700; color: #15803D; }
 
@@ -3732,6 +3732,7 @@ html {
   .header { padding: 0 12px; gap: 8px; }
   .header-right { gap: 3px; }
   .btn-logout { padding: 6px 9px; }
+   .clock-display { display: none; }
 }
 @media (max-width: 767px) {
   .header-right { gap: 5px; }
@@ -3743,6 +3744,20 @@ html {
   /* Collapse the clock in/out button to just its status dot + timer */
   .clock-btn-label { display: none; }
   .btn.ap-header-22 { padding: 7px 9px !important; }
+
+  /* Shrink the live clock text on mobile */
+  .clock-display {
+    padding: 3px 7px;
+    font-size: 10.5px;
+    border-radius: 6px;
+  }
+
+  /* Shrink the Online/Offline badge on mobile — hide the label, keep just the dot */
+  .live-badge {
+    padding: 5px 6px;
+    gap: 0;
+  }
+  /* .live-text { display: none; } */
 }
 
 /* ── Responsive Sidebar ───────────────────────────────────── */
@@ -5597,3 +5612,157 @@ html {
   transition: background .14s;
 }
 .btn-danger-outline:hover { background: #FEF2F2; }
+
+/* ============================================================
+   HEADER USER DROPDOWN — replaces the old sidebar user menu
+   ============================================================ */
+
+.hdr-user-wrap { position: relative; }
+
+.hdr-user-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: box-shadow .14s;
+}
+.hdr-user-btn:hover { box-shadow: 0 0 0 2px var(--brand-light); }
+
+.hdr-user-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 8999;
+  background: transparent;
+}
+
+.hdr-user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 9000;
+  background: var(--white);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0,0,0,.15);
+  width: 240px;
+  overflow: hidden;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.hdr-user-close-btn {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #F3F4F6;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-muted);
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  z-index: 1;
+}
+
+.hdr-user-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 14px 12px;
+}
+.hdr-user-header-text { flex: 1; min-width: 0; }
+.hdr-user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hdr-user-role {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hdr-user-divider { height: 1px; background: var(--border); margin: 2px 0; }
+
+.hdr-user-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: left;
+  transition: background .12s, color .12s;
+}
+.hdr-user-item:hover { background: var(--brand-light); color: var(--brand); }
+.hdr-user-item-icon { font-size: 14px; width: 14px; display: inline-flex; align-items: center; justify-content: center; }
+
+.hdr-user-item-danger { color: #DC2626; }
+.hdr-user-item-danger:hover { background: #FEF2F2; color: #DC2626; }
+
+.hdr-user-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+}
+.hdr-user-status-label { font-size: 11px; color: var(--text-faint); font-weight: 500; }
+
+/* ── Mobile: full-width slide-down (reuses @keyframes notifSlideDown
+   already defined in the notif-dropdown responsive block above) ── */
+@media (max-width: 639px) {
+  .hdr-user-dropdown {
+    position: fixed;
+    top: var(--header-height, 56px);
+    left: 8px;
+    right: 8px;
+    width: auto;
+    border-radius: 14px;
+    animation: notifSlideDown .2s cubic-bezier(.4,0,.2,1) both;
+    max-height: calc(100dvh - 80px);
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,.22);
+  }
+  .hdr-user-close-btn { display: flex; }
+}
+
+/* ── Dark mode toggle: standalone button on desktop, inside dropdown on mobile ── */
+@media (max-width: 639px) {
+  .hdr-darkmode-desktop { display: none !important; }
+}
+@media (min-width: 640px) {
+  .hdr-darkmode-mobile { display: none !important; }
+}
+@media (max-width: 399px) {
+  .hdr-user-dropdown { left: 4px; right: 4px; }
+}
+/* ── Settings button: standalone on desktop, inside dropdown on mobile ── */
+@media (max-width: 639px) {
+  .hdr-settings-desktop { display: none !important; }
+}
+@media (min-width: 640px) {
+  .hdr-settings-mobile { display: none !important; }
+}

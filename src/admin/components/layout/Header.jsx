@@ -1,7 +1,48 @@
 import { useState, useEffect } from 'react';
-import { Grid3x3, Bell } from 'lucide-react';
+import { Bell, User, Settings as SettingsIcon, LogOut, Clock as ClockIcon } from 'lucide-react';
 import { COLORS } from '../../constants/tokens';
 import { useDarkMode } from '../../../shared/useDarkMode';
+
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// ─── Read logged-in user from localStorage ────────────────────────────────────
+const readUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("admin_user")) || {};
+  } catch {
+    return {};
+  }
+};
+
+// ─── Small self-contained avatar (image or initials) ──────────────────────────
+const UserAvatar = ({ avatar, initials, size = 32 }) => {
+  const hasImg = avatar && avatar !== "" && avatar !== "null";
+  const src = hasImg ? (avatar.startsWith("/") ? `${API}${avatar}` : avatar) : null;
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.25,
+        background: hasImg ? "transparent" : "linear-gradient(135deg, rgba(234,88,12,.14), rgba(234,88,12,.28))",
+        fontSize: size * 0.38,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 800,
+        color: COLORS.brand,
+        flexShrink: 0,
+        overflow: "hidden"
+      }}
+    >
+      {hasImg ? (
+        <img src={src} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
+        initials
+      )}
+    </div>
+  );
+};
 
 // ─── Notification Dropdown ────────────────────────────────────────────────────
 const NotifDropdown = ({
@@ -97,58 +138,20 @@ const NotifDropdown = ({
 
 // ─── Single Notification Item ─────────────────────────────────────────────────
 const NOTIF_COLORS = {
-  urgent: {
-    bg: "var(--danger-bg)",
-    color: "var(--danger-text)"
-  },
-  alert: {
-    bg: "var(--danger-bg)",
-    color: "var(--danger-text)"
-  },
-  invoice: {
-    bg: "var(--warning-bg)",
-    color: "var(--warning)"
-  },
-  payment: {
-    bg: "var(--warning-bg)",
-    color: "var(--warning)"
-  },
-  ticket: {
-    bg: "var(--info-bg)",
-    color: "var(--info-text)"
-  },
-  salary: {
-    bg: "var(--success-bg)",
-    color: "var(--success-text)"
-  },
-  schedule: {
-    bg: "var(--purple-bg)",
-    color: "var(--purple-text)"
-  },
-  lead: {
-    bg: "var(--purple-bg)",
-    color: "var(--purple-text)"
-  },
-  contract: {
-    bg: "var(--info-bg)",
-    color: "var(--info-text)"
-  },
-  default: {
-    bg: "var(--bg)",
-    color: "var(--text-muted)"
-  }
+  urgent: { bg: "var(--danger-bg)", color: "var(--danger-text)" },
+  alert: { bg: "var(--danger-bg)", color: "var(--danger-text)" },
+  invoice: { bg: "var(--warning-bg)", color: "var(--warning)" },
+  payment: { bg: "var(--warning-bg)", color: "var(--warning)" },
+  ticket: { bg: "var(--info-bg)", color: "var(--info-text)" },
+  salary: { bg: "var(--success-bg)", color: "var(--success-text)" },
+  schedule: { bg: "var(--purple-bg)", color: "var(--purple-text)" },
+  lead: { bg: "var(--purple-bg)", color: "var(--purple-text)" },
+  contract: { bg: "var(--info-bg)", color: "var(--info-text)" },
+  default: { bg: "var(--bg)", color: "var(--text-muted)" }
 };
-const NotifItem = ({
-  n,
-  onMarkRead,
-  onOpenNotification,
-  onClose
-}) => {
+const NotifItem = ({ n, onMarkRead, onOpenNotification, onClose }) => {
   const cfg = NOTIF_COLORS[n.type] || NOTIF_COLORS.default;
   const handleClick = () => {
-    // Prefer the shared navigation handler (resolves sourceModel -> page,
-    // marks read, and navigates) — falls back to just marking read if
-    // for some reason that handler wasn't passed down.
     if (onOpenNotification) {
       onOpenNotification(n);
     } else if (onMarkRead) {
@@ -163,28 +166,16 @@ const NotifItem = ({
   }} onMouseLeave={e => {
     e.currentTarget.style.background = n.read ? COLORS.white : '#FFFBF5';
   }} className="ap-header-13">
-      {/* Icon */}
-      <div style={{
-      background: cfg.bg,
-      border: `1.5px solid ${cfg.color}30`
-    }} className="ap-header-14">
+      <div style={{ background: cfg.bg, border: `1.5px solid ${cfg.color}30` }} className="ap-header-14">
         {n.icon}
       </div>
-
-      {/* Content */}
       <div className="ap-header-15">
-        <div style={{
-        fontWeight: n.read ? "600" : "800"
-      }} className="ap-header-16">
+        <div style={{ fontWeight: n.read ? "600" : "800" }} className="ap-header-16">
           {n.title}
         </div>
-        <div className="ap-header-17">
-          {n.body}
-        </div>
+        <div className="ap-header-17">{n.body}</div>
         <div className="ap-header-18">{n.time}</div>
       </div>
-
-      {/* Unread dot */}
       {!n.read && <div className="ap-header-19" />}
     </div>;
 };
@@ -194,7 +185,6 @@ const Header = ({
   page,
   openJob,
   TITLES,
-  // time,
   clockProps,
   urgentCount,
   overdueInv,
@@ -202,9 +192,6 @@ const Header = ({
   setPage,
   setSidebarOpen,
   onLogout,
-  // ── Shared notification state/handlers, now lifted up to App.jsx ──────────
-  // `notifs` is the SAME array NotificationsPage renders — no more duplicate
-  // local state here, so the bell and the full page always agree.
   notifs = [],
   onMarkRead,
   onMarkAllRead,
@@ -224,7 +211,21 @@ const Header = ({
   } = clockProps || {};
   const [clockDropOpen, setClockDropOpen] = useState(false);
   const [notifDropOpen, setNotifDropOpen] = useState(false);
+  const [userDropOpen, setUserDropOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+
+  // ── Logged-in user (for the header avatar/dropdown) — syncs when avatar
+  //    changes elsewhere (e.g. ProfilePage dispatches "user-updated") ────────
+  const [currentUser, setCurrentUser] = useState(readUser);
+  const userName = currentUser.name || "Admin";
+  const userRole = currentUser.role || "admin";
+  const userAvatar = currentUser.avatar || "";
+  const userInitials = userName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "AD";
+  useEffect(() => {
+    const handler = () => setCurrentUser(readUser());
+    window.addEventListener("user-updated", handler);
+    return () => window.removeEventListener("user-updated", handler);
+  }, []);
 
 const computeStatus = () => {
   const hasToken = typeof localStorage !== 'undefined' && !!localStorage.getItem('admin_token');
@@ -236,8 +237,6 @@ useEffect(() => {
   const update = () => setIsOnline(computeStatus());
   window.addEventListener('online', update);
   window.addEventListener('offline', update);
-  // catches token being cleared — either from another tab (storage event) or
-  // from a same-tab logout via the custom 'authchange' event below
   window.addEventListener('storage', update);
   window.addEventListener('authchange', update);
   return () => {
@@ -278,14 +277,10 @@ useEffect(() => {
   const doClockOut = () => {
     const t = new Date();
     const inStr = clockInTime ? clockInTime.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+      hour: '2-digit', minute: '2-digit', hour12: true
     }) : '—';
     const outStr = t.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+      hour: '2-digit', minute: '2-digit', hour12: true
     });
     if (setClockSessions) {
       setClockSessions(prev => [{
@@ -307,30 +302,22 @@ useEffect(() => {
     setClockDropOpen(false);
   };
 
-  // Clock button appearance
   const clockBg = {
-    in: {
-      bg: '#ECFDF5',
-      color: '#16A34A',
-      label: 'Clocked In'
-    },
-    break: {
-      bg: '#FFFBEB',
-      color: '#D97706',
-      label: 'On Break'
-    },
-    out: {
-      bg: `linear-gradient(135deg,${COLORS.brand},${COLORS.brandD})`,
-      color: '#fff',
-      label: 'Clock In'
-    }
+    in: { bg: '#ECFDF5', color: '#16A34A', label: 'Clocked In' },
+    break: { bg: '#FFFBEB', color: '#D97706', label: 'On Break' },
+    out: { bg: `linear-gradient(135deg,${COLORS.brand},${COLORS.brandD})`, color: '#fff', label: 'Clock In' }
   }[clockStatus || 'out'];
+
+  const closeAllDropdowns = () => {
+    setClockDropOpen(false);
+    setNotifDropOpen(false);
+    setUserDropOpen(false);
+  };
+
   return <header className="header">
 
       {/* ── Left: breadcrumb ────────────────────────────────────── */}
       <div className="header-left">
-        {/* Persistent sidebar-toggle icon — visible on all screen sizes */}
-        
         <button
     className="header-hamburger-btn"
     onClick={() => setSidebarOpen(o => !o)}
@@ -357,9 +344,7 @@ useEffect(() => {
 
         {/* Live clock */}
         <div className="clock-display">
-          {time.toLocaleTimeString('en-IN', {
-          hour12: true
-        })}
+          {time.toLocaleTimeString('en-IN', { hour12: true })}
         </div>
 
         {/* ── Clock In/Out button ── */}
@@ -371,6 +356,7 @@ useEffect(() => {
         }} onClick={() => {
           setClockDropOpen(o => !o);
           setNotifDropOpen(false);
+          setUserDropOpen(false);
         }}>
             <span style={{
             background: clockStatus === 'out' ? '#fff' : clockBg.color,
@@ -389,9 +375,7 @@ useEffect(() => {
                   <div className="ap-header-28">ADMIN — TODAY</div>
                   <div className="ap-header-29">
                     {clockStatus === 'out' ? 'Not clocked in yet' : `Since ${clockInTime?.toLocaleTimeString('en-IN', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
+                  hour: '2-digit', minute: '2-digit', hour12: true
                 })}`}
                   </div>
                 </div>
@@ -422,15 +406,9 @@ useEffect(() => {
             </>}
         </div>
 
-        {/* ── Online/Offline status badge (replaces old "Live" indicator) ── */}
-        <div className="live-badge" style={!isOnline ? {
-        background: '#FEF2F2',
-        color: '#DC2626'
-      } : undefined}>
-          <span className={isOnline ? 'live-dot animate-blink' : 'live-dot'} style={!isOnline ? {
-          background: '#DC2626',
-          animation: 'none'
-        } : undefined} />
+        {/* ── Online/Offline status badge ── */}
+        <div className="live-badge" style={!isOnline ? { background: '#FEF2F2', color: '#DC2626' } : undefined}>
+          <span className={isOnline ? 'live-dot animate-blink' : 'live-dot'} style={!isOnline ? { background: '#DC2626', animation: 'none' } : undefined} />
           <span className="live-text">{isOnline ? 'Online' : 'Offline'}</span>
         </div>
 
@@ -439,6 +417,7 @@ useEffect(() => {
           <button className="btn-icon" onClick={() => {
           setNotifDropOpen(o => !o);
           setClockDropOpen(false);
+          setUserDropOpen(false);
         }}>
             <Bell size={17} color={COLORS.muted} strokeWidth={2} />
           </button>
@@ -447,44 +426,111 @@ useEffect(() => {
           {notifDropOpen && <NotifDropdown notifs={notifs} onMarkRead={onMarkRead} onMarkAllRead={onMarkAllRead} onOpenNotification={onOpenNotification} onViewAll={() => setPage('notifications')} onClose={() => setNotifDropOpen(false)} />}
         </div>
 
-        {/* Settings */}
-<button className="btn-icon" onClick={() => setPage('settings')}>⚙</button>
+        {/* Settings (app/company settings) */}
+        <button className="btn-icon hdr-settings-desktop" onClick={() => setPage('settings')}>⚙</button>
 
-<button onClick={() => setIsDark(d => !d)} className="icon-btn" title="Toggle dark mode">
-  {isDark ? '☀️' : '🌙'}
-</button>
+        {/* Dark mode toggle — desktop only, mobile version lives inside the user dropdown */}
+        <button
+          onClick={() => setIsDark(d => !d)}
+          className="icon-btn hdr-darkmode-desktop"
+          title="Toggle dark mode"
+        >
+          {isDark ? '☀️' : '🌙'}
+        </button>
 
-{/* Logout */}
-<button className="btn-logout" onClick={onLogout}>
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-  <span className="ap-header-36">Logout</span>
-  <span className="breadcrumb-root ap-header-37">Logout</span>
-</button>
+        {/* ── User avatar + dropdown: Profile / Account Settings / Attendance / Dark mode / Logout ── */}
+        <div className="hdr-user-wrap">
+          <button
+            className="hdr-user-btn"
+            onClick={() => {
+              setUserDropOpen(o => !o);
+              setNotifDropOpen(false);
+              setClockDropOpen(false);
+            }}
+            aria-label="User menu"
+          >
+            <UserAvatar avatar={userAvatar} initials={userInitials} size={30} />
+          </button>
+
+          {userDropOpen && <>
+            <div onClick={() => setUserDropOpen(false)} className="hdr-user-backdrop" />
+            <div className="hdr-user-dropdown">
+              <button
+                onClick={() => setUserDropOpen(false)}
+                aria-label="Close user menu"
+                className="hdr-user-close-btn"
+              >
+                ✕
+              </button>
+
+              <div className="hdr-user-header">
+                <UserAvatar avatar={userAvatar} initials={userInitials} size={38} />
+                <div className="hdr-user-header-text">
+                  <div className="hdr-user-name">{userName}</div>
+                  <div className="hdr-user-role">{userRole} · CoolTech</div>
+                </div>
+                {/* <span className={`status-dot ${clockStatus}`} /> */}
+              </div>
+
+              <div className="hdr-user-divider" />
+
+              <button className="hdr-user-item" onClick={() => { setPage('profile'); setUserDropOpen(false); }}>
+                <User size={14} /><span>My Profile</span>
+              </button>
+              <button className="hdr-user-item" onClick={() => { setPage('account_settings'); setUserDropOpen(false); }}>
+                <SettingsIcon size={14} /><span>Account Settings</span>
+              </button>
+              <button className="hdr-user-item" onClick={() => { setPage('clock'); setUserDropOpen(false); }}>
+                <ClockIcon size={14} /><span>My Attendance</span>
+              </button>
+
+              <div className="hdr-user-divider" />
+
+              <div className="hdr-user-status-row">
+                <span className={`status-dot ${clockStatus}`} />
+                <span className="hdr-user-status-label">
+                  {clockStatus === 'in' ? 'Currently clocked in' : clockStatus === 'break' ? 'On break' : 'Not clocked in'}
+                </span>
+              </div>
+
+              <div className="hdr-user-divider hdr-settings-mobile" />
+
+              <button
+                className="hdr-user-item hdr-settings-mobile"
+                onClick={() => { setPage('settings'); setUserDropOpen(false); }}
+              >
+                <span className="hdr-user-item-icon">⚙</span>
+                <span>Settings</span>
+              </button>
+
+              <div className="hdr-user-divider hdr-darkmode-mobile" />
+
+              <div className="hdr-user-divider hdr-darkmode-mobile" />
+
+              <button className="hdr-user-item hdr-darkmode-mobile" onClick={() => setIsDark(d => !d)}>
+                <span className="hdr-user-item-icon">{isDark ? '☀️' : '🌙'}</span>
+                <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+
+              <div className="hdr-user-divider hdr-darkmode-mobile" />
+
+              <button className="hdr-user-item hdr-user-item-danger" onClick={() => { onLogout?.(); setUserDropOpen(false); }}>
+                <LogOut size={14} /><span>Logout</span>
+              </button>
+            </div>
+          </>}
+        </div>
       </div>
     </header>;
 };
 
 // ─── Clock Dropdown Button ────────────────────────────────────────────────────
-const ClockDropBtn = ({
-  icon,
-  label,
-  color,
-  bg,
-  onClick
-}) => <button onClick={onClick} onMouseEnter={e => {
+const ClockDropBtn = ({ icon, label, color, bg, onClick }) => <button onClick={onClick} onMouseEnter={e => {
   e.currentTarget.style.background = bg;
 }} onMouseLeave={e => {
   e.currentTarget.style.background = 'transparent';
 }} className="ap-header-38">
-    <span style={{
-    color
-  }} className="ap-header-39">{icon}</span>
-    <span style={{
-    color
-  }} className="ap-header-40">{label}</span>
+    <span style={{ color }} className="ap-header-39">{icon}</span>
+    <span style={{ color }} className="ap-header-40">{label}</span>
   </button>;
 export default Header;
