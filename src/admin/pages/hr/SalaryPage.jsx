@@ -10,6 +10,7 @@ import FilterSelect from '../../components/ui/FilterSelect';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import ActionDropdown from '../../components/ui/ActionDropdown';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -199,7 +200,7 @@ const PayslipModal = ({
 
         <div className="ap-salary-page-18">
           <div className="ap-salary-page-19">
-            {[['Employee', run.techName], ['Role', tech.role || '—'], ['Emp ID', tech.techId || '—'], ['Bank', tech.bankAccount || '—'], ['Days Worked', run.totalDays != null ? `${run.presentDays ?? '—'} / ${run.totalDays}` : '—'], ['Absent Days', run.absentDays ?? 0], ['Payment Date', run.status === 'paid' ? new Date(run.updatedAt).toLocaleDateString('en-IN') : '—'], ['Status', <StatusBadge status={run.status} key="s" />]].map(([k, v]) => <div key={k} className="ap-salary-page-20">
+            {[['Employee', run.techName], ['Role', tech.role || '—'], ['Emp ID', tech.techId || '—'], ['Bank', tech.bankAccount || '—'], ['Days Worked', run.totalDays != null ? `${run.presentDays ?? '—'} / ${run.totalDays}` : '—'], ['Absent Days', run.absentDays ?? 0], ['Payment Date', run.status === 'paid' ?fmtDateDMY(new Date(run.updatedAt)) : '—'], ['Status', <StatusBadge status={run.status} key="s" />]].map(([k, v]) => <div key={k} className="ap-salary-page-20">
                 <span className="ap-salary-page-21">{k}</span>
                 <span className="ap-salary-page-22">{v}</span>
               </div>)}
@@ -470,7 +471,7 @@ const SalaryPage = ({
       daysWorked: r.presentDays,
       totalDays: r.totalDays,
       absentDays: r.absentDays ?? 0,
-      payDate: r.status === 'paid' ? new Date(r.updatedAt).toLocaleDateString('en-IN') : '—'
+      payDate: r.status === 'paid' ?fmtDateDMY(new Date(r.updatedAt)) : '—'
     };
   }), [runs]);
 

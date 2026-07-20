@@ -15,6 +15,7 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { PAY_STATUS } from '../../data/mockData';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Mock SO data (used to seed CustomerSOList while API isn't ready) ─────────
 // FIX #3: was `const [] = [...]` which silently discarded all data
@@ -443,8 +444,8 @@ const PODetail = ({
                 </div>
               </div>
 
-              <div className="table-wrap">
-                <table className="data-table po-items-table">
+              <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+  <table className="data-table po-items-table" style={{ minWidth: 480 }}>
                   <thead>
                     <tr>
                       {['Item', 'Qty', 'Rate', 'Total'].map(h => <th key={h} className={h === 'Item' ? '' : 'po-th-center'}>{h}</th>)}
@@ -666,11 +667,7 @@ const AdminPOList = ({
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [initialEdit, setInitialEdit] = useState(false);
   const normalisePO = p => {
-    const fmt = d => d ? new Date(d).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }) : '';
+    const fmt = d => d ?fmtDateDMY(new Date(d)) : '';
     const sub = p.subtotal ?? p.amount ?? 0;
     return {
       ...p,
@@ -841,11 +838,7 @@ const CustomerSOList = ({
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [initialEdit, setInitialEdit] = useState(false);
   const normaliseSO = o => {
-    const fmt = d => d ? new Date(d).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }) : '';
+    const fmt = d => d ?fmtDateDMY(new Date(d)) : '';
     const sub = o.subtotal ?? o.amount ?? 0;
     return {
       ...o,

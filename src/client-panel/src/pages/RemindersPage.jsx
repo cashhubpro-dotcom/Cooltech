@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { clientRemindersApi } from '../services/clientPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 /* ────────────────────────────────────────────────────────────────────────
    DESIGN TOKENS — same palette used across the client portal (Jobs page)
@@ -191,11 +192,7 @@ const normaliseReminder = r => ({
   // 'pending' | 'done' | 'snoozed' — real stored value
   urgency: r.urgency || null,
   // 'overdue' | 'due_soon' | 'upcoming' | null — computed server-side
-  dueDate: r.dueDate ? new Date(r.dueDate).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }) : ''
+  dueDate: r.dueDate ?fmtDateDMY(new Date(r.dueDate)) : ''
 });
 const SBadge = ({
   reminder

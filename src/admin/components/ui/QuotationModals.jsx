@@ -104,8 +104,8 @@ export const UpdateStatusModal = ({
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          ...(localStorage.getItem('token') ? {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+          ...(localStorage.getItem('admin_token') ? {
+            Authorization: `Bearer ${localStorage.getItem('admin_token')}`
           } : {})
         },
         body: JSON.stringify({
@@ -207,8 +207,8 @@ export const SendEmailModal = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(localStorage.getItem('token') ? {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+          ...(localStorage.getItem('admin_token') ? {
+            Authorization: `Bearer ${localStorage.getItem('admin_token')}`
           } : {})
         },
         body: JSON.stringify(form)
@@ -325,8 +325,8 @@ export const ConvertToJobModal = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(localStorage.getItem('token') ? {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+          ...(localStorage.getItem('admin_token') ? {
+            Authorization: `Bearer ${localStorage.getItem('admin_token')}`
           } : {})
         }
       });

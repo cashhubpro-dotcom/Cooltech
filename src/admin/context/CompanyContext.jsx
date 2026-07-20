@@ -31,7 +31,7 @@ export function CompanyProvider({ children }) {
   // exists, gets a 401, and — combined with the old aggressive 401
   // handler in api.js — caused an infinite reload loop on the login page.
   const loadSettings = useCallback(async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('admin_token');
     if (!token) {
       setLoading(false);
       return;

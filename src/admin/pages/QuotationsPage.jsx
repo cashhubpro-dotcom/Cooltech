@@ -21,6 +21,7 @@ import MagicImportPanel from '../components/layout/MagicImportPanel';
 import { UpdateStatusModal, SendEmailModal, ConvertToJobModal } from '../components/ui/QuotationModals';
 import logoImg from '../assets/logo.png';
 import signatureImg from '../assets/signature.png';
+import { fmtDateDMY } from '../../shared/formatDate';
 const VENDOR = {
   company: "Alisha Engineering",
   address: "L.I.G-II -164 G.I.D.C HOUSING BOARD NEAR CHHOTALAL CHAR RASTA BESIDE SWAMINARAYAN MANDIR ODAHAV AHMEDABAD-382415",
@@ -697,12 +698,8 @@ const QuotationsPage = ({
     subtotal: q.subtotal ?? 0,
     gst: q.gst ?? 0,
     total: q.total ?? 0,
-    validTill: q.validUntil ? new Date(q.validUntil).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }) : q.validTill || '—',
-    created: q.createdAt ? new Date(q.createdAt).toLocaleDateString('en-GB') : q.created || '',
+    validTill: q.validUntil ?fmtDateDMY(new Date(q.validUntil)) : q.validTill || '—',
+    created: q.createdAt ?fmtDateDMY(new Date(q.createdAt)) : q.created || '',
     valid: q.validUntil ? new Date(q.validUntil).toISOString().split('T')[0] : q.valid || '',
     template: q.template || 'alisha',
     taxPercent: q.taxPercent ?? '',

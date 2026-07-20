@@ -178,7 +178,7 @@ const modalBox = {
   background: COLORS.white,
   borderRadius: 16,
   padding: 28,
-  width: 440,
+  width: 'min(440px, calc(100vw - 32px))',
   boxShadow: '0 20px 60px rgba(0,0,0,.25)'
 };
 
@@ -636,7 +636,7 @@ const CampaignDetail = ({
     onBack();
   };
   return <>
-      <EditableDetailView id={camp.id} breadcrumb='Campaigns' onBack={onBack} fields={fields} data={camp} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(camp.id)}>
+      <EditableDetailView id={camp.displayId || camp.id} breadcrumb='Campaigns' onBack={onBack} fields={fields} data={camp} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(camp.id)}>
         {({
         editMode,
         editData,
@@ -776,7 +776,7 @@ const CampaignDetail = ({
       {showBudget && <EditBudgetModal camp={camp} onClose={() => setShowBudget(false)} onConfirm={handleBudget} />}
       {showDuplicate && <DuplicateCampaignModal camp={camp} onClose={() => setShowDuplicate(false)} onConfirm={handleDuplicate} />}
 
-      <PDFPreview open={showPDF} onClose={() => setShowPDF(false)} title={`${camp.name} Report`} filename={`campaign-report-${camp.id}`} template='campaign_report' data={camp} />
+      <PDFPreview open={showPDF} onClose={() => setShowPDF(false)} title={`${camp.name} Report`} filename={`campaign-report-${camp.displayId || camp.id}`} template='campaign_report' data={camp} />
     </>;
 };
 

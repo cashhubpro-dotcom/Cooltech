@@ -7,6 +7,7 @@ import { SBadge } from '../components/ui/Components';
 import { RequestsDonut, RequestTrendChart, StarRating, KpiSparkline, BannerCityscape, TechnicianAvatar } from '../components/DashboardCharts';
 import { usePortalData } from '../context/PortalDataContext';
 import { clientDashboardApi } from '../services/clientPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 const TREND_PERIODS = [{
   value: 'this_month',
   label: 'This Month'
@@ -17,11 +18,7 @@ const TREND_PERIODS = [{
   value: 'this_year',
   label: 'This Year'
 }];
-const fmtDate = d => d ? new Date(d).toLocaleDateString('en-IN', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric'
-}) : '—';
+const fmtDate = d => d ?fmtDateDMY(new Date(d)) : '—';
 const fmtDateTime = d => d ? new Date(d).toLocaleString('en-IN', {
   day: 'numeric',
   month: 'short',
@@ -40,9 +37,7 @@ const formatTrendLabels = (trendPeriod, days) => {
   if (trendPeriod === 'this_year') return days;
   const now = new Date();
   const monthDate = trendPeriod === 'last_month' ? new Date(now.getFullYear(), now.getMonth() - 1, 1) : new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthAbbr = monthDate.toLocaleDateString('en-IN', {
-    month: 'short'
-  });
+  const monthAbbr =fmtDateDMY(monthDate);
   return days.map(d => `${d} ${monthAbbr}`);
 };
 
@@ -232,12 +227,7 @@ const Dashboard = () => {
           <div className="cp-dashboard-16">
             <Calendar size={13} color="#818CF8" />
             <span className="cp-dashboard-17">
-              {new Date().toLocaleDateString('en-IN', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            })}
+              {fmtDateDMY(new Date())}
             </span>
           </div>
           <div className="cp-dashboard-18">

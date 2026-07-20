@@ -682,7 +682,7 @@ export const BackupTab = () => {
   const handleExportFmt = async fmt => {
     setExporting(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('admin_token');
       const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       const res = await fetch(`${BASE}/settings/backup/export?format=${fmt}`, {
         headers: token ? {

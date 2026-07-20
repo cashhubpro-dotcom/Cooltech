@@ -27,9 +27,11 @@ export function useAdCampaigns() {
     setError(null);
     try {
       const data = await apiFetch('/');
-      // normalise: expose _id as id so UI stays consistent
+      // normalise: expose _id as id so UI stays consistent; displayId is a
+      // human-readable label for anywhere the campaign is shown to a user
+      // (there's no dedicated campaignId field on the backend model)
       setCampaigns(
-        (Array.isArray(data) ? data : []).map(c => ({ ...c, id: c._id }))
+        (Array.isArray(data) ? data : []).map(c => ({ ...c, id: c._id, displayId: 'CAMP-' + String(c._id).slice(-6).toUpperCase() }))
       );
     } catch (err) {
       setError(err.message);
@@ -42,13 +44,13 @@ export function useAdCampaigns() {
 
   const createCampaign = async (payload) => {
     const created = await apiFetch('/', { method: 'POST', body: JSON.stringify(payload) });
-    setCampaigns(prev => [{ ...created, id: created._id }, ...prev]);
+    setCampaigns(prev => [{ ...created, id: created._id, displayId: 'CAMP-' + String(created._id).slice(-6).toUpperCase() }, ...prev]);
     return created;
   };
 
   const updateCampaign = async (id, payload) => {
     const updated = await apiFetch(`/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-    setCampaigns(prev => prev.map(c => c.id === id ? { ...updated, id: updated._id } : c));
+    setCampaigns(prev => prev.map(c => c.id === id ? { ...updated, id: updated._id, displayId: 'CAMP-' + String(updated._id).slice(-6).toUpperCase() } : c));
     return updated;
   };
 

@@ -6,6 +6,7 @@ import FilterSelect from '../../components/ui/FilterSelect';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { contentLibraryApi } from '../../services/api';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Toast system (lightweight, no extra deps) ─────────────────────────────────
 // FIX: replaces window.alert() calls with a dismissible inline toast.
@@ -227,7 +228,7 @@ const DetailModal = ({
 
           <div className="ap-content-library-page-28">
             <span>Used {asset.used}× total</span>
-            {asset.createdAt && <span>Added {new Date(asset.createdAt).toLocaleDateString('en-IN')}</span>}
+            {asset.createdAt && <span>Added {fmtDateDMY(new Date(asset.createdAt))}</span>}
           </div>
 
           <div className="ap-content-library-page-29">

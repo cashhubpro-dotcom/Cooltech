@@ -21,6 +21,7 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { REMINDER_STATUS } from '../../data/mockData';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Urgency is computed from dueDate, never trusted from stored workflow
 // status (which is pending/done/snoozed) — mirrors the same logic used on
@@ -32,7 +33,7 @@ const computeUrgency = (dueDate) => {
   if (diffDays <= 14) return 'due_soon';
   return 'upcoming';
 };
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+const fmtDate = (d) => d ?fmtDateDMY(new Date(d)) : '';
 
 // ─── Normalize a reminder record from either API or mock shape ────────────────
 // API returns populated references as full objects; mock uses plain strings.

@@ -4,6 +4,7 @@ import { useLeadSources } from '../../hooks/useLeadSources';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { SectionHdr } from '../../components/ui/Cards';
 import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Breakpoint Hook ──────────────────────────────────────────────────────────
 function useBreakpoint() {
@@ -245,11 +246,7 @@ const LeadSourcesPage = ({
 
                       {/* Added — hidden on mobile */}
                       {showAddedCol && <td className="ap-lead-sources-page-38">
-                          {new Date().toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                  })}
+                          {fmtDateDMY(new Date())}
                         </td>}
 
                       {/* Delete */}

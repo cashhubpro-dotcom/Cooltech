@@ -6,6 +6,7 @@ import TableSearchBar from '../../components/ui/TableSearchBar';
 import FilterSelect from '../../components/ui/FilterSelect';
 import Pagination from '../../components/ui/Pagination';
 import { partRequestsApi } from '../../services/api';
+import { fmtDateDMY } from '../../../shared/formatDate';
 const STATUS_MAP = {
   pending: {
     label: 'Pending',
@@ -29,11 +30,7 @@ const STATUS_MAP = {
 const fmtDate = val => {
   if (!val) return '—';
   const d = new Date(val);
-  return isNaN(d) ? String(val) : d.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  return isNaN(d) ? String(val) :fmtDateDMY(d);
 };
 
 // ── normalizeRequest — guarantees every display field is defined, resolves
@@ -136,7 +133,7 @@ const PartsRequestsPage = () => {
       setBusyId(null);
     }
   };
-  return <div>
+  return <div className="pr-page">
       <div className="sec-hdr">
         <div>
           <div className="sec-title">Parts Requests</div>

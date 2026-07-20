@@ -9,6 +9,7 @@ import { clientQuotationsApi } from '../services/clientPortalApi';
 ──────────────────────────────────────────────────────────────────────── */
 import logoImg from '../assets/logo.png';
 import signatureImg from '../assets/signature.png';
+import { fmtDateDMY } from '../../../shared/formatDate';
 const Logo = () => <img src={logoImg} alt="Alisha Engineering" className="cp-quotations-page-1" />;
 const Signature = () => <img src={signatureImg} alt="Signature" className="cp-quotations-page-2" />;
 
@@ -102,7 +103,7 @@ const normaliseQuot = q => ({
   taxPercent: q.taxPercent ?? '',
   total: q.total ?? 0,
   status: q.status || 'sent',
-  created: q.createdAt ? new Date(q.createdAt).toLocaleDateString('en-GB') : q.created || '',
+  created: q.createdAt ?fmtDateDMY(new Date(q.createdAt)) : q.created || '',
   valid: q.validUntil ? new Date(q.validUntil).toISOString().split('T')[0] : q.valid || '',
   template: q.template || 'alisha',
   fields: Array.isArray(q.fields) ? q.fields : [],

@@ -23,6 +23,7 @@ import { addToDeleted } from '../../store/deletedStore';
 import logoImg from '../../assets/logo.png';
 import qrImg from '../../assets/qrcode.png';
 import signatureImg from '../../assets/signature.png';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 /* ─── Column config for export ───────────────────────────── */
 const INVOICE_COLUMNS = [{
@@ -220,11 +221,7 @@ const normaliseInvoice = inv => {
   const additionalCharges = Array.isArray(inv.additionalCharges) ? inv.additionalCharges : [];
 
   /* ── date / due ───────────────────────────────────────── */
-  const date = inv.date ?? (inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }) : '');
+  const date = inv.date ?? (inv.createdAt ?fmtDateDMY(new Date(inv.createdAt)) : '');
   const due = inv.due ?? inv.dueDate ?? '';
   return {
     ...inv,

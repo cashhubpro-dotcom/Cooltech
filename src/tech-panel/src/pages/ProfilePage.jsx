@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { COLORS, FONTS } from '../constants/token';
 import { Toast, ProgressBar } from '../components/ui/Components';
 import { technicianProfileApi, authApi } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [perf, setPerf] = useState(null);
@@ -187,10 +188,7 @@ const ProfilePage = () => {
                 value: t.area
               }, {
                 label: 'Joined',
-                value: t.joinDate ? new Date(t.joinDate).toLocaleDateString('en-IN', {
-                  month: 'short',
-                  year: 'numeric'
-                }) : '—'
+                value: t.joinDate ?fmtDateDMY(new Date(t.joinDate)) : '—'
               }].map(f => <div key={f.label}>
                       <div className="tp-profile-page-27">{f.label}</div>
                       <div className="tp-profile-page-28">{f.value}</div>

@@ -5,6 +5,7 @@ import { SectionHdr } from "../ui/Cards";
 import { Thead } from "../ui/Cards";
 import { Avatar } from "../ui/Badges";
 import * as api from "../../services/attendanceService";
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Clock Helpers ────────────────────────────────────────────────────────────
 function fmtClockDur(totalSecs) {
@@ -608,11 +609,7 @@ const ClockInOutPage = ({
       {tab === "today" && <div className="ap-clock-in-out-page-82">
           <div className="ap-clock-in-out-page-83">
             <div className="ap-clock-in-out-page-84">Today's Attendance Log</div>
-            <div className="ap-clock-in-out-page-85">{new Date().toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            year: "numeric"
-          })}</div>
+            <div className="ap-clock-in-out-page-85">{fmtDateDMY(new Date())}</div>
           </div>
           {loading ? <Spinner /> : <div className="ap-clock-in-out-page-86"><table className="ap-clock-in-out-page-87">
               <Thead cols={["Event", "Time", "Duration", "Status", "Notes"]} />

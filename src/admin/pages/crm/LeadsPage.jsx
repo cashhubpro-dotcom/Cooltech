@@ -16,6 +16,7 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { LEAD_ACTIVITIES } from '../../data/mockData';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Breakpoint Hook ──────────────────────────────────────────────────────────
 function useBreakpoint() {
@@ -510,7 +511,7 @@ const LeadDetail = ({
   // ── Handler: Won — create Job via dedicated endpoint ──────────────────────
   const handleWonConfirm = async form => {
     const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('admin_token');
     const response = await fetch(`${BASE}/leads/${lead._id}/convert-to-job`, {
       method: 'POST',
       headers: {
@@ -857,11 +858,7 @@ const LeadsPage = ({
     emails: l.emails ?? 0,
     visits: l.visits ?? 0,
     activities: Array.isArray(l.activities) ? l.activities : [],
-    lastContact: l.lastContact ? new Date(l.lastContact).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }) : '—'
+    lastContact: l.lastContact ?fmtDateDMY(new Date(l.lastContact)) : '—'
   });
 
   // ── Fetch leads from backend ───────────────────────────────────────────────

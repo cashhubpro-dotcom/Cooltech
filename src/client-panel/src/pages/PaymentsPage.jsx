@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { clientPaymentsApi } from '../services/clientPortalApi'; // adjust the relative path to match where you place this in your project
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 /* ────────────────────────────────────────────────────────────────────────
    DESIGN TOKENS — mirrors the admin panel's palette so the client portal
@@ -146,13 +147,7 @@ const HOW_TO_PAY = [{
   how: 'Issue a cheque in our company\u2019s name. Note that clearance takes a couple of business days.',
   steps: [`Cheque in favour of "${BANK_DETAILS.accountName}"`, 'Hand it to our team or courier it', 'Allow 2–3 business days for clearance', 'Invoice moves to Received after clearance']
 }];
-const formatDate = dateLike => {
-  if (!dateLike) return '—';
-  const d = new Date(dateLike);
-  if (isNaN(d.getTime())) return '—';
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-};
+const formatDate = dateLike => fmtDateDMY(dateLike);
 
 /* ── Maps a raw Payment doc from GET /api/client/payments into the exact
    shape this UI renders — keeps the JSX below free of backend field names */

@@ -2,6 +2,7 @@ import { clientContractsApi, clientTicketsApi } from '../services/clientPortalAp
 import { useState, useEffect, useMemo } from "react";
 import { COLORS, FONTS } from "../constants/tokens";
 import { Modal, Toast } from "../components/ui/Components";
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // Matches your real Contract.status enum — no 'terminated', has 'cancelled'.
 // 'draft' is intentionally omitted — the backend never returns those to a client.
@@ -107,7 +108,7 @@ const ContractDetail = ({
 
           <SectionTitle>Contract Details</SectionTitle>
           <div className="cp-contracts-page-22">
-            {[["Start Date", contract.startDate ? new Date(contract.startDate).toLocaleDateString("en-IN") : "—"], ["End Date", contract.endDate ? new Date(contract.endDate).toLocaleDateString("en-IN") : contract.noDueDate ? "No end date" : "—"], ["Auto-Renew", contract.autoRenew ? "Yes" : "No"], ["Clauses", contract.clauses ? `${contract.clauses} clauses` : "—"], ["Linked AMC", contract.linkedAMC || "—"], ["Payment Terms", contract.paymentTerms || "—"]].map(([k, v]) => <div key={k}><FieldLabel>{k}</FieldLabel><FieldValue>{v}</FieldValue></div>)}
+            {[["Start Date", contract.startDate ?fmtDateDMY(new Date(contract.startDate)) : "—"], ["End Date", contract.endDate ?fmtDateDMY(new Date(contract.endDate)) : contract.noDueDate ? "No end date" : "—"], ["Auto-Renew", contract.autoRenew ? "Yes" : "No"], ["Clauses", contract.clauses ? `${contract.clauses} clauses` : "—"], ["Linked AMC", contract.linkedAMC || "—"], ["Payment Terms", contract.paymentTerms || "—"]].map(([k, v]) => <div key={k}><FieldLabel>{k}</FieldLabel><FieldValue>{v}</FieldValue></div>)}
           </div>
 
           <SectionTitle>AC Equipment Covered</SectionTitle>

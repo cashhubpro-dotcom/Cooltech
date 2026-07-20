@@ -5,6 +5,7 @@ import { SBadge, TypeTag, PBadge, SevBadge, Avatar, Divider } from '../../compon
 import { KCard, SectionHdr, BackBtn, Thead } from '../../components/ui/Cards';
 import { FRow, FInput, FSelect, FTextarea, FBtn } from '../../components/ui/Form';
 import { WA_TEMPLATES, SM_CHANNELS } from '../../data/mockData';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── WhatsAppPage ───────────────────────────────────────────────────────────────
 // NOTE: WA_TEMPLATES / SM_CHANNELS (broadcast templates, read-rate stats,
@@ -104,7 +105,7 @@ const WhatsAppPage = () => {
                 <td className="ap-whats-app-page-50"><TypeTag type={c.type} /></td>
                 <td className="ap-whats-app-page-51">{c.amc ? <span className="ap-whats-app-page-52">✅ AMC</span> : <span className="ap-whats-app-page-53">—</span>}</td>
                 <td className="ap-whats-app-page-54"><span className="ap-whats-app-page-55">✅ Opted In</span></td>
-                <td className="ap-whats-app-page-56">{c.lastService ? new Date(c.lastService).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                <td className="ap-whats-app-page-56">{c.lastService ?fmtDateDMY(new Date(c.lastService)) : '—'}</td>
                 <td className="ap-whats-app-page-57"><button className="btn ap-whats-app-page-58" onClick={() => setTab("broadcast")}>Message</button></td>
               </tr>)}</tbody>
           </table></div>

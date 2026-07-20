@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { clientJobsApi, clientTicketsApi } from '../services/clientPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 // ↑ adjust this relative path to wherever clientPortalApi.js actually lives
 //   in your client app's folder structure (e.g. './services/clientPortalApi').
 
@@ -267,11 +268,7 @@ const normaliseJob = j => ({
   ac: j.ac || '',
   issue: j.issue || '',
   address: j.address || '',
-  date: j.scheduledDate ? new Date(j.scheduledDate).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }) : '',
+  date: j.scheduledDate ?fmtDateDMY(new Date(j.scheduledDate)) : '',
   rawDate: j.scheduledDate ? new Date(j.scheduledDate).toISOString().slice(0, 10) : '',
   time: j.scheduledTime || '',
   tech: j.technician?.name || j.techName || 'Unassigned',
@@ -325,11 +322,7 @@ const NewJobModal = ({
       ...form,
       rawDate: form.date,
       // ISO yyyy-mm-dd — what the backend actually needs
-      date: new Date(form.date).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      })
+      date:fmtDateDMY(new Date(form.date))
     });
     setForm(EMPTY);
   };
@@ -506,11 +499,7 @@ const RescheduleModal = ({
   const submit = () => {
     if (!date) return setError('Please pick a new preferred date.');
     onConfirm({
-      date: new Date(date).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }),
+      date:fmtDateDMY(new Date(date)),
       time: time || job.time,
       reason
     });
@@ -1075,11 +1064,7 @@ export default function JobsPage() {
 
             {reschedulePending && <div className="cjp-modal-note cp-jobs-page-27">
                 ⏳ Reschedule requested for{' '}
-                {job.rescheduleRequest.requestedDate ? new Date(job.rescheduleRequest.requestedDate).toLocaleDateString('en-IN', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            }) : ''}
+                {job.rescheduleRequest.requestedDate ?fmtDateDMY(new Date(job.rescheduleRequest.requestedDate)) : ''}
                 {job.rescheduleRequest.requestedTime ? `, ${job.rescheduleRequest.requestedTime}` : ''} — awaiting confirmation.
               </div>}
 

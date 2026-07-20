@@ -5,6 +5,7 @@ import { TypeTag, Avatar, Divider } from '../components/ui/Badges';
 import { SectionHdr } from '../components/ui/Cards';
 import { FRow, FInput, FSelect, FTextarea } from '../components/ui/Form';
 import { feedbackApi, customersApi, jobsApi } from '../services/api';
+import { fmtDateDMY } from '../../shared/formatDate';
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 const Toast = ({
@@ -208,11 +209,7 @@ const FeedbackCard = ({
       setReplying(false);
     }
   };
-  const dateStr = fb.createdAt ? new Date(fb.createdAt).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }) : fb.date || '';
+  const dateStr = fb.createdAt ?fmtDateDMY(new Date(fb.createdAt)) : fb.date || '';
   return <div style={{
     border: `1px solid ${isNegative && !fb.resolved ? '#FECACA' : COLORS.border}`
   }} className="ap-feedback-page-11">

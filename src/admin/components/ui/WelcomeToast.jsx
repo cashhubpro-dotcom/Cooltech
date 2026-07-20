@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { fmtDateDMY } from '../../../shared/formatDate';
 const TOTAL_DURATION = 10000; // 10s
 const TICK_MS = 100;
 
@@ -114,12 +115,7 @@ const WelcomeToast = ({
     label: greetingLabel,
     icon: greetingIcon
   } = greetingFor(now);
-  const dateLabel = now.toLocaleDateString('en-IN', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+  const dateLabel =fmtDateDMY(now);
   const particles = useMemo(() => {
     const count = 7;
     return Array.from({

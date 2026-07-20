@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { SBadge, Modal, Toast } from '../components/ui/Components';
 import { ADVANCE_STATUS } from '../constants/statusMaps';
 import { technicianAdvancesApi } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 const emptyForm = {
   amount: '',
   reason: ''
@@ -17,11 +18,7 @@ const fmtDisplay = raw => {
   if (!raw) return '—';
   const d = new Date(raw);
   if (isNaN(d.getTime())) return String(raw);
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  return fmtDateDMY(d);
 };
 const RequestModal = ({
   open,

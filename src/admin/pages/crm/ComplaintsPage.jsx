@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { SBadge, TypeTag, PBadge, SevBadge, Avatar, Divider } from '../../components/ui/Badges';
 import { KCard, SectionHdr, BackBtn, Thead } from '../../components/ui/Cards';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Lightweight read-only detail modal ────────────────────────────────────
 const ViewComplaintModal = ({ comp, onClose }) => (
@@ -56,9 +57,7 @@ const normalizeComplaint = (c, idx) => ({
   job: c.jobRef || (typeof c.job === 'object' ? c.job?.jobId : null) || '—',
   description: c.description ?? c.desc ?? '',
   severity: c.severity ?? 'medium',
-  date: c.date ?? (c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  }) : ''),
+  date: c.date ?? (c.createdAt ?fmtDateDMY(new Date(c.createdAt)) : ''),
 });
 
 const ComplaintsPage = ({ openModal }) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { jobsApi, techsApi, customersApi } from '../../services/api';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Constants — matched exactly to Job model enums ───────────────────────────
 const priorityColor = {
@@ -55,10 +56,7 @@ const KanbanCard = ({
   const jid = job._id || job.id;
 
   // Format scheduled date nicely
-  const dateStr = job.scheduledDate ? new Date(job.scheduledDate).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short'
-  }) : '';
+  const dateStr = job.scheduledDate ?fmtDateDMY(new Date(job.scheduledDate)) : '';
   return <div className={`kb-card${isDragging ? ' kb-card--dragging' : ''}`} style={{
     borderLeftColor: pr
   }} draggable onDragStart={e => onDragStart(e, jid)} onDragEnd={onDragEnd}>

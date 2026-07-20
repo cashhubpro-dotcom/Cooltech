@@ -183,6 +183,25 @@
 }
 .client-portal-scope .header-left  { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
 .client-portal-scope .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* ── Header icon buttons (notification bell, dark-mode toggle) — sized to
+   match the 36px user-dropdown avatar button so the header row is visually
+   consistent ── */
+.client-portal-scope .icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .14s;
+}
+.client-portal-scope .icon-btn:hover { background: var(--bg); }
 .client-portal-scope .header-title { font-size: 15px; font-weight: 700; color: var(--text-h1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .client-portal-scope .header-sep   { color: var(--text-faint); font-size: 14px; }
 

@@ -374,6 +374,26 @@ body {
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
 }
 
+/* ── Header icon buttons (notification bell, dark-mode toggle) — sized to
+   match the 36px user-dropdown avatar button so the header row is visually
+   consistent ── */
+.tech-panel-scope .icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .14s;
+}
+.tech-panel-scope .icon-btn:hover { background: var(--bg); }
+
+
 /* ── Cards ────────────────────────────────────────────────────── */
 .tech-panel-scope .card {
   background: var(--white);

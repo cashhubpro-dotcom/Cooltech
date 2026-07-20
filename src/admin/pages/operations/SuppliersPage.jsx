@@ -14,6 +14,7 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { PO_STATUS } from '../../data/mockData';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Column config for export ─────────────────────────────────────────────────
 const SUPPLIER_COLUMNS = [{
@@ -104,7 +105,7 @@ const SupplierDetail = ({
   }];
   const supplierPOs = purchaseOrders.filter(p => p.supplier === sup.name);
   const supplierItems = inventory.filter(i => i.supplier === sup.name);
-  return <EditableDetailView id={sup.id} breadcrumb="Suppliers" onBack={onBack} fields={fields} data={sup} onSave={onSave} onDelete={() => onDelete(sup.id)}>
+  return <EditableDetailView id={sup.supplierId || sup.id} breadcrumb="Suppliers" onBack={onBack} fields={fields} data={sup} onSave={onSave} onDelete={() => onDelete(sup.id)}>
       {({
       editMode,
       editData,
@@ -158,7 +159,7 @@ const SupplierDetail = ({
                 <div className="sup-section-title">Purchase History</div>
                 {supplierPOs.length === 0 ? <div className="sup-empty">No orders found</div> : supplierPOs.map(po => <div key={po.id ?? po._id} className="sup-po-row">
                         <span className="td-brand">{po.poId ?? po.id}</span>
-                        <div className="sup-po-meta">{po.items?.length ?? 0} items · {po.orderedAt ? new Date(po.orderedAt).toLocaleDateString('en-IN') : po.orderDate ?? '—'}</div>
+                        <div className="sup-po-meta">{po.items?.length ?? 0} items · {po.orderedAt ?fmtDateDMY(new Date(po.orderedAt)) : po.orderDate ?? '—'}</div>
                         <SBadge s={po.status} map={PO_STATUS} />
                         <span className="td-amount">₹{(po.total ?? 0).toLocaleString()}</span>
                       </div>)}
@@ -404,7 +405,7 @@ const SuppliersPage = ({
                     <td>{s.paymentTerms ?? '—'}</td>
                     <td><span className="td-mono sup-orders-val">{s.totalOrders ?? 0}</span></td>
                     <td><span className="td-amount">₹{(s.totalValue ?? 0).toLocaleString()}</span></td>
-                    <td>{s.lastOrder ? new Date(s.lastOrder).toLocaleDateString('en-IN') : '—'}</td>
+                    <td>{s.lastOrder ?fmtDateDMY(new Date(s.lastOrder)) : '—'}</td>
                     <td><span className="sup-rating-val">{s.rating ?? 0}★</span></td>
                     <td>
                       <span className={`sup-status-badge${s.status === 'active' ? ' sup-status-badge--active' : ''}`}>

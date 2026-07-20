@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { COLORS, FONTS } from '../constants/token';
 import { Modal, Toast, SBadge } from '../components/ui/Components';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Fetch helper, scoped to the technician ('tech') panel session ──────────
 // NOTE: if your technician panel already has its own services/api.js (mirroring
@@ -62,11 +63,7 @@ const normalizeRequest = (r, idx) => ({
   qty: r.qty ?? 0,
   unit: r.unit || '',
   job: r.linkedJob || '',
-  date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }) : '—',
+  date: r.createdAt ?fmtDateDMY(new Date(r.createdAt)) : '—',
   urgent: Boolean(r.urgent),
   status: (r.status || 'pending').toLowerCase()
 });

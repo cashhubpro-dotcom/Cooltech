@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { projectsApi, customersApi } from '../../services/api';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { KCard, SectionHdr, BackBtn, Thead } from '../../components/ui/Cards';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // Matches the real Project schema's status enum exactly.
 const PROJ_STATUS_MAP = {
@@ -33,10 +34,7 @@ const PROJ_STATUS_MAP = {
 };
 const formatDate = d => {
   if (!d) return null;
-  return new Date(d).toLocaleDateString('en-IN', {
-    month: 'short',
-    day: 'numeric'
-  });
+  return fmtDateDMY(new Date(d));
 };
 const inputStyle = {
   width: '100%',

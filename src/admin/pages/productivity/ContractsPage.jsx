@@ -431,7 +431,7 @@ const openAudit = async () => {
   </div>
 );
   return <>
-      <EditableDetailView id={contract.id} breadcrumb="Contracts" onBack={onBack} fields={fields} data={contract} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(contract.id)}>
+      <EditableDetailView id={contract.contractId || contract.id} breadcrumb="Contracts" onBack={onBack} fields={fields} data={contract} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(contract.id)}>
         {({
         editMode,
         editData,
@@ -766,7 +766,7 @@ const openAudit = async () => {
       }}
       </EditableDetailView>
 
-      <PDFPreview open={showPDF} onClose={() => setShowPDF(false)} title={contract.id} filename={`contract-${contract.contractId}`} template="contract" data={contract} />
+      <PDFPreview open={showPDF} onClose={() => setShowPDF(false)} title={contract.contractId || contract.id} filename={`contract-${contract.contractId}`} template="contract" data={contract} />
     </>;
 };
 

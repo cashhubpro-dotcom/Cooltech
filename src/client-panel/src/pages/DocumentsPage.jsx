@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { COLORS } from '../constants/tokens';
 import { clientContractsApi, clientInvoicesApi, clientReportsApi, clientQuotationsApi } from '../services/clientPortalApi';
 import { Toast } from '../components/ui/Components';
+import { fmtDateDMY } from '../../../shared/formatDate';
 const DOC_TYPE_COLORS = {
   Contract: {
     bg: "var(--purple-bg)",
@@ -24,11 +25,7 @@ const DOC_TYPE_COLORS = {
     color: "var(--success-text)"
   }
 };
-const fmtDate = d => d ? new Date(d).toLocaleDateString('en-IN', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric'
-}) : '—';
+const fmtDate = d => d ?fmtDateDMY(new Date(d)) : '—';
 const DocumentsPage = () => {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');

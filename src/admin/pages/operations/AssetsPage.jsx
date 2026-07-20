@@ -12,16 +12,13 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── date helper ───────────────────────────────────────────────────────────────
 const fmtDate = d => {
   if (!d) return '—';
   try {
-    return new Date(d).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
+    return fmtDateDMY(new Date(d));
   } catch {
     return '—';
   }

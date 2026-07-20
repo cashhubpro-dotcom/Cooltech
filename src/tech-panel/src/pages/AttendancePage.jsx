@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 // same depth technicianPortalApi.js itself uses to reach services/api.js
 // (its own file uses '../../../services/api', three levels up).
 import { techAttendanceApi } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 /* ────────────────────────────────────────────────────────────────────────
    DESIGN TOKENS — unchanged from the design pass
@@ -224,12 +225,7 @@ const DutyBanner = ({
       emoji: '⏸'
     }
   }[clockStatus];
-  const dateLabel = TODAY.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  const dateLabel =fmtDateDMY(TODAY);
   return <div className={`tp-card tp-duty ${compact ? 'compact' : ''}`}>
       <div className="tp-duty-left">
         <div className="tp-duty-eyebrow">TODAY — {dateLabel}</div>
@@ -278,12 +274,7 @@ const DayDetailModal = ({
   onClose,
   onRequestCorrection
 }) => {
-  const label = new Date(year, month, day).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  const label =fmtDateDMY(new Date(year, month, day));
   const meta = rec?.status ? STATUS_META[rec.status] : null;
   const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   return <ModalShell onClose={onClose} label="Attendance day detail">
@@ -588,11 +579,7 @@ const ClockView = ({
       {tab === 'today' && <div className="tp-card">
           <div className="tp-card-header">
             <div className="tp-card-title">Today's Attendance Log</div>
-            <div className="tp-muted-sm">{TODAY.toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-          })}</div>
+            <div className="tp-muted-sm">{fmtDateDMY(TODAY)}</div>
           </div>
           <div className="tp-table-wrap">
             <table className="tp-table">
