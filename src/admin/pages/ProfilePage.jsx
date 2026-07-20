@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { COLORS, FONTS } from "../constants/tokens";
 import { User, Mail, Phone, MapPin, Shield, Clock, Briefcase, Camera, CheckCircle, Edit3, Save, X, Loader, Upload, Trash2 } from "lucide-react";
+import { fmtDateDMY } from '../../shared/formatDate';
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const token = () => localStorage.getItem("admin_token");
 
@@ -85,10 +86,7 @@ const formatTime = dateStr => {
   yesterday.setDate(now.getDate() - 1);
   if (date.toDateString() === now.toDateString()) return `Today, ${time}`;
   if (date.toDateString() === yesterday.toDateString()) return `Yesterday, ${time}`;
-  return date.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short"
-  }) + `, ${time}`;
+  return fmtDateDMY(date) + `, ${time}`;
 };
 
 // ─── Generate initials from name ──────────────────────────────────────────────

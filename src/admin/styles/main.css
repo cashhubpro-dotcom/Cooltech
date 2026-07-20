@@ -3812,6 +3812,17 @@ html {
   .modal-title  { font-size: 14px; }
 }
 
+/* ── Line-item tables inside modals (PO / Quotation) — scroll instead of stacking ── */
+@media (max-width: 639px) {
+  .line-items-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .line-items-scroll > * {
+    min-width: 560px;
+  }
+}
+
 /* ── Section header — stack on small screens ─────────────── */
 @media (max-width: 639px) {
   .section-hdr {
@@ -5765,4 +5776,596 @@ html {
 }
 @media (min-width: 640px) {
   .hdr-settings-mobile { display: none !important; }
+}
+
+/* ============================================================
+   ASSETS & VEHICLES PAGE — MOBILE FIX
+   ============================================================ */
+
+/* ── Root page wrapper: same ".fi" utility issue as other pages —
+   it can carry a fixed height / hidden overflow that's fine on
+   desktop but clips content on phones. Neutralize on mobile. ── */
+@media (max-width: 1023px) {
+  .ap-assets-page-21 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* ── KPI cards (Vehicles / Equipment / In Maintenance / Total Value) ──
+   Was a hard "repeat(4,1fr)" with no breakpoint at all, so on a
+   375px screen each card only got ~75px — text like "In Maintenance"
+   has no room to wrap, so its min-content width forces the grid
+   track wider than the column can give it (the same "min-width:auto"
+   blowout as the PO items table), pushing the row off-screen instead
+   of wrapping. Step down to 2 columns, then 1 on very narrow phones,
+   and add min-width:0 so cards are actually allowed to shrink. ── */
+@media (max-width: 767px) {
+  .ap-assets-page-22 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .ap-assets-page-22 > * {
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 380px) {
+  .ap-assets-page-22 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Vehicle cards grid ── same fixed repeat(3,1fr) problem: each
+   card holds an icon, status badge, a 2-column detail grid, a
+   service row, and two buttons — far too much content for a ~110px
+   column on mobile. Drop to 2 columns on tablets, 1 on phones. ── */
+@media (max-width: 1023px) {
+  .ap-assets-page-26 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 639px) {
+  .ap-assets-page-26 {
+    grid-template-columns: 1fr !important;
+  }
+}
+.ap-assets-page-27 {
+  min-width: 0; /* let card content wrap/shrink instead of blowing out the grid track */
+}
+
+/* ── Equipment toolbar: search + type filter + status filter + export ──
+   Already wraps, but on a narrow phone that leaves oddly-sized
+   floating pieces. Stack it into a clean full-width column. ── */
+@media (max-width: 767px) {
+  .ap-assets-page-51 {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .ap-assets-page-51 > * {
+    width: 100% !important;
+  }
+  .ap-assets-page-52 {
+    margin-left: 0 !important; /* was margin-left:auto for desktop right-alignment */
+  }
+}
+
+/* ── Equipment table: 9 columns is too many to squeeze onto a phone
+   without either scrolling or unreadable truncation. -53 already has
+   overflow-x:auto; give the table itself a min-width so columns keep
+   a readable size and scroll horizontally instead of squashing. ── */
+@media (max-width: 767px) {
+  .ap-assets-page-54 {
+    min-width: 760px;
+  }
+}
+
+/* ============================================================
+   WARRANTY TRACKER PAGE — MOBILE FIX
+   ============================================================ */
+
+/* ── Root page wrapper: same ".fi" utility as every other admin
+   page — neutralize its fixed height / hidden overflow on mobile. ── */
+@media (max-width: 1023px) {
+  .ap-warranty-page-61 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* ── KPI cards (Active / Expiring Soon / Expired / +2 more) ──
+   Hard "repeat(5,1fr)" with no breakpoint — on a 375px screen
+   that's ~60px per card, nowhere near enough for label + icon +
+   number + sub-text. Step down to 2 columns, then 1 on very
+   narrow phones. ── */
+@media (max-width: 767px) {
+  .ap-warranty-page-69 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .ap-warranty-page-69 > * {
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 380px) {
+  .ap-warranty-page-69 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Expiry Timeline + Brand/Type Distribution ──
+   Hard "1fr 1fr" with no breakpoint is exactly what's cutting off
+   "Brand Distribution" in your screenshot — each panel only gets
+   half the viewport, and the second panel gets pushed off-screen
+   rather than dropping below the first. Stack to one column. ── */
+@media (max-width: 900px) {
+  .ap-warranty-page-70 {
+    grid-template-columns: 1fr !important;
+  }
+}
+.ap-warranty-page-71,
+.ap-warranty-page-82 {
+  min-width: 0; /* let panel content shrink/wrap instead of forcing the grid track wide */
+}
+
+/* ── Full warranty table toolbar (search + filters + export) ──
+   already wraps via flex-wrap, but stack it cleanly on phones so
+   nothing floats at an odd width. ── */
+@media (max-width: 767px) {
+  .ap-warranty-page-103 {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .ap-warranty-page-103 > * {
+    width: 100% !important;
+  }
+  .ap-warranty-page-104 {
+    margin-left: 0 !important; /* was margin-left:auto for desktop right-alignment */
+  }
+}
+
+/* ── Full warranty table itself: -105 already has overflow-x:auto;
+   give the table a min-width so columns keep a readable size and
+   scroll horizontally instead of squashing on mobile. ── */
+@media (max-width: 767px) {
+  .ap-warranty-page-106 {
+    min-width: 700px;
+  }
+}
+
+/* ============================================================
+   WARRANTY DETAIL VIEW — MOBILE FIX
+   ============================================================ */
+
+/* ── Root detail wrapper: same ".fi" utility issue as the list page —
+   neutralize its fixed height / hidden overflow on mobile. ── */
+@media (max-width: 1023px) {
+  .ap-warranty-page-48 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* ── Tab bar: Overview / Coverage / Claims / Documents ──
+   No overflow handling at all, so on a 375px screen the last tab
+   (Documents) just gets pushed off-screen with no way to reach it.
+   Let it scroll horizontally instead of clipping. ── */
+@media (max-width: 767px) {
+  .ap-warranty-page-5 {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+  }
+  .ap-warranty-page-6 {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+/* ── Status header card: icon + title/subtitle + status pill ──
+   Let it wrap instead of forcing the pill against long unit/customer
+   names on a narrow screen. ── */
+@media (max-width: 639px) {
+  .ap-warranty-page-18 {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .ap-warranty-page-24 {
+    align-items: flex-start !important;
+  }
+}
+
+/* ── Field grids: Customer & Unit / Purchase & Installation /
+   Coverage / Claims — every one of these is a hard "repeat(3,1fr)"
+   with zero breakpoint. On a phone that's ~90px per field, so labels
+   like "AC UNIT DESCRIPTION" force the row wider than the viewport
+   and later columns (AC TYPE, BRAND, MODEL NO., SERIAL, etc.) get
+   pushed off-screen — exactly what's in your screenshot. ── */
+@media (max-width: 767px) {
+  .ap-warranty-page-27,
+  .ap-warranty-page-28,
+  .ap-warranty-page-29,
+  .ap-warranty-page-31,
+  .ap-warranty-page-33 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 479px) {
+  .ap-warranty-page-27,
+  .ap-warranty-page-28,
+  .ap-warranty-page-29,
+  .ap-warranty-page-31,
+  .ap-warranty-page-33 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Documents grid (Warranty Card / Purchase Invoice) ──
+   "1fr 1fr" with no breakpoint — stack on phones. ── */
+@media (max-width: 479px) {
+  .ap-warranty-page-42 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Breadcrumb + action buttons row (back arrow, Schedule AMC, Edit) ──
+   already flex + wraps visually in your screenshot, but pin it down
+   so it stacks cleanly instead of squeezing at in-between widths. ── */
+@media (max-width: 479px) {
+  .ap-warranty-page-49 {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .ap-warranty-page-54 {
+    width: 100%;
+  }
+  .ap-warranty-page-54 > * {
+    flex: 1;
+  }
+}
+
+/* ============================================================
+   GAS / F-GAS LOG PAGE — MOBILE FIX (list + detail views)
+   ============================================================ */
+
+/* ── Root wrappers: same ".fi" utility issue as every other admin
+   page — neutralize fixed height / hidden overflow on mobile. ── */
+@media (max-width: 1023px) {
+  .ap-gas-log-page-43,
+  .ap-gas-log-page-91 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* ── KPI cards (both Usage Log and Purchase Log tabs) ──
+   Hard "repeat(4,1fr)" with no breakpoint — on a 375px screen
+   that's the "Cylinders Used" card getting cut off, exactly like
+   your screenshot. Step to 2 cols on phones, 1 on very narrow. ── */
+@media (max-width: 767px) {
+  .ap-gas-log-page-95,
+  .ap-gas-log-page-96 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .ap-gas-log-page-95 > *,
+  .ap-gas-log-page-96 > * {
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 380px) {
+  .ap-gas-log-page-95,
+  .ap-gas-log-page-96 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Usage Log table (14 columns) and Purchase Log table (10 columns) ──
+   -104/-140 already have overflow-x:auto, but the tables themselves
+   have no min-width, so columns just get squashed illegibly instead
+   of scrolling. Give them a min-width so they scroll cleanly. ── */
+@media (max-width: 767px) {
+  .ap-gas-log-page-105 {
+    min-width: 1100px;
+  }
+  .ap-gas-log-page-141 {
+    min-width: 760px;
+  }
+}
+
+/* ── Toolbars: search + filters + export (both tabs) ──
+   already wrap, but stack them cleanly into a full-width column
+   on phones instead of leaving odd-width floating pieces. ── */
+@media (max-width: 767px) {
+  .ap-gas-log-page-102,
+  .ap-gas-log-page-137 {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .ap-gas-log-page-102 > *,
+  .ap-gas-log-page-137 > * {
+    width: 100% !important;
+  }
+  .ap-gas-log-page-103,
+  .ap-gas-log-page-139 {
+    margin-left: 0 !important; /* was margin-left:auto for desktop right-alignment */
+  }
+}
+
+/* ── Detail view: Job & Technician / Gas Usage / Compliance field grids ──
+   Hard "repeat(3,1fr)" with no breakpoint. On mobile, fields like
+   "Kg Remaining in Cylinder" or "Pressure Before (PSI)" need real
+   room — 2 cols on tablets, 1 col on phones. ── */
+@media (max-width: 767px) {
+  .ap-gas-log-page-29,
+  .ap-gas-log-page-30,
+  .ap-gas-log-page-32 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 479px) {
+  .ap-gas-log-page-29,
+  .ap-gas-log-page-30,
+  .ap-gas-log-page-32 {
+    grid-template-columns: 1fr !important;
+  }
+  .ap-gas-log-page-4{
+    padding: 9px 12px;
+  }
+}
+
+/* ── Detail status header: icon + title/subtitle + compliance badge ──
+   let it wrap instead of forcing the badge against long text. ── */
+@media (max-width: 639px) {
+  .ap-gas-log-page-19 {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .ap-gas-log-page-25 {
+    align-items: flex-start !important;
+  }
+}
+
+/* ============================================================
+   TASK MANAGER PAGE — MOBILE FIX
+   ============================================================ */
+
+/* ── Root wrapper: same ".fi" utility issue as every other admin
+   page — neutralize fixed height / hidden overflow on mobile. ── */
+@media (max-width: 1023px) {
+  .ap-task-manager-page-122 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* ── KPI cards (To Do / In Progress / Done / Urgent) ──
+   Hard "repeat(4,1fr)" with no breakpoint — "Urgent" gets pushed
+   off-screen on a 375px phone, exactly like your screenshot.
+   Step to 2 cols on phones, 1 on very narrow. ── */
+@media (max-width: 767px) {
+  .ap-task-manager-page-129 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .ap-task-manager-page-129 > * {
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 380px) {
+  .ap-task-manager-page-129 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Kanban board (To Do / In Progress / Done columns) ──
+   Hard "1fr 1fr 1fr" — three full drag-and-drop columns cannot
+   physically fit on a phone screen; this needs to become a
+   horizontally-scrolling row of fixed-width columns instead of a
+   grid that tries to squeeze all three into one viewport. ── */
+@media (max-width: 900px) {
+  .ap-task-manager-page-130 {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 14px;
+  }
+  .ap-task-manager-page-130 > * {
+    flex: 0 0 82vw !important;   /* each column ~82% of viewport width, next one peeks in */
+    max-width: 320px;
+  }
+}
+
+/* ── List view toolbar: search + status filter + priority filter + export ──
+   already wraps, but stack it cleanly on phones. ── */
+@media (max-width: 767px) {
+  .ap-task-manager-page-132 {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .ap-task-manager-page-132 > * {
+    width: 100% !important;
+  }
+  .ap-task-manager-page-133 {
+    margin-left: 0 !important; /* was margin-left:auto for desktop right-alignment */
+  }
+}
+
+/* ── List view table (8 columns) ──
+   -134 already has overflow-x:auto, but the table itself has no
+   min-width, so columns just get squashed. Give it one. ── */
+@media (max-width: 767px) {
+  .ap-task-manager-page-135 {
+    min-width: 720px;
+  }
+}
+
+/* ── List/Board toggle + New Task button row ──
+   stack on very narrow phones so the toggle and button don't
+   fight for space next to the page title. ── */
+@media (max-width: 479px) {
+  .ap-task-manager-page-123 {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .ap-task-manager-page-124 {
+    justify-content: space-between;
+  }
+}
+
+/* ============================================================
+   TIME LOG PAGE — MOBILE FIX
+   ============================================================ */
+
+/* ── Root wrapper: uses "fu" instead of "fi", but it's the same
+   shared utility class with a fixed height / hidden overflow —
+   neutralize on mobile like the other pages. ── */
+@media (max-width: 1023px) {
+  .ap-time-log-page-1 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* ── KPI cards (Total Hours / Billable / Non-Billable / Avg per Entry) ──
+   Hard "repeat(4,1fr)" with no breakpoint — "Avg per Entry" gets
+   pushed off-screen on a 375px phone, exactly like your screenshot
+   (only 3 of the 4 cards are visible). Step to 2 cols on phones,
+   1 on very narrow. ── */
+@media (max-width: 767px) {
+  .ap-time-log-page-6 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .ap-time-log-page-6 > * {
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 380px) {
+  .ap-time-log-page-6 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Toolbar: search + technician filter + billable filter + export ──
+   already wraps, but stack it cleanly on phones. ── */
+@media (max-width: 767px) {
+  .ap-time-log-page-8 {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .ap-time-log-page-8 > * {
+    width: 100% !important;
+  }
+  .ap-time-log-page-9 {
+    margin-left: 0 !important; /* was margin-left:auto for desktop right-alignment */
+  }
+}
+
+/* ── Time log table (10 columns) ──
+   -10 already has overflow-x:auto, but the table itself has no
+   min-width, so columns get squashed illegibly instead of
+   scrolling. Give it a min-width. ── */
+@media (max-width: 767px) {
+  .ap-time-log-page-11 {
+    min-width: 820px;
+  }
+}
+
+/* Note: .ap-time-log-page-33 (Summary by Technician grid) already
+   uses "repeat(auto-fill, minmax(160px,1fr))", which self-wraps
+   correctly at any width — no fix needed there. */
+
+/* ============================================================
+   PROJECTS PAGE — MOBILE FIX (list + detail views)
+   ============================================================ */
+
+/* ── KPI cards (Total Projects / Active / Completed / Total Value) ──
+   Hard "repeat(4,1fr)" with no breakpoint — "Total Value" gets
+   pushed off-screen on a 375px phone, matching your screenshot
+   (only 3 of the 4 cards visible). Step to 2 cols on phones,
+   1 on very narrow. ── */
+@media (max-width: 767px) {
+  .ap-projects-page-84 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .ap-projects-page-84 > * {
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 380px) {
+  .ap-projects-page-84 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Project cards grid — THIS is what's cutting off "Value ₹14,998"
+   in your screenshot. It's "repeat(auto-fill, minmax(380px,1fr))" —
+   380px is already wider than a 375px phone screen, so every card
+   is forced wider than the viewport itself before auto-fill even
+   gets a chance to wrap it. Force single column below ~820px,
+   where two 380px+ cards can't fit side by side anyway. ── */
+@media (max-width: 820px) {
+  .ap-projects-page-88 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Project detail view: main column + 280px sidebar ──
+   Unlike the Purchase Orders detail grid, this one has NO mobile
+   breakpoint at all — it's permanently "1fr 280px", so on a phone
+   the sidebar (Project Info card) either overflows or squeezes the
+   main column unreadably. Stack to one column, and give both grid
+   items min-width:0 so they can actually shrink to the viewport
+   instead of being held to their content's intrinsic width (the
+   same grid blowout that hit the PO items table earlier). ── */
+@media (max-width: 1023px) {
+  .ap-projects-page-49 {
+    grid-template-columns: 1fr !important;
+  }
+  .ap-projects-page-49 > * {
+    min-width: 0 !important;
+  }
+}
+
+/* ── Project Info sidebar rows (Client / Manager / Start Date / etc.) ──
+   -77 caps the value at max-width:130px and right-aligns it, which
+   is fine once the sidebar itself isn't being squeezed — no change
+   needed there once -49 stacks correctly. */
+
+      /* ── Settings page: sidebar nav + content grid, and 2-col fields ──
+   -124 is a fixed "200px 1fr" grid (nav | content) and -3 is a fixed
+   "1fr 1fr" fields grid — neither has a mobile breakpoint, so on a
+   phone the sidebar nav and content get squeezed together and the
+   logo drop-zone overflows sideways, exactly like the screenshot. ── */
+@media (max-width: 767px) {
+  .ap-settings-page-124 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tab nav becomes a horizontally scrollable row instead of a
+     vertical sidebar list */
+  .ap-settings-page-125 {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding: 8px !important;
+  }
+
+  .ap-settings-page-126 {
+    /* flex: 0 0 auto; */
+    white-space: nowrap;
+    margin-bottom: 0 !important;
+  }
+
+  .ap-settings-page-127 {
+    padding: 16px !important;
+  }
+
+  .ap-settings-page-3 {
+    grid-template-columns: 1fr !important;
+  }
 }

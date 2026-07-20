@@ -747,21 +747,40 @@ export default function GstSettings() {
           .gst-grid-row2 { grid-template-columns: 1fr; }
         }
         @media (max-width: 620px) {
-          .gst-stats { grid-template-columns: repeat(2, 1fr); }
-          .gst-calc-body { grid-template-columns: 1fr; }
-          .gst-edit-grid { grid-template-columns: 1fr 1fr; }
-          .gst-table thead { display: none; }
-          .gst-table, .gst-table tbody, .gst-table tr, .gst-table td { display: block; width: 100%; }
-          .gst-table tbody tr { padding: 12px 18px; border-bottom: 1px solid var(--card-border); }
-          .gst-table tbody td { padding: 3px 0; border-bottom: none; }
-        }
+  .gst-stats { grid-template-columns: repeat(2, 1fr); }
+  .gst-calc-body { grid-template-columns: 1fr; }
+  .gst-edit-grid { grid-template-columns: 1fr 1fr; }
+  .gst-table thead { display: none; }
+  .gst-table, .gst-table tbody, .gst-table tr, .gst-table td { display: block; width: 100%; }
+  .gst-table tbody tr { padding: 12px 18px; border-bottom: 1px solid var(--card-border); }
+  .gst-table tbody td { padding: 3px 0; border-bottom: none; }
 
-        .gst-root button:focus-visible,
-        .gst-root select:focus-visible,
-        .gst-root input:focus-visible {
-          outline: 2px solid var(--orange);
-          outline-offset: 2px;
-        }
+  /* Add Category form: 4-col grid with span2/span4 fields had no
+     mobile override at all, so it stayed 4 columns and crushed every
+     input to ~70px wide on a phone. */
+  .gst-add-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .gst-add-grid .span2,
+  .gst-add-grid .span4 {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Below ~480px even 2 columns is tight for date pickers / selects —
+   stack the edit and add forms to a single column. */
+@media (max-width: 480px) {
+  .gst-edit-grid,
+  .gst-add-grid {
+    grid-template-columns: 1fr;
+  }
+  .gst-edit-actions.end {
+    justify-content: stretch;
+  }
+  .gst-edit-actions.end button {
+    flex: 1;
+  }
+}
       `}</style>
 
       <div className="gst-wrap">

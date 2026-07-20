@@ -3,6 +3,7 @@ import { COLORS, FONTS } from '../constants/token';
 import { EXP_STATUS } from '../constants/statusMaps';
 import { SBadge, Modal, Toast } from '../components/ui/Components';
 import { techExpensesApi, techJobsApi, fileUrl } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 // Adjust this import path to wherever technicianPortalApi.js actually lives
 // in your tree. techExpensesApi, techJobsApi, and fileUrl are all exported
 // from that single file now — no separate technicianExpensesApi.js needed.
@@ -128,11 +129,7 @@ const fmtDate = d => {
   if (!d) return '—';
   const dt = new Date(d);
   if (Number.isNaN(dt.getTime())) return d;
-  return dt.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  return fmtDateDMY(dt);
 };
 // <input type="date"> needs yyyy-mm-dd
 const toDateInput = d => {

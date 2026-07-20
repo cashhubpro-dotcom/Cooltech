@@ -7,6 +7,7 @@ import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { notificationsApi } from '../../services/api';
 import { NOTIF_TYPE_CFG } from '../../data/mockData';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Column config for export ─────────────────────────────────────────────────
 const NOTIF_COLUMNS = [{
@@ -77,10 +78,7 @@ const formatTime = iso => {
   const diffDays = Math.floor((now - d) / 86400000);
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short'
-  });
+  return fmtDateDMY(d);
 };
 
 // ─── Map a raw backend notification doc into the shape this page renders ────────────────────

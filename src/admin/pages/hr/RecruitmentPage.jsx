@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Plus, Search, Users, Briefcase, Clock, CheckCircle2, ChevronDown, ChevronUp, X, Mail, Calendar, MapPin, Trash2, UserPlus, Megaphone, Building2, Wrench, Phone, Star, Link as LinkIcon, IndianRupee, Zap, FileText, Tag, GraduationCap, MessageSquare, ExternalLink } from "lucide-react";
 import { recruitmentApi } from "../../services/api";
+import { fmtDateDMY } from '../../../shared/formatDate';
 const STAGES = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];
 const DEPARTMENTS = ["Technical", "Sales", "Office", "Support"];
 const JOB_TYPES = ["Full-time", "Part-time", "Contract"];
@@ -9,11 +10,7 @@ const SOURCES = ["Referral", "Job Portal", "Walk-in", "LinkedIn", "Campus"];
 const AVATAR_COLOR_CLASSES = ["avatar-c0", "avatar-c1", "avatar-c2", "avatar-c3", "avatar-c4", "avatar-c5", "avatar-c6", "avatar-c7"];
 const hashColor = name => AVATAR_COLOR_CLASSES[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLOR_CLASSES.length];
 const initials = name => name.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase();
-const formatDate = d => d ? new Date(d).toLocaleDateString("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric"
-}) : "";
+const formatDate = d => d ?fmtDateDMY(new Date(d)) : "";
 function useClock() {
   const [now, setNow] = useState(new Date());
   useEffect(() => {

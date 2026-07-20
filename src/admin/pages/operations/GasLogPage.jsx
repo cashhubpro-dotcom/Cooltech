@@ -13,6 +13,7 @@ import EditableDetailView from '../../components/ui/EditableDetailView';
 import ActionDropdown from '../../components/ui/ActionDropdown';
 import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
 import { gaslogApi, gasPurchaseApi, gasRateApi } from '../../services/api';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Column config for export ─────────────────────────────────────────────────
 const GASLOG_COLUMNS = [{
@@ -669,7 +670,7 @@ const GasLogPage = ({
       setGasPurchases(raw.map(p => ({
         ...p,
         id: p.purchaseId || p._id,
-        date: p.purchaseDate ? new Date(p.purchaseDate).toLocaleDateString('en-IN') : '—',
+        date: p.purchaseDate ?fmtDateDMY(new Date(p.purchaseDate)) : '—',
         dateISO: p.purchaseDate ? new Date(p.purchaseDate).toISOString().slice(0, 10) : ''
       })));
     }).catch(() => {});
@@ -679,7 +680,7 @@ const GasLogPage = ({
       list.forEach(r => {
         map[r.gasType] = {
           pricePerKg: r.pricePerKg,
-          effectiveFrom: r.effectiveFrom ? new Date(r.effectiveFrom).toLocaleDateString('en-IN') : '—'
+          effectiveFrom: r.effectiveFrom ?fmtDateDMY(new Date(r.effectiveFrom)) : '—'
         };
       });
       setRates(map);
@@ -719,7 +720,7 @@ const GasLogPage = ({
           ...x,
           ...updated,
           id: updated.purchaseId || updated._id,
-          date: updated.purchaseDate ? new Date(updated.purchaseDate).toLocaleDateString('en-IN') : x.date,
+          date: updated.purchaseDate ?fmtDateDMY(new Date(updated.purchaseDate)) : x.date,
           dateISO: updated.purchaseDate ? new Date(updated.purchaseDate).toISOString().slice(0, 10) : x.dateISO
         } : x));
       } else {
@@ -727,7 +728,7 @@ const GasLogPage = ({
         setGasPurchases(p => [{
           ...created,
           id: created.purchaseId || created._id,
-          date: created.purchaseDate ? new Date(created.purchaseDate).toLocaleDateString('en-IN') : '—',
+          date: created.purchaseDate ?fmtDateDMY(new Date(created.purchaseDate)) : '—',
           dateISO: created.purchaseDate ? new Date(created.purchaseDate).toISOString().slice(0, 10) : ''
         }, ...p]);
       }
@@ -747,7 +748,7 @@ const GasLogPage = ({
         job: g.jobRef || g.job || '—',
         tech: g.techName || '—',
         customer: g.customerName || '—',
-        date: g.date ? new Date(g.date).toLocaleDateString('en-IN') : '—',
+        date: g.date ?fmtDateDMY(new Date(g.date)) : '—',
         dateISO: g.date ? new Date(g.date).toISOString().slice(0, 10) : '',
         kgUsed: g.quantity || 0,
         kgRecovered: g.kgRecovered ?? null,
@@ -891,7 +892,7 @@ const GasLogPage = ({
               job: created.jobRef || '—',
               tech: created.techName || '—',
               customer: created.customerName || '—',
-              date: created.date ? new Date(created.date).toLocaleDateString('en-IN') : '—',
+              date: created.date ?fmtDateDMY(new Date(created.date)) : '—',
               dateISO: created.date ? new Date(created.date).toISOString().slice(0, 10) : '',
               kgUsed: created.quantity || 0,
               kgRecovered: created.kgRecovered ?? null,

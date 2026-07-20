@@ -10,6 +10,7 @@ import RichTextFileEditor from "./RichTextFileEditor";
 import RichTextEditorNoFile from "../ui/RichTextEditorNoFile";
 import { TECHNICIANS as technicians, customers, invoices, jobs } from "../../data/mockData";
 import { jobsApi, customersApi, techsApi, invoicesApi, expensesApi, complaintsApi, inventoryApi, noticesApi , suppliersApi} from '../../services/api';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Section heading inside modal ────────────────────────────────────────────
 const SectionHead = ({
@@ -2824,26 +2825,28 @@ const NewPOModal = ({
       </div>
  
       <SectionHead title="Line Items" />
-      <div className="ap-modals-178">
-        <span className="ap-modals-179">Item / Description</span>
-        <span className="ap-modals-180">
-          Category
-          <button type="button" title="Add new category" onClick={() => setShowAddCategory(true)} className="ap-modals-181">＋</button>
-        </span>
-        <span className="ap-modals-179">Qty</span>
-        <span className="ap-modals-179">Unit Price (₹)</span>
-        <span />
-      </div>
-      <div className="ap-modals-182">
-        {items.map(item => <div key={item.id} className="ap-modals-183">
-            <input placeholder="Item name / description" value={item.name} onChange={e => updateItem(item.id, "name", e.target.value)} className="ap-modals-184" />
-            <select value={item.category} onChange={e => updateItem(item.id, "category", e.target.value)} className="ap-modals-185">
-              {itemCategoryList.map(c => <option key={c}>{c}</option>)}
-            </select>
-            <input type="number" placeholder="0" value={item.qty} onChange={e => updateItem(item.id, "qty", e.target.value)} className="ap-modals-184" />
-            <input type="number" placeholder="0" value={item.price} onChange={e => updateItem(item.id, "price", e.target.value)} className="ap-modals-184" />
-            <button onClick={() => removeItem(item.id)} style={{ opacity: items.length === 1 ? "0.3" : "1" }} disabled={items.length === 1} className="ap-modals-186">×</button>
-          </div>)}
+      <div className="line-items-scroll">
+        <div className="ap-modals-178">
+          <span className="ap-modals-179">Item / Description</span>
+          <span className="ap-modals-180">
+            Category
+            <button type="button" title="Add new category" onClick={() => setShowAddCategory(true)} className="ap-modals-181">＋</button>
+          </span>
+          <span className="ap-modals-179">Qty</span>
+          <span className="ap-modals-179">Unit Price (₹)</span>
+          <span />
+        </div>
+        <div className="ap-modals-182">
+          {items.map(item => <div key={item.id} className="ap-modals-183">
+              <input placeholder="Item name / description" value={item.name} onChange={e => updateItem(item.id, "name", e.target.value)} className="ap-modals-184" />
+              <select value={item.category} onChange={e => updateItem(item.id, "category", e.target.value)} className="ap-modals-185">
+                {itemCategoryList.map(c => <option key={c}>{c}</option>)}
+              </select>
+              <input type="number" placeholder="0" value={item.qty} onChange={e => updateItem(item.id, "qty", e.target.value)} className="ap-modals-184" />
+              <input type="number" placeholder="0" value={item.price} onChange={e => updateItem(item.id, "price", e.target.value)} className="ap-modals-184" />
+              <button onClick={() => removeItem(item.id)} style={{ opacity: items.length === 1 ? "0.3" : "1" }} disabled={items.length === 1} className="ap-modals-186">×</button>
+            </div>)}
+        </div>
       </div>
       <button onClick={addItem} className="ap-modals-187">+ Add Item</button>
  
@@ -3642,7 +3645,7 @@ const MarkAttendanceModal = ({
   };
   return <Modal open={open} onClose={onClose} title="📅 Mark Today's Attendance" width={600}>
     <div className="ap-modals-239">
-      Marking attendance for: <strong>{new Date(date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong>
+      Marking attendance for: <strong>{fmtDateDMY(new Date(date))}</strong>
     </div>
     {liveTechs.map(t => <div key={t._id} className="ap-modals-240">
         <Avatar name={t.name} size={32} color={t.status === "available" ? "#10B981" : COLORS.brand} />
@@ -4982,26 +4985,28 @@ const NewSOModal = ({
       </FRow>
  
       <SectionHead title="Line Items" />
-      <div className="ap-modals-285">
-        <span className="ap-modals-286">Item / Description</span>
-        <span className="ap-modals-287">
-          Category
-          <button type="button" title="Add new category" onClick={() => setShowAddCategory(true)} className="ap-modals-288">＋</button>
-        </span>
-        <span className="ap-modals-286">Qty</span>
-        <span className="ap-modals-286">Unit Price (₹)</span>
-        <span />
-      </div>
-      <div className="ap-modals-289">
-        {items.map(item => <div key={item.id} className="ap-modals-290">
-            <input placeholder="Item name / description" value={item.name} onChange={e => updateItem(item.id, "name", e.target.value)} className="ap-modals-291" />
-            <select value={item.category} onChange={e => updateItem(item.id, "category", e.target.value)} className="ap-modals-292">
-              {itemCategoryList.map(c => <option key={c}>{c}</option>)}
-            </select>
-            <input type="number" placeholder="0" value={item.qty} onChange={e => updateItem(item.id, "qty", e.target.value)} className="ap-modals-291" />
-            <input type="number" placeholder="0" value={item.price} onChange={e => updateItem(item.id, "price", e.target.value)} className="ap-modals-291" />
-            <button onClick={() => removeItem(item.id)} disabled={items.length === 1} style={{ opacity: items.length === 1 ? "0.3" : "1" }} className="ap-modals-293">×</button>
-          </div>)}
+      <div className="line-items-scroll">
+        <div className="ap-modals-285">
+          <span className="ap-modals-286">Item / Description</span>
+          <span className="ap-modals-287">
+            Category
+            <button type="button" title="Add new category" onClick={() => setShowAddCategory(true)} className="ap-modals-288">＋</button>
+          </span>
+          <span className="ap-modals-286">Qty</span>
+          <span className="ap-modals-286">Unit Price (₹)</span>
+          <span />
+        </div>
+        <div className="ap-modals-289">
+          {items.map(item => <div key={item.id} className="ap-modals-290">
+              <input placeholder="Item name / description" value={item.name} onChange={e => updateItem(item.id, "name", e.target.value)} className="ap-modals-291" />
+              <select value={item.category} onChange={e => updateItem(item.id, "category", e.target.value)} className="ap-modals-292">
+                {itemCategoryList.map(c => <option key={c}>{c}</option>)}
+              </select>
+              <input type="number" placeholder="0" value={item.qty} onChange={e => updateItem(item.id, "qty", e.target.value)} className="ap-modals-291" />
+              <input type="number" placeholder="0" value={item.price} onChange={e => updateItem(item.id, "price", e.target.value)} className="ap-modals-291" />
+              <button onClick={() => removeItem(item.id)} disabled={items.length === 1} style={{ opacity: items.length === 1 ? "0.3" : "1" }} className="ap-modals-293">×</button>
+            </div>)}
+        </div>
       </div>
       <button onClick={addItem} className="ap-modals-294">+ Add Item</button>
  

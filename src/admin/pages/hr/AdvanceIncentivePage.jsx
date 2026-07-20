@@ -10,6 +10,7 @@ import useExport from '../../hooks/useExport';
 import ActionDropdown from '../../components/ui/ActionDropdown';
 import { advanceIncentiveApi, techsApi } from '../../services/api';
 import { DynamicSelect } from '../../components/modals/Modals';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // ─── Dynamic month options ─────────────────────────────────────────────────
@@ -21,7 +22,7 @@ function generateMonthOptions(monthsBack = 6, monthsForward = 12) {
   const options = [];
   for (let i = monthsForward; i >= -monthsBack; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    options.push(d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
+    options.push(fmtDateDMY(d));
   }
   return options;
 }
@@ -86,7 +87,7 @@ function fmtDate(raw) {
   if (!raw) return '—';
   const d = new Date(raw);
   if (isNaN(d.getTime())) return String(raw);
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  return fmtDateDMY(d);
 }
 // ─── Status Config ────────────────────────────────────────────────────────────
 const STATUS_MAP = {
@@ -375,7 +376,7 @@ const NewRequestModal = ({
                 <div className="ap-advance-incentive-page-36">{emp.name}</div>
                 <div className="ap-advance-incentive-page-37">{emp.role}</div>
               </div>
-              <div className="ap-advance-incentive-page-38">{String(prefillTech._id || '').slice(-6)}</div>
+              <div className="ap-advance-incentive-page-38">{prefillTech.techId || String(prefillTech._id || '').slice(-6)}</div>
             </div> : <Field label="TECHNICIAN" required error={errors.techId}>
               <select value={form.techId} onChange={e => set('techId', e.target.value)} style={inputSt(errors.techId)}>
                 <option value="">— Select technician —</option>

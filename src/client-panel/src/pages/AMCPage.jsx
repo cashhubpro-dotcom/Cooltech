@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import { COLORS, FONTS } from '../constants/tokens';
 import { clientAmcApi } from '../services/clientPortalApi';
 import { Toast } from '../components/ui/Components';
+import { fmtDateDMY } from '../../../shared/formatDate';
 const PLAN_COLORS = {
   Comprehensive: "var(--info)",
   Premium: "var(--purple)",
@@ -50,11 +51,7 @@ const formatDate = val => {
   if (!val) return '—';
   const d = new Date(val);
   if (isNaN(d.getTime())) return String(val);
-  return d.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  return fmtDateDMY(d);
 };
 const normalize = c => ({
   ...c,
@@ -136,11 +133,7 @@ const ContractPrintable = ({
           <div className="cp-amc-page-14">Annual Maintenance Contract</div>
         </div>
         <div className="cp-amc-page-15">
-          Generated: {new Date().toLocaleDateString('en-IN', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        })}
+          Generated: {fmtDateDMY(new Date())}
         </div>
       </div>
 

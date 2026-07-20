@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { technicianSalaryApi } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 /* ── Design tokens — unchanged from the mock version ─────────────────── */
 const COLORS = {
@@ -137,7 +138,7 @@ const PayslipModal = ({
 
         {loading || !row ? <div className="tp-salary-page-22">Loading payslip…</div> : <div className="tp-salary-page-23">
             <div className="tp-salary-page-24">
-              {[['Role', row.technician.role], ['Bank', row.technician.bankAccount || '—'], ['Days Worked', row.totalDays != null ? `${row.daysWorked ?? '—'} / ${row.totalDays}` : '—'], ['Absent Days', row.absentDays ?? 0], ['Payment Date', row.payDate ? new Date(row.payDate).toLocaleDateString('en-IN') : '—'], ['Status', <StatusBadge status={row.status} key="s" />]].map(([k, v]) => <div key={k} className="tp-salary-page-25">
+              {[['Role', row.technician.role], ['Bank', row.technician.bankAccount || '—'], ['Days Worked', row.totalDays != null ? `${row.daysWorked ?? '—'} / ${row.totalDays}` : '—'], ['Absent Days', row.absentDays ?? 0], ['Payment Date', row.payDate ?fmtDateDMY(new Date(row.payDate)) : '—'], ['Status', <StatusBadge status={row.status} key="s" />]].map(([k, v]) => <div key={k} className="tp-salary-page-25">
                   <span className="tp-salary-page-26">{k}</span>
                   <span className="tp-salary-page-27">{v}</span>
                 </div>)}
@@ -172,7 +173,7 @@ const PayslipModal = ({
               <div>
                 <div className="tp-salary-page-34">NET PAY (Take Home)</div>
                 <div className="tp-salary-page-35">
-                  {row.technician.bankAccount || '—'} · {row.payDate ? new Date(row.payDate).toLocaleDateString('en-IN') : 'Not yet paid'}
+                  {row.technician.bankAccount || '—'} · {row.payDate ?fmtDateDMY(new Date(row.payDate)) : 'Not yet paid'}
                 </div>
               </div>
               <div className="tp-salary-page-36">

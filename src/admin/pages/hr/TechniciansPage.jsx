@@ -15,11 +15,12 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Normalise API technician → UI shape ─────────────────────────────────────
 const normaliseTech = t => ({
   ...t,
-  id: 'TECH-' + String(t._id || t.id).slice(-6).toUpperCase(),
+  id: t.techId || 'TECH-' + String(t._id || t.id).slice(-6).toUpperCase(),
   _id: t._id || t.id,
   name: t.name || t.techName || 'Unknown',
   role: t.role || t.designation || 'Technician',
@@ -39,11 +40,7 @@ const normaliseJob = j => ({
   id: j.jobId || 'JOB-' + String(j._id).slice(-6).toUpperCase(),
   customer: typeof j.customer === 'object' ? j.customer?.name : j.customerName || j.customer || '',
   tech: typeof j.technician === 'object' ? j.technician?.name : j.techName || j.tech || 'Unassigned',
-  date: j.scheduledDate ? new Date(j.scheduledDate).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }) : j.date || '',
+  date: j.scheduledDate ?fmtDateDMY(new Date(j.scheduledDate)) : j.date || '',
   time: j.scheduledTime || j.time || ''
 });
 
@@ -663,11 +660,7 @@ const TechniciansPage = ({
   if (selectedTech) {
     return <TechnicianDetail tech={selectedTech} onBack={closeDetail} initialEditMode={openInEditMode} openModal={openModal} jobs={jobs} />;
   }
-  const todayStr = new Date().toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  const todayStr =fmtDateDMY(new Date());
   const todaysJobs = jobs.filter(j => j.date === todayStr);
   const available = technicians.filter(t => t.status === 'available').length;
   const busy = technicians.filter(t => t.status === 'busy').length;

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { technicianAmcApi } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Tokens (mirrors the brand/navy language used across Admin + Client panels) ──
 const COLORS = {
@@ -60,11 +61,7 @@ const formatDate = val => {
   if (!val) return '—';
   const d = new Date(val);
   if (isNaN(d.getTime())) return String(val);
-  return d.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  return fmtDateDMY(d);
 };
 const TABS = [{
   key: 'today',

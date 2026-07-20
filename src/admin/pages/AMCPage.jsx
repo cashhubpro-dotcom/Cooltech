@@ -18,6 +18,7 @@ import Pagination from '../components/ui/Pagination'; // ← NEW
 import { addToDeleted } from '../store/deletedStore';
 import logoImg from '../assets/logo.png';
 import signatureImg from '../assets/signature.png';
+import { fmtDateDMY } from '../../shared/formatDate';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PLAN_COLORS = {
@@ -31,11 +32,7 @@ const formatDate = val => {
   if (!val) return '—';
   const d = new Date(val);
   if (isNaN(d.getTime())) return String(val);
-  return d.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  return fmtDateDMY(d);
 };
 
 // Best-effort parse of a formatted display date ("31 Mar 2027") or ISO date
@@ -457,7 +454,9 @@ const GenerateInvoiceModal = ({
   contract,
   onClose,
   onConfirm,
-  busy
+  busy,
+  createdInvoice,
+  goToInvoices
 }) => {
   const [basis, setBasis] = useState('full'); // 'full' | 'monthly'
   useEffect(() => {
@@ -467,6 +466,30 @@ const GenerateInvoiceModal = ({
   const subtotal = basis === 'full' ? contract.value : Math.round(contract.value / 12);
   const gst = Math.round(subtotal * 0.18);
   const total = subtotal + gst;
+
+  // ── Success / receipt view — shown once the invoice has actually been
+  // created on the backend, in place of the form ──────────────────────────
+  if (createdInvoice) {
+    return createPortal(<div className="amc-modal-overlay" onClick={onClose}>
+        <div className="amc-modal" onClick={e => e.stopPropagation()}>
+          <div className="amc-modal-hdr">
+            <div className="amc-modal-title">✅ Invoice Created</div>
+            <button className="amc-modal-close" onClick={onClose}>×</button>
+          </div>
+          <div className="amc-modal-body">
+            <div className="amc-toast success" style={{ marginBottom: 0 }}>
+              <span>Invoice {createdInvoice.id ? <strong>{createdInvoice.id}</strong> : ''} generated for <strong>₹{createdInvoice.total.toLocaleString()}</strong>.</span>
+            </div>
+            <div className="amc-modal-note">It's been saved and now appears in the Invoices module, ready to send or collect payment against.</div>
+          </div>
+          <div className="amc-modal-footer">
+            <button className="amc-modal-btn cancel" onClick={onClose}>Close</button>
+            {goToInvoices && <button className="amc-modal-btn save" onClick={() => { onClose(); goToInvoices(); }}>View in Invoices →</button>}
+          </div>
+        </div>
+      </div>, document.body);
+  }
+
   return createPortal(<div className="amc-modal-overlay" onClick={busy ? undefined : onClose}>
       <div className="amc-modal" onClick={e => e.stopPropagation()}>
         <div className="amc-modal-hdr">
@@ -564,13 +587,15 @@ const AMCDetail = ({
   onSave,
   onPatch,
   openModal,
-  initialEditMode
+  initialEditMode,
+  goToInvoices
 }) => {
   const [showPDF, setShowPDF] = useState(false);
 
   // ── Action modal state ──────────────────────────────────────────────────
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [createdInvoice, setCreatedInvoice] = useState(null); // set once the invoice has been generated, drives the modal's success view
   const [renewOpen, setRenewOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null); // { type: 'success'|'error', msg }
@@ -595,11 +620,7 @@ const AMCDetail = ({
       setScheduleOpen(false);
       setToast({
         type: 'success',
-        msg: `Next visit scheduled for ${new Date(date).toLocaleDateString('en-IN', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        })}.`
+        msg: `Next visit scheduled for ${fmtDateDMY(new Date(date))}.`
       });
     } catch (e) {
       setToast({
@@ -618,7 +639,7 @@ const AMCDetail = ({
   }) => {
     setBusy(true);
     try {
-      await invoicesApi.create({
+      const res = await invoicesApi.create({
         customerName: contract.customer,
         amcRef: contract.id,
         items: [{
@@ -633,7 +654,11 @@ const AMCDetail = ({
         status: 'pending',
         notes: `Auto-generated from AMC ${contract.id}`
       });
-      setInvoiceOpen(false);
+      const invoiceDoc = res?.data ?? null;
+      setCreatedInvoice({
+        id: invoiceDoc?.invoiceNumber || invoiceDoc?.invoiceId || invoiceDoc?._id || '',
+        total
+      });
       setToast({
         type: 'success',
         msg: `Invoice generated for ₹${total.toLocaleString()}.`
@@ -737,7 +762,7 @@ const AMCDetail = ({
                     <button className="btn ap-amc-page-61" onClick={() => setScheduleOpen(true)}>
                       📅 Schedule Next Visit
                     </button>
-                    <button className="btn ap-amc-page-62" onClick={() => setInvoiceOpen(true)}>
+                    <button className="btn ap-amc-page-62" onClick={() => { setCreatedInvoice(null); setInvoiceOpen(true); }}>
                       💰 Generate Invoice
                     </button>
                     <button className="btn ap-amc-page-63" onClick={() => setRenewOpen(true)}>
@@ -885,14 +910,15 @@ const AMCDetail = ({
 
       {/* ── Action modals ── */}
       <ScheduleVisitModal open={scheduleOpen} contract={contract} busy={busy} onClose={() => !busy && setScheduleOpen(false)} onConfirm={handleScheduleConfirm} />
-      <GenerateInvoiceModal open={invoiceOpen} contract={contract} busy={busy} onClose={() => !busy && setInvoiceOpen(false)} onConfirm={handleInvoiceConfirm} />
+      <GenerateInvoiceModal open={invoiceOpen} contract={contract} busy={busy} createdInvoice={createdInvoice} goToInvoices={goToInvoices} onClose={() => { if (!busy) { setInvoiceOpen(false); setCreatedInvoice(null); } }} onConfirm={handleInvoiceConfirm} />
       <RenewContractModal open={renewOpen} contract={contract} busy={busy} onClose={() => !busy && setRenewOpen(false)} onConfirm={handleRenewConfirm} />
     </>;
 };
 
 // ─── AMCPage ──────────────────────────────────────────────────────────────────
 const AMCPage = ({
-  openModal
+  openModal,
+  goToInvoices
 }) => {
   const [open, setOpen] = useState(null);
   const [tab, setTab] = useState("contracts");
@@ -1010,7 +1036,7 @@ const AMCPage = ({
     }
   };
   if (contract) {
-    return <AMCDetail contract={contract} onBack={handleBack} onSave={handleSave} onPatch={saveContract} openModal={openModal} initialEditMode={initialEditMode} />;
+    return <AMCDetail contract={contract} onBack={handleBack} onSave={handleSave} onPatch={saveContract} openModal={openModal} initialEditMode={initialEditMode} goToInvoices={goToInvoices} />;
   }
   return <div className="fi ap-amc-page-104">
       <div className="ap-amc-page-105">

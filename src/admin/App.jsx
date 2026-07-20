@@ -142,6 +142,7 @@ import AccountSettingsPage from './pages/AccountSettingsPage';
 import GstSettings from './pages/GstSettings';
 
 import { logout } from '../services/api';
+import { fmtDateDMY } from '../shared/formatDate';
 
 // =============================================================================
 //  Path helper — this panel is always mounted under /admin/* by the root
@@ -233,7 +234,7 @@ const SPECIAL_PROPS = new Set([
   'dashboard', 'jobs', 'clock', 'lead_sources', 'customer_type',
   'sm_dashboard', 'notifications', 'profile',
   // ↓ advance_incentive needs prefillAdvance injected
-  'advance_incentive','contract_settings'
+  'advance_incentive','contract_settings','amc'
 ]);
 
 // =============================================================================
@@ -294,6 +295,7 @@ function AppShell() {
   const activePage = Object.entries(PATH_FOR).find(([, p]) => p === relativePath)?.[0] ?? 'dashboard';
 
   const [openJob,        setOpenJob]        = useState(null);
+  const [openJobLabel,   setOpenJobLabel]   = useState(null); // human-readable jobId shown in the header breadcrumb (openJob itself is the Mongo _id, used for lookups)
   const [sidebarOpen,    setSidebarOpen]    = useState(window.innerWidth >= 1024);
   // const [time,           setTime]           = useState(new Date());
   const [modal,          setModal]          = useState(null);
@@ -429,7 +431,7 @@ function AppShell() {
     const diffDays = Math.floor((now - d) / 86400000);
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays}d ago`;
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    return fmtDateDMY(d);
   };
 
   const normaliseNotif = useCallback((n) => ({
@@ -491,13 +493,13 @@ function AppShell() {
     const pageId = resolveNotificationPageId(n);
     if (pageId && PATH_FOR[pageId] !== undefined) {
       navigate(pathFor(pageId));
-      setOpenJob(null);
+      setOpenJob(null); setOpenJobLabel(null);
     }
   }, [markNotifRead, navigate]);
 
   const setPage = useCallback((id) => {
     navigate(pathFor(id));
-    setOpenJob(null);
+    setOpenJob(null); setOpenJobLabel(null);
   }, [navigate]);
 
   const clockProps = {
@@ -562,7 +564,7 @@ function AppShell() {
       case 'dashboard':
         return <Page setPage={setPage} openModal={openModal} clockProps={clockProps} />;
       case 'jobs':
-        return <Page openJob={openJob} setOpenJob={setOpenJob} openModal={openModal} />;
+        return <Page openJob={openJob} setOpenJob={setOpenJob} setOpenJobLabel={setOpenJobLabel} openModal={openModal} />;
       case 'clock': {
   const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
   return <Page {...clockProps} openModal={openModal} currentUserId={user._id || user.id} />;
@@ -586,7 +588,8 @@ function AppShell() {
             onOpenNotification={openNotification}
           />
         );
-      case 'advance_incentive':
+      case 'amc':
+        return <Page openModal={openModal} goToInvoices={() => setPage('invoices')} />;
         return (
           <Page
             openModal={openModal}
@@ -662,7 +665,7 @@ function AppShell() {
       window.dispatchEvent(new Event('focus'));
 
       navigate(pathFor('jobs'));
-      setOpenJob(null);
+      setOpenJob(null); setOpenJobLabel(null);
     } catch (e) {
       showToast(e.message || 'Failed to create work order.', 'error');
     }
@@ -901,7 +904,7 @@ function AppShell() {
       <div className="main-area">
         <Header
           page={activePage}
-          openJob={openJob}
+          openJob={openJobLabel}
           TITLES={TITLES}
           // time={time}
           clockProps={clockProps}

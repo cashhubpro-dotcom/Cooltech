@@ -12,6 +12,7 @@ import useExport from '../../hooks/useExport';
 import { tasksApi, techsApi } from '../../services/api';
 import { useTaskCategories, useTaskLabels } from '../../hooks/useOptionSets';
 import { DynamicSelect } from '../../components/modals/Modals';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TASK_STATUS_MAP = {
@@ -320,10 +321,7 @@ const timeAgo = dateStr => {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short'
-  });
+  return fmtDateDMY(new Date(dateStr));
 };
 const ACTIVITY_ICON = {
   created: '✨',

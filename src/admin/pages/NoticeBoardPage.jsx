@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { noticesApi } from '../services/api';
 import { COLORS } from '../constants/tokens';
 import { KCard, SectionHdr } from '../components/ui/Cards';
+import { fmtDateDMY } from '../../shared/formatDate';
 const NOTICE_META = {
   Operational: {
     icon: '⚙️',
@@ -153,7 +154,7 @@ const NoticeBoardPage = ({
                     border: `1px solid ${meta.color}30`
                   }} className="ap-notice-board-page-14">{n.type || n.category}</span>
                         {(n.priority === 'high' || n.priority === 'urgent' || n.priority === 'High') && <span className="ap-notice-board-page-15">High Priority</span>}
-                        <span className="ap-notice-board-page-16">{n.date || new Date(n.createdAt).toLocaleDateString('en-IN')}</span>
+                        <span className="ap-notice-board-page-16">{fmtDateDMY(n.date || new Date(n.createdAt))}</span>
                       </div>
                     </div>
                   </div>
@@ -194,7 +195,7 @@ const NoticeBoardPage = ({
                       {n.priority && n.priority !== 'low' && n.priority !== 'Normal' && <span style={{
                   color: PRIORITY_COLOR[n.priority] || COLORS.muted
                 }} className="ap-notice-board-page-32">{n.priority}</span>}
-                      <span className="ap-notice-board-page-33">{n.date || new Date(n.createdAt).toLocaleDateString('en-IN')}</span>
+                      <span className="ap-notice-board-page-33">{fmtDateDMY(n.date || new Date(n.createdAt))}</span>
                     </div>
                     <p className="ap-notice-board-page-34">{(n.content || '').slice(0, 140)}{(n.content || '').length > 140 ? '…' : ''}</p>
                     {n.author && <div className="ap-notice-board-page-35">

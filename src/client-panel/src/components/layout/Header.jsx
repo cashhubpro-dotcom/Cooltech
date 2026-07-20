@@ -5,6 +5,7 @@ import { CLIENT_TITLES } from '../../constants/navigation';
 import { COLORS } from '../../constants/tokens';
 import { LOGGED_IN_CLIENT } from '../../data/mockData';
 import { useDarkMode } from '../../../../shared/useDarkMode';
+import { fmtDateDMY } from '../../../../shared/formatDate';
 
 // ─── Relative time formatter — backend gives ISO timestamps ──────────────────
 const formatTime = (iso) => {
@@ -17,7 +18,7 @@ const formatTime = (iso) => {
   const diffDays = Math.floor((now - d) / 86400000);
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+  return fmtDateDMY(d);
 };
 
 // ─── Map a raw backend notification doc into what this dropdown renders ──────

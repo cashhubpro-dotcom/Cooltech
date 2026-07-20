@@ -3,6 +3,7 @@ import { attendanceApi, techsApi } from '../../services/api';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { Avatar } from '../../components/ui/Badges';
 import { SectionHdr } from '../../components/ui/Cards';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -450,12 +451,7 @@ const MarkTodayModal = ({
   onSaved
 }) => {
   const now = targetDate ? new Date(targetDate.year, targetDate.month, targetDate.day) : new Date();
-  const dateLabel = now.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const dateLabel =fmtDateDMY(now);
   const realToday = new Date();
   const isRealToday = now.getFullYear() === realToday.getFullYear() && now.getMonth() === realToday.getMonth() && now.getDate() === realToday.getDate();
   const [selections, setSelections] = useState(() => {
@@ -634,12 +630,7 @@ const DayDetailModal = ({
   onClose,
   onSaved
 }) => {
-  const dateLabel = new Date(year, month, day).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const dateLabel =fmtDateDMY(new Date(year, month, day));
   const [sel, setSel] = useState(status || '');
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState(null);

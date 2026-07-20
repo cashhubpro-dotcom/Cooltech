@@ -18,6 +18,7 @@ import { jobsApi, techsApi } from '../services/api';
 import { useState, useEffect, useCallback } from 'react';
 import { COLORS, FONTS } from '../constants/tokens';
 import { SBadge, TypeTag, PBadge, Avatar, Divider } from '../components/ui/Badges';
+import { fmtDateDMY } from '../../shared/formatDate';
 
 // ─── Breakpoint Hook ──────────────────────────────────────────────────────────
 function useBreakpoint() {
@@ -50,11 +51,7 @@ const mapJob = (j, idx) => {
     customer: typeof j.customer === 'object' && j.customer ? j.customer.name : j.customerName || j.customer || '',
     address: typeof j.customer === 'object' && j.customer?.address || j.address || '',
     rawDate,
-    date: rawDate ? rawDate.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }) : j.date || '',
+    date: rawDate ?fmtDateDMY(rawDate) : j.date || '',
     time: j.scheduledTime || j.time || ''
   };
 };

@@ -354,6 +354,10 @@
   gap: 8px;
   margin-bottom: 18px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-welcome-toast-15 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-welcome-toast-16 {
   border-radius: 14px;
@@ -528,6 +532,10 @@
   gap: 16px;
   margin-top: 12px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-amc-page-16 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-amc-page-17 {
   display: flex;
@@ -612,6 +620,10 @@
   padding-top: 14px;
   border-top: 1px solid var(--border);
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-amc-page-29 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-amc-page-30 {
   font-size: 11px;
@@ -870,6 +882,10 @@
   gap: 12px;
   margin-top: 16px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-amc-page-71 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-amc-page-72 {
   margin-top: 16px;
@@ -1328,6 +1344,10 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-dashboard-17 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-dashboard-18 {
   cursor: pointer;
@@ -1381,6 +1401,10 @@
   gap: 16px;
   align-items: stretch;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-dashboard-25 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-dashboard-26 {
   display: flex;
@@ -1657,6 +1681,10 @@
   gap: 16px;
   align-items: start;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-dashboard-65 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-dashboard-66 {
   padding: 12px 18px;
@@ -1725,6 +1753,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-dashboard-75 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-dashboard-76 {
   width: 26px;
@@ -2268,6 +2300,10 @@
   gap: 14px;
   margin-bottom: 20px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-expenses-page-51 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-expenses-page-52 {
   padding: 0;
@@ -2886,6 +2922,10 @@
   grid-template-columns: 300px 1fr;
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-profile-page-3 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-profile-page-4 {
   display: flex;
@@ -3037,6 +3077,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-profile-page-24 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-profile-page-25 {
   margin-bottom: 0;
@@ -3047,6 +3091,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-profile-page-26 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-profile-page-27 {
   font-size: 11px;
@@ -3069,6 +3117,10 @@
   gap: 14px;
   margin-bottom: 20px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-profile-page-29 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-profile-page-30 {
   text-align: center;
@@ -3127,6 +3179,10 @@
   gap: 12px;
   margin-bottom: 14px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-profile-page-39 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-profile-page-40 {
   margin-bottom: 0;
@@ -3336,6 +3392,10 @@
   border-bottom: 1px solid var(--border);
   padding: 14px 20px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-salary-page-24 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-salary-page-25 {
   padding: 4px 0;
@@ -4319,6 +4379,10 @@
   grid-template-columns: repeat(7,1fr);
   gap: 6px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-schedule-page-84 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-schedule-page-85 {
   border-radius: 10px;
@@ -4371,6 +4435,10 @@
   gap: 4px;
   margin-bottom: 6px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-schedule-page-92 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-schedule-page-93 {
   text-align: center;
@@ -4386,6 +4454,10 @@
   grid-template-columns: repeat(7,1fr);
   gap: 4px;
 }
+  @media (max-width: 639px) {
+    .tech-panel-scope .tp-schedule-page-94 { grid-template-columns: 1fr !important; }
+  }
+
 
 .tech-panel-scope .tp-schedule-page-95 {
   border-radius: 9px;

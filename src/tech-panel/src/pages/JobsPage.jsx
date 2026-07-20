@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { techJobsApi, techInventoryApi } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 // ↑ adjust this relative path to wherever technicianApi.js actually lives
 //   in your technician panel's folder structure.
 
@@ -318,11 +319,7 @@ const normaliseJob = j => ({
   address: j.customer?.address || j.address || '',
   ac: j.ac || '',
   issue: j.issue || '',
-  date: j.scheduledDate ? new Date(j.scheduledDate).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }) : '',
+  date: j.scheduledDate ?fmtDateDMY(new Date(j.scheduledDate)) : '',
   time: j.scheduledTime || '',
   amount: j.amount || 0,
   remarks: j.remarks || '',

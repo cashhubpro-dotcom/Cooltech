@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { COLORS, FONTS } from '../../constants/tokens';
+import { fmtDateDMY } from '../../../shared/formatDate';
 import { SBadge, TypeTag } from '../../components/ui/Badges';
 import { KCard, SectionHdr, Thead } from '../../components/ui/Cards';
 import { useTableSearch } from '../../hooks/useTableSearch';
@@ -124,18 +125,8 @@ const PAYMENT_COLUMNS = [{
   }
 }];
 const copy = text => navigator.clipboard?.writeText(text).catch(() => {});
-const formatToday = () => {
-  const d = new Date();
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-};
-const formatDisplayDate = dateLike => {
-  if (!dateLike) return '—';
-  const d = new Date(dateLike);
-  if (isNaN(d.getTime())) return '—';
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-};
+const formatToday = () => fmtDateDMY(new Date());
+const formatDisplayDate = dateLike => fmtDateDMY(dateLike);
 
 // ── Normalizes a backend Payment doc into the shape the UI expects ─────────
 const normalizePayment = (doc, idx) => ({

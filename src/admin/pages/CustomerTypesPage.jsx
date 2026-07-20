@@ -3,6 +3,7 @@ import { customerTypesApi } from '../services/api';
 import { useState, useEffect } from 'react';
 import { COLORS, FONTS } from '../constants/tokens';
 import DeleteConfirmModal from '../components/ui/DeleteConfirmModal';
+import { fmtDateDMY } from '../../shared/formatDate';
 
 // ─── Add Type Modal ───────────────────────────────────────────────────────────
 const AddTypeModal = ({
@@ -180,11 +181,7 @@ const CustomerTypesPage = ({
 
                     {/* Added */}
                     <td className="ap-customer-types-page-42">
-                      {new Date().toLocaleDateString('en-IN', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric'
-                })}
+                      {fmtDateDMY(new Date())}
                     </td>
 
                     {/* Delete */}

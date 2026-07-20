@@ -10,6 +10,7 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { warrantyApi, partWarrantyApi } from '../../services/api';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Part types + colour tokens (mirrors the AC Parts mockup, ported to our design system) ──
 const PART_TYPES = ['Compressor', 'PCB Board', 'Capacitor', 'Fan Motor', 'Gas Charge', 'IDU/ODU Coil', 'Remote', 'Sensor', 'Other'];
@@ -59,11 +60,7 @@ function displayStatus(w) {
 const fmtDate = val => {
   if (!val) return '—';
   const d = new Date(val);
-  return isNaN(d) ? String(val) : d.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  return isNaN(d) ? String(val) :fmtDateDMY(d);
 };
 const daysUntil = endVal => {
   if (!endVal) return 0;

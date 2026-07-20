@@ -3,6 +3,7 @@ import { COLORS } from '../constants/token';
 import { LEAVE_STATUS } from '../constants/statusMaps';
 import { SBadge, Modal, Toast, ProgressBar } from '../components/ui/Components';
 import { leavesApi } from '../services/technicianPortalApi'; // update to your actual path/filename for the file above
+import { fmtDateDMY } from '../../../shared/formatDate';
 // import './leaves-page.css';
 
 // ─── Static config — matches the Leave model's lowercase enums ────────────────
@@ -61,11 +62,7 @@ const fmtDisplay = raw => {
   if (!raw) return '—';
   const d = new Date(raw);
   if (isNaN(d.getTime())) return String(raw);
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  return fmtDateDMY(d);
 };
 const isPending = status => status === 'pending';
 

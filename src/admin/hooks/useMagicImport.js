@@ -1,6 +1,7 @@
 // ─── src/hooks/useMagicImport.js ──────────────────────────────────────────────
 import { useState, useCallback } from 'react';
 import { quotationsApi } from '../services/api';
+import { fmtDateDMY } from '../../shared/formatDate';
 
 const VALID_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -66,7 +67,7 @@ export default function useMagicImport({ quotations, onFilled, onViewExisting })
       //   notes: extracted.notes,
       //   terms: extracted.terms,
       //   valid: extracted.validUntil,
-      //   created: new Date().toLocaleDateString('en-GB'),
+      //   created:fmtDateDMY(new Date()),
       // };
 
       const editData = {
@@ -82,7 +83,7 @@ export default function useMagicImport({ quotations, onFilled, onViewExisting })
   taxPercent: extracted.taxPercent || '',
   fields: extracted.fields || [],
   template: 'generic',
-  created: new Date().toLocaleDateString('en-GB'),
+  created:fmtDateDMY(new Date()),
 };
 
       const editItems = (extracted.items || []).length

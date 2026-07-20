@@ -25,8 +25,8 @@ import { postsApi as _p } from '../../services/api';
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const authHeaders = () => ({
   'Content-Type': 'application/json',
-  ...(localStorage.getItem('token') ? {
-    Authorization: `Bearer ${localStorage.getItem('token')}`
+  ...(localStorage.getItem('admin_token') ? {
+    Authorization: `Bearer ${localStorage.getItem('admin_token')}`
   } : {})
 });
 const req = async (method, path, body) => {
@@ -64,8 +64,8 @@ const postsApi = {
     fd.append('file', file);
     const res = await fetch(`${BASE}/upload`, {
       method: 'POST',
-      headers: localStorage.getItem('token') ? {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+      headers: localStorage.getItem('admin_token') ? {
+        Authorization: `Bearer ${localStorage.getItem('admin_token')}`
       } : {},
       body: fd
     });

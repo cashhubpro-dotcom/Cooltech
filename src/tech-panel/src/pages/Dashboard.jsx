@@ -5,6 +5,7 @@ import { COLORS, FONTS } from '../constants/token';
 import { JOB_STATUS } from '../constants/statusMaps';
 import { SBadge, TypeTag, PBadge } from '../components/ui/Components';
 import { technicianDashboardApi } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // Today's jobs / timeline icon per job type — same emoji set the old
 // dashboard used, kept here so this file has no other dependencies.
@@ -140,12 +141,7 @@ const Dashboard = () => {
     value: jobCompletionOverview.cancelled.count,
     pct: jobCompletionOverview.cancelled.pct
   }].filter(d => d.value > 0);
-  const todayStr = new Date().toLocaleDateString('en-IN', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  });
+  const todayStr =fmtDateDMY(new Date());
   const quickActions = [{
     label: 'Update Job Status',
     icon: '🔧',
@@ -547,11 +543,7 @@ const Dashboard = () => {
                 <div>
                   <div className="tp-dashboard-93">Scheduled For</div>
                   <div className="tp-dashboard-94">
-                    {new Date(upcomingAmcVisit.nextVisit).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric'
-                })}
+                    {fmtDateDMY(new Date(upcomingAmcVisit.nextVisit))}
                   </div>
                 </div>
               </div>

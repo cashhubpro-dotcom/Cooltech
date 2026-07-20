@@ -5,6 +5,7 @@ import { COLORS, FONTS } from '../constants/token';
 import { JOB_STATUS } from '../constants/statusMaps';
 import { SBadge, TypeTag, PBadge, Avatar, Divider } from '../components/ui/Badges';
 import { scheduleApi, techJobsApi } from '../services/technicianPortalApi';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Breakpoint hook (same pattern as DispatchBoard) ───────────────────────
 function useBreakpoint() {
@@ -28,7 +29,7 @@ const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const pad2 = n => String(n).padStart(2, '0');
 const isoDate = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-const fmtDate = d => `${MONTH_ABBR[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+const fmtDate = d => fmtDateDMY(d);
 const isSameDay = (a, b) => !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 const addDays = (d, n) => {
   const r = new Date(d);

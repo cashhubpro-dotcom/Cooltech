@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { fmtDateDMY } from '../../shared/formatDate';
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // ─── All soft-deletable resources ────────────────────────────────────────────
@@ -282,8 +283,8 @@ const ALL_MODULES = RESOURCES.map(r => r.module);
 // ─── API helpers ──────────────────────────────────────────────────────────────
 const authHeaders = () => ({
   'Content-Type': 'application/json',
-  ...(localStorage.getItem('token') ? {
-    Authorization: `Bearer ${localStorage.getItem('token')}`
+  ...(localStorage.getItem('admin_token') ? {
+    Authorization: `Bearer ${localStorage.getItem('admin_token')}`
   } : {})
 });
 async function fetchDeleted(resourceKey) {
@@ -318,16 +319,12 @@ function normalise(doc, resource) {
   if (resource.key === 'technicians') {
     return {
       _id: doc._id,
-      id: 'TECH-' + String(doc._id).slice(-6).toUpperCase(),
+      id: doc.techId || 'TECH-' + String(doc._id).slice(-6).toUpperCase(),
       name: doc.name || doc.techName || 'Unknown Technician',
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -335,7 +332,7 @@ function normalise(doc, resource) {
   // ── Attendance Session ─────────────────────────────────────────────────────
   if (resource.key === 'attendance/sessions') {
     const userName = typeof doc.userId === 'object' && doc.userId !== null ? doc.userId.name || doc.userId.email || 'Unknown User' : 'Unknown User';
-    const dateStr = doc.date || new Date(doc.clockInTime).toLocaleDateString('en-IN');
+    const dateStr =fmtDateDMY(doc.date || new Date(doc.clockInTime));
     const inTime = doc.clockInTime ? new Date(doc.clockInTime).toLocaleTimeString('en-IN', {
       hour: '2-digit',
       minute: '2-digit',
@@ -348,11 +345,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -366,11 +359,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.updatedAt ?fmtDateDMY(new Date(doc.updatedAt)) : '—',
       rawDate: doc.updatedAt ?? doc.createdAt
     };
   }
@@ -384,11 +373,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? doc.from ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -402,11 +387,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -420,11 +401,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -438,11 +415,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -456,11 +429,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -474,11 +443,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -492,11 +457,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -510,11 +471,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -528,11 +485,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -546,11 +499,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -564,11 +513,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -582,11 +527,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -600,11 +541,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -618,11 +555,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -636,11 +569,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -654,11 +583,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -672,11 +597,7 @@ function normalise(doc, resource) {
       module: resource.module,
       resourceKey: resource.key,
       by: doc.deletedBy ?? 'Admin',
-      date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }) : '—',
+      date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
       rawDate: doc.deletedAt ?? doc.createdAt
     };
   }
@@ -694,11 +615,7 @@ function normalise(doc, resource) {
     module: resource.module,
     resourceKey: resource.key,
     by: doc.deletedBy ?? 'Admin',
-    date: doc.deletedAt ? new Date(doc.deletedAt).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }) : '—',
+    date: doc.deletedAt ?fmtDateDMY(new Date(doc.deletedAt)) : '—',
     rawDate: doc.deletedAt ?? doc.createdAt
   };
 }
@@ -1059,14 +976,14 @@ const DeletedItemsPage = () => {
                 opacity: busy ? "0.5" : "1"
               }}>
                     <td className="ap-deleted-items-page-37"><Checkbox checked={selected.has(r._id)} onChange={v => toggleRow(r._id, v)} /></td>
-                    <td className="ap-deleted-items-page-38">{r.id}</td>
-                    <td className="ap-deleted-items-page-37">
+                    <td className="ap-deleted-items-page-38" data-label="ID">{r.id}</td>
+                    <td className="ap-deleted-items-page-37" data-label="Name / Title">
                       <div className="ap-deleted-items-page-39">{r.name}</div>
                       <div className="ap-deleted-items-page-40">{r.module}</div>
                     </td>
-                    <td className="ap-deleted-items-page-37"><Badge module={r.module} /></td>
-                    <td className="ap-deleted-items-page-41">{r.by}</td>
-                    <td className="ap-deleted-items-page-42">{r.date}</td>
+                    <td className="ap-deleted-items-page-37" data-label="Module"><Badge module={r.module} /></td>
+                    <td className="ap-deleted-items-page-41" data-label="Deleted by">{r.by}</td>
+                    <td className="ap-deleted-items-page-42" data-label="Deleted on">{r.date}</td>
                     <td className="ap-deleted-items-page-43">
                       <div className="ap-deleted-items-page-44">
                         <button style={{

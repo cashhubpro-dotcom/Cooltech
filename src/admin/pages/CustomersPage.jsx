@@ -15,6 +15,7 @@ import Pagination from '../components/ui/Pagination';
 import ExportDropdown from '../components/layout/ExportDropdown';
 import useExport from '../hooks/useExport';
 import { addToDeleted } from '../store/deletedStore';
+import { fmtDateDMY } from '../../shared/formatDate';
 
 // ─── shared input style ───────────────────────────────────────────────────────
 const iStyle = {
@@ -132,11 +133,7 @@ const CustomersPage = ({
     totalJobs: c.totalJobs ?? 0,
     totalSpent: c.totalSpent ?? 0,
     units: c.units ?? 1,
-    lastService: c.lastService ? new Date(c.lastService).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }) : '—'
+    lastService: c.lastService ?fmtDateDMY(new Date(c.lastService)) : '—'
   });
 
   // Load all customers on mount
@@ -377,11 +374,7 @@ const CustomersPage = ({
                           {(job.issue ?? job.description ?? '').length > 55 ? "…" : ""}
                         </div>
                         <div className="ap-customers-page-34">
-                          {job.scheduledDate ? new Date(job.scheduledDate).toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                  }) : job.date ?? '—'} · {job.techName ?? job.tech ?? 'Unassigned'}
+                          {job.scheduledDate ?fmtDateDMY(new Date(job.scheduledDate)) : job.date ?? '—'} · {job.techName ?? job.tech ?? 'Unassigned'}
                         </div>
                       </div>
                       <SBadge s={job.status} map={JOB_STATUS} />

@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
 import DeleteConfirmModal from '../ui/DeleteConfirmModal';
+import { fmtDateDMY } from '../../../shared/formatDate';
 function useBreakpoint() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   useEffect(() => {
@@ -241,11 +242,7 @@ const OptionListPanel = ({
                         <ToggleSwitch active={item.active} onChange={() => onToggle(item.name)} />
                       </td>
                       {showAddedCol && <td className="ap-option-list-panel-39">
-                          {new Date().toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                  })}
+                          {fmtDateDMY(new Date())}
                         </td>}
                       <td style={{
                   padding: isMobile ? "11px 12px" : "13px 16px"

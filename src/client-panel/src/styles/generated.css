@@ -448,6 +448,10 @@
   gap: 8px;
   margin-bottom: 18px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-welcome-toast-15 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-welcome-toast-16 {
   border-radius: 14px;
@@ -810,6 +814,10 @@
   gap: 16px;
   margin-top: 12px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-amc-page-46 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-amc-page-47 {
   display: flex;
@@ -873,6 +881,10 @@
   grid-template-columns: repeat(4,1fr);
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-amc-page-57 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-amc-page-58 {
   font-size: 11px;
@@ -947,6 +959,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-amc-page-69 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-amc-page-70 {
   display: flex;
@@ -1082,6 +1098,10 @@
   gap: 12px;
   margin-top: 16px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-amc-page-90 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-amc-page-91 {
   margin-top: 16px;
@@ -1336,6 +1356,10 @@
   grid-template-columns: 1fr 300px;
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-contracts-page-12 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-contracts-page-13 {
   background: var(--white);
@@ -1401,6 +1425,10 @@
   gap: 14px;
   margin-bottom: 4px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-contracts-page-22 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-contracts-page-23 {
   display: grid;
@@ -1408,6 +1436,10 @@
   gap: 14px;
   margin-bottom: 4px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-contracts-page-23 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-contracts-page-24 {
   margin-bottom: 4px;
@@ -1422,6 +1454,10 @@
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 12px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-contracts-page-26 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-contracts-page-27 {
   margin-top: 12px;
@@ -1706,6 +1742,10 @@
   gap: 12px;
   margin-bottom: 18px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-contracts-page-63 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-contracts-page-64 {
   background: var(--white);
@@ -2007,6 +2047,10 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-dashboard-20 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-dashboard-21 {
   cursor: pointer;
@@ -2056,6 +2100,10 @@
   grid-template-columns: 340px 1fr 340px;
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-dashboard-28 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-dashboard-29 {
   padding: 0 18px 18px;
@@ -2165,6 +2213,10 @@
   grid-template-columns: 300px 1fr 300px;
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-dashboard-42 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-dashboard-43 {
   display: flex;
@@ -2359,6 +2411,10 @@
   gap: 8px;
   padding: 16px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-dashboard-71 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-dashboard-72 {
   display: flex;
@@ -2433,6 +2489,10 @@
   gap: 12px;
   margin-bottom: 20px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-documents-page-1 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-documents-page-2 {
   cursor: pointer;
@@ -3256,6 +3316,10 @@
   grid-template-columns: 1fr 272px;
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-invoices-page-93 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-invoices-page-94 {
   background: var(--white);
@@ -3440,6 +3504,10 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-invoices-page-118 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-invoices-page-119 {
   background: var(--white);
@@ -3954,6 +4022,10 @@
   grid-template-columns: 320px 1fr;
   gap: 16px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-profile-page-2 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-profile-page-3 {
   display: flex;
@@ -4063,6 +4135,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-profile-page-18 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-profile-page-19 {
   margin-bottom: 0;
@@ -4078,6 +4154,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-profile-page-21 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-profile-page-22 {
   font-size: 11px;
@@ -4100,6 +4180,10 @@
   gap: 12px;
   margin-bottom: 14px;
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-profile-page-24 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-profile-page-25 {
   margin-bottom: 0;
@@ -4538,6 +4622,10 @@
   padding: 16px 0;
   border-bottom: 1px solid var(--border);
 }
+  @media (max-width: 639px) {
+    .client-portal-scope .cp-quotations-page-53 { grid-template-columns: 1fr !important; }
+  }
+
 
 .client-portal-scope .cp-quotations-page-54 {
   font-size: 11px;

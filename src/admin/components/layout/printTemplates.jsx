@@ -1,5 +1,6 @@
 import logoImg from '../../assets/logo.png';
 import signatureImg from '../../assets/signature.png';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Shared CoolTech header ───────────────────────────────────────────────────
 const Header = ({
@@ -560,11 +561,7 @@ export const CampaignReportTemplate = ({
     }
   };
   return <div className="ap-print-templates-109">
-      <AlishaHeader date={new Date().toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    })} />
+      <AlishaHeader date={fmtDateDMY(new Date())} />
       <div className="ap-print-templates-110">
         <span className="ap-print-templates-111">CAMPAIGN PERFORMANCE REPORT</span>
       </div>
@@ -880,11 +877,7 @@ export const ServiceJobSheetTemplate = ({
     ...extra
   });
   return <div className="ap-print-templates-160">
-      <AlishaHeader date={new Date().toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    })} />
+      <AlishaHeader date={fmtDateDMY(new Date())} />
       <div className="ap-print-templates-161"><span className="ap-print-templates-162">SERVICE JOB SHEET</span></div>
       <div className="ap-print-templates-163">
         <div className="ap-print-templates-164">
@@ -980,11 +973,7 @@ export const ScorecardTemplate = ({
           <div className="ap-print-templates-185">
             <div className="ap-print-templates-186">Generated</div>
             <div className="ap-print-templates-187">
-              {new Date().toLocaleDateString("en-IN", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric"
-            })}
+              {fmtDateDMY(new Date())}
             </div>
           </div>
         </div>

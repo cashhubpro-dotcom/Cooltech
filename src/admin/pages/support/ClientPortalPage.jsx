@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { clientPortalApi } from '../../services/api';
+import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ── Status maps ───────────────────────────────────────────────────────────────
 const JOB_STATUS = {
@@ -133,11 +134,7 @@ const AMC_STATUS = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const fmtDate = d => d ? new Date(d).toLocaleDateString('en-IN', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric'
-}) : '—';
+const fmtDate = d => d ?fmtDateDMY(new Date(d)) : '—';
 const initials = (name = '') => name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 const StatusBadge = ({
   status,

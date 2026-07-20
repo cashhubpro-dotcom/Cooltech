@@ -17,6 +17,7 @@ import ExportDropdown from '../components/layout/ExportDropdown';
 import useExport from '../hooks/useExport';
 import { addToDeleted } from '../store/deletedStore';
 import JobStatusModal from '../components/ui/JobStatusModal';
+import { fmtDateDMY } from '../../shared/formatDate';
 
 // ─── Breakpoint Hook ──────────────────────────────────────────────────────────
 function useBreakpoint() {
@@ -167,11 +168,7 @@ const normaliseJob = j => ({
   customer: typeof j.customer === 'object' ? j.customer?.name : j.customerName || j.customer || '',
   technicianId: typeof j.technician === 'object' ? j.technician?._id : j.technician,
   tech: typeof j.technician === 'object' ? j.technician?.name : j.techName || j.tech || 'Unassigned',
-  date: j.scheduledDate ? new Date(j.scheduledDate).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }) : j.date || '',
+  date: j.scheduledDate ?fmtDateDMY(new Date(j.scheduledDate)) : j.date || '',
   time: j.scheduledTime || j.time || '',
   ac: j.ac || '',
   address: j.address || (typeof j.customer === 'object' ? j.customer?.address : '') || '',
@@ -197,6 +194,7 @@ const normaliseJob = j => ({
 const JobsPage = ({
   openJob,
   setOpenJob,
+  setOpenJobLabel,
   openModal
 }) => {
   const {
@@ -904,7 +902,7 @@ const JobsPage = ({
             <tbody>
               {paginated.map((job, i) => <tr key={job._id} className="row ap-jobs-page-97" onClick={() => {
               setInitialEditMode(false);
-              setOpenJob(job._id);
+              setOpenJob(job._id); setOpenJobLabel?.(job.id);
             }} style={{
               background: i % 2 === 0 ? "var(--white)" : "var(--bg)"
             }}>
@@ -937,10 +935,10 @@ const JobsPage = ({
                   <td onClick={e => e.stopPropagation()} className="ap-jobs-page-117">
                     <ActionDropdown onView={() => {
                   setInitialEditMode(false);
-                  setOpenJob(job._id);
+                  setOpenJob(job._id); setOpenJobLabel?.(job.id);
                 }} onEdit={() => {
                   setInitialEditMode(true);
-                  setOpenJob(job._id);
+                  setOpenJob(job._id); setOpenJobLabel?.(job.id);
                 }} onDelete={() => setDeleteTarget(job._id)} />
                   </td>
                 </tr>)}
