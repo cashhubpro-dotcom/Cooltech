@@ -3,7 +3,7 @@ import { COLORS, FONTS } from '../../constants/tokens';
 import { SBadge, TypeTag, PBadge, SevBadge, Avatar, Divider } from '../../components/ui/Badges';
 import { KCard, SectionHdr, BackBtn, Thead } from '../../components/ui/Cards';
 import { FRow, FInput, FSelect, FTextarea, FBtn } from '../../components/ui/Form';
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api/sm';
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/sm`;
 
 // ─── ChannelIcon ───────────────────────────────────────────────────────────────
 const CHANNEL_META = {
