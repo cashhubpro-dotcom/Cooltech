@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const BASE = 'http://localhost:5000' ?? '';
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('admin_token');
-  const res = await fetch(`${BASE}/api/ad-campaigns${path}`, {
+  const res = await fetch(`${BASE}/ad-campaigns${path}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
