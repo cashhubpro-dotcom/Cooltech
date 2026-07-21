@@ -35,6 +35,7 @@ import taskRoutes from './routes/taskRoutes.js';
 import calendarRoutes from './routes/calendarRoutes.js';
 import holidayRoutes from './routes/holidays.js';
 import extendedRoutes from './routes/extendedRoutes.js';
+import salesOrderRoutes from './routes/salesOrderRoutes.js';
 import technicianLookupsRouter from './routes/technicianLookups.js';
 import invoiceRoutes from "./routes/invoice.routes.js";
 import settingsRoutes from "./routes/settings.routes.js";
@@ -121,6 +122,7 @@ app.use('/api/technician/leaves', technicianLeaveRoutes);
 app.use('/api/technician/expenses', technicianExpenseRoutes); 
 
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/sales-orders', salesOrderRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/timelogs', timelogsRouter);

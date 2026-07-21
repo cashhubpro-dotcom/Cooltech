@@ -751,6 +751,19 @@
   font-weight: 700;
 }
 .btn-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: #16A34A; }
+.btn-success-solid {
+  padding: 9px 22px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #16A34A, #15803D);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(22,163,74,.35);
+}
+.btn-success-solid:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
 .btn-danger  { background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; }
 .btn-logout {
   display: flex;
@@ -1054,6 +1067,7 @@
   font-weight: 800;
   flex-shrink: 0;
   font-family: var(--font-sans);
+  margin: auto;
 }
 
 /* ============================================================
@@ -3739,11 +3753,11 @@ html {
 }
 @media (max-width: 639px) {
   .header { padding: 0 10px; gap: 6px; }
-  .header-right { gap: 4px; }
+  .header-right { gap: 8px; }
 
   /* Collapse the clock in/out button to just its status dot + timer */
-  .clock-btn-label { display: none; }
-  .btn.ap-header-22 { padding: 7px 9px !important; }
+  /* .clock-btn-label { display: none; }
+  .btn.ap-header-22 { padding: 7px 9px !important; } */
 
   /* Shrink the live clock text on mobile */
   .clock-display {
@@ -5482,7 +5496,27 @@ html {
 
 /* ── Modal form helpers ──────────────────────────────────── */
 .modal-box--wide   { max-width: 640px; }
+/* .modal-box--narrow { max-width: 420px; } */
 .modal-box--narrow { max-width: 420px; }
+
+/* Tighter, consistent field spacing for compact action modals
+   (Update Status / Mark Paid / Mark Received / Mark Shipped) */
+.modal-box--narrow .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 18px;
+}
+.modal-box--narrow .modal-body .form-row {
+  margin-bottom: 0;
+}
+.modal-box--narrow .grid-form-2 {
+  gap: 14px;
+}
+.modal-box--narrow .modal-footer {
+  margin-top: 0;
+  padding: 15px;
+}
 .rec-modal-subtitle { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
 
 .form-label-row { display: flex; align-items: center; gap: 5px; }
@@ -6368,4 +6402,148 @@ html {
   .ap-settings-page-3 {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* ── Avatar status dot: mobile-only replacement for the Online/Offline badge ── */
+@media (max-width: 639px) {
+  .live-badge { display: none !important; }
+  .ap-header-22 { min-height: auto; }
+}
+@media (min-width: 640px) {
+  .hdr-avatar-status-dot { display: none !important; }
+}
+
+/* ============================================================
+   CLOCK ACTION TOAST — Clock In/Out/Break confirmation popup
+   ============================================================ */
+.cat-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .22s ease;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding: 16px;
+}
+
+.cat-card {
+  position: relative;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px 24px 22px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  text-align: center;
+  transition: transform .28s cubic-bezier(.34,1.56,.64,1), opacity .28s ease;
+}
+
+.cat-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+}
+.cat-close-btn:hover { background: var(--border); }
+
+.cat-icon-wrap {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  margin: 4px auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cat-icon-glow {
+  position: absolute;
+  inset: -22px;
+  border-radius: 50%;
+}
+.cat-icon-circle {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cat-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-h1);
+  margin-bottom: 3px;
+}
+.cat-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.cat-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: 1px solid;
+  margin-bottom: 18px;
+}
+.cat-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cat-status-text {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cat-progress-track {
+  height: 4px;
+  border-radius: 99px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.cat-progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width .08s linear;
+}
+
+/* ── Mobile ── */
+@media (max-width: 479px) {
+  .cat-card {
+    width: 100%;
+    padding: 24px 18px 18px;
+    border-radius: 16px;
+  }
+  .cat-icon-wrap { width: 64px; height: 64px; }
+  .cat-icon-circle { width: 48px; height: 48px; }
+  .cat-title { font-size: 15.5px; }
+  .cat-subtitle { font-size: 12px; }
+}
+
+/* ── Clock button elapsed timer: mobile only ── */
+@media (min-width: 640px) {
+  .ap-header-24 { display: none !important; }
 }

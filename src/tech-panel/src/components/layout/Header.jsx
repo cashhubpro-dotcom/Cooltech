@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 import { TITLES } from '../../constants/navigation';
 import { COLORS } from '../../constants/token';
 import { LOGGED_IN_TECH } from '../../data/mockData';
@@ -73,11 +73,16 @@ const Header = ({
 
   return <header className="header">
       <div className="hdr-left">
-        {/* <button onClick={() => setOpen(o => !o)} className="tp-header-1">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button> */}
+        {/* ── Mobile-only hamburger — opens the sidebar drawer. Hidden on
+            desktop (>=901px) via CSS since the sidebar has its own
+            collapse toggle there. ── */}
+        <button
+          onClick={() => setOpen(true)}
+          className="hdr-hamburger-btn"
+          aria-label="Open menu"
+        >
+          <Menu size={18} color={COLORS.muted} strokeWidth={2} />
+        </button>
         <span className="tp-header-2">🔧</span>
         <span className="hdr-title">{title}</span>
       </div>
@@ -90,9 +95,9 @@ const Header = ({
         </div>
 
         {/* Time */}
-        <div className="tp-header-6">
+        {/* <div className="tp-header-6">
           {time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-        </div>
+        </div> */}
 
         {/* ── Notifications bell ── */}
         <div style={{ position: 'relative' }}>
@@ -117,7 +122,7 @@ const Header = ({
           {notifOpen && (
             <>
               <div onClick={() => setNotifOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-              <div style={{
+              <div className="notif-dropdown" style={{
                 position: 'absolute', top: 36, right: 0, width: 340, maxHeight: 420,
                 background: '#fff', border: `1px solid ${COLORS.border || '#E5E7EB'}`, borderRadius: 12,
                 boxShadow: '0 8px 24px rgba(0,0,0,.12)', zIndex: 50, display: 'flex', flexDirection: 'column',
@@ -163,7 +168,9 @@ const Header = ({
           )}
         </div>
 
-        <button onClick={() => setIsDark(d => !d)} className="icon-btn" title="Toggle dark mode">
+        {/* ── Dark mode toggle — desktop only. Hidden on mobile via CSS,
+            where it lives inside the profile dropdown instead. ── */}
+        <button onClick={() => setIsDark(d => !d)} className="icon-btn hdr-darkmode-btn" title="Toggle dark mode">
           {isDark ? '☀️' : '🌙'}
         </button>
 
@@ -181,14 +188,28 @@ const Header = ({
               </div>
               {[{
             label: '👤 My Profile',
-            action: () => { navigate('/tech/profile'); setProfileOpen(false); }
+            action: () => { navigate('/tech/profile'); setProfileOpen(false); },
+            mobileOnly: false,
           }, {
             label: '📅 My Schedule',
-            action: () => { navigate('/tech/schedule'); setProfileOpen(false); }
+            action: () => { navigate('/tech/schedule'); setProfileOpen(false); },
+            mobileOnly: false,
           }, {
             label: '💵 My Salary',
-            action: () => { navigate('/tech/salary'); setProfileOpen(false); }
-          }].map(item => <button key={item.label} onClick={item.action} className="tp-header-14">
+            action: () => { navigate('/tech/salary'); setProfileOpen(false); },
+            mobileOnly: false,
+          }, {
+            // ── Mobile-only: same toggle as the header icon-btn, just
+            // relocated here since there's no room for a separate icon
+            // in the mobile header. ──
+            label: isDark ? '☀️ Light Mode' : '🌙 Dark Mode',
+            action: () => setIsDark(d => !d),
+            mobileOnly: true,
+          }].map(item => <button
+                key={item.label}
+                onClick={item.action}
+                className={`tp-header-14 ${item.mobileOnly ? 'dropdown-darkmode-item' : ''}`}
+              >
                   {item.label}
                 </button>)}
               <div className="tp-header-15">

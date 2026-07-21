@@ -840,6 +840,55 @@ body {
   .tech-panel-scope .page-content { padding: 16px; }
 }
 
+/* ── Mobile-only sidebar close button ── */
+.tech-panel-scope .sb-close-btn {
+  display: none;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: transparent; border: 1px solid rgba(255,255,255,.15);
+  cursor: pointer; align-items: center; justify-content: center;
+  flex-shrink: 0; padding: 0; color: rgba(255,255,255,.55);
+  margin-left: auto;
+  transition: background var(--transition), color var(--transition);
+}
+.tech-panel-scope .sb-close-btn:hover { background: rgba(255,255,255,.1); color: #F8FAFC; }
+
+/* ── Mobile-only header hamburger button ── */
+.tech-panel-scope .hdr-hamburger-btn {
+  display: none;
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--white); border: 1px solid var(--border);
+  cursor: pointer; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .14s;
+}
+.tech-panel-scope .hdr-hamburger-btn:hover { background: var(--bg); }
+
+/* ── Dark-mode icon button: desktop only ── */
+.tech-panel-scope .hdr-darkmode-btn { display: flex; }
+
+/* ── Dark-mode dropdown item: mobile only ── */
+.tech-panel-scope .dropdown-darkmode-item { display: none; }
+
+/* ── Notification dropdown: full-width sheet on mobile, anchored
+   below the header instead of relative to the bell ── */
+@media (max-width: 899px) {
+  .tech-panel-scope .notif-dropdown {
+    position: fixed !important;
+    top: var(--header-h) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-height: calc(100vh - var(--header-h) - 24px) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .tech-panel-scope .hbg                    { display: none !important; }
+  .tech-panel-scope .sb-close-btn           { display: flex !important; }
+  .tech-panel-scope .hdr-hamburger-btn      { display: flex !important; }
+  .tech-panel-scope .hdr-darkmode-btn       { display: none !important; }
+  .tech-panel-scope .dropdown-darkmode-item { display: block !important; }
+}
+
 @media (max-width: 640px) {
   .tech-panel-scope .grid-2, .tech-panel-scope .grid-3, .tech-panel-scope .grid-4 { grid-template-columns: 1fr; }
   .tech-panel-scope .lp-card { padding: 24px 20px; }
@@ -920,6 +969,8 @@ body {
   background: var(--bg, #F8FAFC);
   outline: none;
   transition: border-color .15s;
+  height: 38px;
+  box-sizing: border-box;
 }
 .tech-panel-scope .lv-search:focus {
   border-color: var(--brand, #F0652D);
@@ -934,9 +985,57 @@ body {
   cursor: pointer;
   outline: none;
   transition: border-color .15s;
+   height: 38px;
+  box-sizing: border-box;
 }
 .tech-panel-scope .lv-select:focus {
   border-color: var(--brand, #F0652D);
+}
+
+@media (max-width: 640px) {
+  /* Toolbar: stack search + filters vertically, full width, fixed height each */
+  .tech-panel-scope .lv-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+  }
+
+  .tech-panel-scope .lv-search,
+  .tech-panel-scope .lv-select {
+    width: 100%;
+    height: 40px;
+    flex: none;         /* stop flex-grow/stretch from resizing it */
+    min-width: 0;        /* override the fill-available min-width causing overflow */
+    box-sizing: border-box;
+  }
+
+  /* KPI + balance card grids: single column */
+  .tech-panel-scope .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Leave balance cards: tighten padding on mobile */
+  .tech-panel-scope .lv-kpi {
+    padding: 14px 16px;
+  }
+
+  /* Table -> stacked cards already handled by your existing @media(max-width:720px)
+     rule, but make sure the reason column doesn't force horizontal scroll */
+  .tech-panel-scope .lv-table td {
+    word-break: break-word;
+  }
+
+  /* Section header + Apply button: stack instead of overflowing */
+  .tech-panel-scope .sec-hdr {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .tech-panel-scope .sec-hdr .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* ── Table ──────────────────────────────────────────────────────────────── */
@@ -1571,6 +1670,25 @@ body {
   line-height: 1.6;
 }
 
+.tech-panel-scope .adv-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tech-panel-scope .adv-table-scroll table {
+  min-width: 640px; /* keeps columns from squishing; forces scroll instead */
+}
+
+/* Make the scrollbar visibly grabbable on mobile instead of relying on the
+   global hidden/thin scrollbar rules elsewhere in this file */
+.tech-panel-scope .adv-table-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.tech-panel-scope .adv-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: 99px;
+}
+
 /* ── Responsive: collapse table to stacked cards on small screens ───────── */
 @media (max-width: 720px) {
   .tech-panel-scope .lv-table thead {
@@ -1612,3 +1730,130 @@ body {
 }
 
 /* leave request */
+
+/* Table -> stacked cards on small screens (leave history) */
+@media (max-width: 720px) {
+  .tech-panel-scope .lv-table thead {
+    display: none;
+  }
+  .tech-panel-scope .lv-table,
+  .tech-panel-scope .lv-table tbody,
+  .tech-panel-scope .lv-table tr,
+  .tech-panel-scope .lv-table td {
+    display: block;
+    width: 100%;
+  }
+  .tech-panel-scope .lv-table tr {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border, #E5E9F0);
+  }
+  .tech-panel-scope .lv-table td {
+    padding: 5px 0;
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+  }
+  /* Label each cell using its column header, via data-label set in JSX,
+     or fall back to just showing the value stacked if no data-label is added */
+  .tech-panel-scope .lv-table td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--faint, #94A3B8);
+    flex-shrink: 0;
+  }
+  .tech-panel-scope .lv-reason {
+    max-width: 60%;
+    white-space: normal;
+    text-align: right;
+  }
+  .tech-panel-scope .lv-menu-wrap {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .tech-panel-scope .grid-2,
+  .tech-panel-scope .grid-3,
+  .tech-panel-scope .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .tech-panel-scope .lp-card { padding: 24px 20px; }
+  .tech-panel-scope .sec-title { font-size: 17px; }
+  .tech-panel-scope .stat-value { font-size: 22px; }
+
+  /* Toolbar: stack search + filters vertically, full width, fixed height */
+  .tech-panel-scope .lv-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .tech-panel-scope .lv-search,
+  .tech-panel-scope .lv-select {
+    width: 100%;
+    flex: none;
+    min-width: 0;
+  }
+
+  .tech-panel-scope .lv-kpi {
+    padding: 14px 16px;
+  }
+
+  .tech-panel-scope .sec-hdr {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .tech-panel-scope .sec-hdr .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Override: keep Leave History table as a real scrollable table on
+   mobile instead of the stacked-card layout, matching Advances page ── */
+.tech-panel-scope .lv-no-stack {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tech-panel-scope .lv-no-stack table {
+  min-width: 700px; /* forces horizontal scroll instead of squishing columns */
+}
+
+@media (max-width: 720px) {
+  .tech-panel-scope .lv-no-stack.lv-table-wrap .lv-table thead {
+    display: table-header-group;
+  }
+  .tech-panel-scope .lv-no-stack.lv-table-wrap .lv-table,
+  .tech-panel-scope .lv-no-stack.lv-table-wrap .lv-table tbody,
+  .tech-panel-scope .lv-no-stack.lv-table-wrap .lv-table tr,
+  .tech-panel-scope .lv-no-stack.lv-table-wrap .lv-table td {
+    display: revert;
+    width: auto;
+  }
+  .tech-panel-scope .lv-no-stack.lv-table-wrap .lv-table td::before {
+    content: none;
+  }
+  .tech-panel-scope .lv-no-stack.lv-table-wrap .lv-reason {
+    max-width: 200px;
+    white-space: nowrap;
+    text-align: left;
+  }
+}
+
+.tech-panel-scope .lv-no-stack::-webkit-scrollbar {
+  height: 6px;
+}
+.tech-panel-scope .lv-no-stack::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: 99px;
+}

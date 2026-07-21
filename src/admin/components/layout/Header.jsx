@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, User, Settings as SettingsIcon, LogOut, Clock as ClockIcon } from 'lucide-react';
 import { COLORS } from '../../constants/tokens';
 import { useDarkMode } from '../../../shared/useDarkMode';
+import ClockActionToast from './ClockActionToast';
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -15,30 +16,50 @@ const readUser = () => {
 };
 
 // ─── Small self-contained avatar (image or initials) ──────────────────────────
-const UserAvatar = ({ avatar, initials, size = 32 }) => {
+// statusDot: "online" | "offline" | undefined — renders a small colored dot
+// on the bottom-right corner of the avatar (visible on mobile only, see CSS)
+const UserAvatar = ({ avatar, initials, size = 32, statusDot }) => {
   const hasImg = avatar && avatar !== "" && avatar !== "null";
   const src = hasImg ? (avatar.startsWith("/") ? `${API}${avatar}` : avatar) : null;
   return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size * 0.25,
-        background: hasImg ? "transparent" : "linear-gradient(135deg, rgba(234,88,12,.14), rgba(234,88,12,.28))",
-        fontSize: size * 0.38,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: 800,
-        color: COLORS.brand,
-        flexShrink: 0,
-        overflow: "hidden"
-      }}
-    >
-      {hasImg ? (
-        <img src={src} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-      ) : (
-        initials
+    <div style={{ position: "relative", flexShrink: 0, width: size, height: size }}>
+      <div
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size * 0.25,
+          background: hasImg ? "transparent" : "linear-gradient(135deg, rgba(234,88,12,.14), rgba(234,88,12,.28))",
+          fontSize: size * 0.38,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: 800,
+          color: COLORS.brand,
+          overflow: "hidden"
+        }}
+      >
+        {hasImg ? (
+          <img src={src} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          initials
+        )}
+      </div>
+
+      {statusDot && (
+        <span
+          className="hdr-avatar-status-dot"
+          style={{
+            position: "absolute",
+            top: -4,
+            right: -5,
+            width: Math.max(9, Math.round(size * 0.3)),
+            height: Math.max(9, Math.round(size * 0.3)),
+            borderRadius: "50%",
+            background: statusDot === "online" ? "#16A34A" : "#DC2626",
+            border: "2px solid var(--white, #fff)",
+            boxSizing: "content-box"
+          }}
+        />
       )}
     </div>
   );
@@ -213,6 +234,7 @@ const Header = ({
   const [notifDropOpen, setNotifDropOpen] = useState(false);
   const [userDropOpen, setUserDropOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [clockToast, setClockToast] = useState(null);
 
   // ── Logged-in user (for the header avatar/dropdown) — syncs when avatar
   //    changes elsewhere (e.g. ProfilePage dispatches "user-updated") ────────
@@ -268,11 +290,13 @@ useEffect(() => {
     setTotalBreakSecs(0);
     setElapsed(0);
     setClockDropOpen(false);
+    setClockToast({ action: 'in', time: new Date() });
   };
   const doBreak = () => {
     setBreakStartTime(new Date());
     setClockStatus('break');
     setClockDropOpen(false);
+    setClockToast({ action: 'break', time: new Date() });
   };
   const doClockOut = () => {
     const t = new Date();
@@ -300,6 +324,7 @@ useEffect(() => {
     setTotalBreakSecs(0);
     setElapsed(0);
     setClockDropOpen(false);
+    setClockToast({ action: 'out', time: t });
   };
 
   const clockBg = {
@@ -389,6 +414,7 @@ useEffect(() => {
                       <ClockDropBtn icon="▶" label="Resume Work" color="#16A34A" bg="#ECFDF5" onClick={() => {
                   setClockStatus('in');
                   setClockDropOpen(false);
+                  setClockToast({ action: 'in', time: new Date() });
                 }} />
                       <ClockDropBtn icon="⏹" label="Clock Out" color="#DC2626" bg="#FEF2F2" onClick={doClockOut} />
                     </>}
@@ -406,7 +432,8 @@ useEffect(() => {
             </>}
         </div>
 
-        {/* ── Online/Offline status badge ── */}
+        {/* ── Online/Offline status badge (desktop only — hidden on mobile,
+             where the status dot on the avatar takes over, see CSS) ── */}
         <div className="live-badge" style={!isOnline ? { background: '#FEF2F2', color: '#DC2626' } : undefined}>
           <span className={isOnline ? 'live-dot animate-blink' : 'live-dot'} style={!isOnline ? { background: '#DC2626', animation: 'none' } : undefined} />
           <span className="live-text">{isOnline ? 'Online' : 'Offline'}</span>
@@ -449,7 +476,12 @@ useEffect(() => {
             }}
             aria-label="User menu"
           >
-            <UserAvatar avatar={userAvatar} initials={userInitials} size={30} />
+            <UserAvatar
+              avatar={userAvatar}
+              initials={userInitials}
+              size={30}
+              statusDot={isOnline ? "online" : "offline"}
+            />
           </button>
 
           {userDropOpen && <>
@@ -521,6 +553,16 @@ useEffect(() => {
           </>}
         </div>
       </div>
+
+      {clockToast && (
+        <ClockActionToast
+          action={clockToast.action}
+          userName={userName}
+          time={clockToast.time}
+          onClose={() => setClockToast(null)}
+        />
+      )}
+
     </header>;
 };
 

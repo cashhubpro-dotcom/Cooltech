@@ -4,6 +4,8 @@ import { COLORS, FONTS } from '../../constants/tokens';
 import { Avatar } from '../../components/ui/Badges';
 import { SectionHdr } from '../../components/ui/Cards';
 import { fmtDateDMY } from '../../../shared/formatDate';
+import ExportDropdown from '../../components/layout/ExportDropdown';
+import useExport from '../../hooks/useExport';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -92,6 +94,47 @@ const QUICK_STATUS_OPTIONS = ['P', 'A', 'HD', 'L'];
 // edge cases (Late / Holiday) that the quick "Mark Today" modal skips.
 const DAY_DETAIL_OPTIONS = ['P', 'A', 'HD', 'L', 'Late', 'H'];
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// ─── Export columns ────────────────────────────────────────────────────────
+const ATTENDANCE_COLUMNS = [{
+  label: 'Technician',
+  key: 'name',
+  width: 22,
+  tdStyle: { fontWeight: 600 }
+}, {
+  label: 'Role',
+  key: 'role',
+  width: 16
+}, {
+  label: 'Present',
+  key: 'presentDays',
+  width: 10
+}, {
+  label: 'Absent',
+  key: 'absentDays',
+  width: 10
+}, {
+  label: 'Half Day',
+  key: 'hdCount',
+  width: 10
+}, {
+  label: 'Leave',
+  key: 'leaves',
+  width: 10
+}, {
+  label: 'Late',
+  key: 'lateCount',
+  width: 10
+}, {
+  label: 'Holidays',
+  key: 'holidayCount',
+  width: 10
+}, {
+  label: 'Att %',
+  key: 'attPct',
+  width: 10,
+  format: v => `${v}%`
+}];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -844,6 +887,35 @@ const AttendancePage = ({
   // attendance for any month still in progress. Now uses elapsedWorkingDays.
   const avgAtt = shown.length > 0 && elapsedWorkingDays > 0 ? Math.round(shown.reduce((s, a) => s + (a.presentDays || 0) / elapsedWorkingDays * 100, 0) / shown.length) : 0;
 
+  // ── Export rows: enrich `shown` with the derived per-tech stats the
+  //    table/summary views compute inline, since export needs flat fields ──
+  const exportRows = useMemo(() => shown.map(a => {
+    const vals = Object.values(a.dates || {});
+    const hdCount = vals.filter(v => v === 'HD').length;
+    const lateCount = vals.filter(v => v === 'Late').length;
+    const holidayCount = vals.filter(v => v === 'H').length;
+    const attPct = elapsedWorkingDays > 0 ? Math.round((a.presentDays || 0) / elapsedWorkingDays * 100) : 0;
+    return {
+      ...a,
+      hdCount,
+      lateCount,
+      holidayCount,
+      attPct
+    };
+  }), [shown, elapsedWorkingDays]);
+
+  const { exportProps } = useExport({
+    title: 'Attendance Report',
+    filename: `cooltech-attendance-${MONTHS[selMonth].toLowerCase()}-${selYear}`,
+    template: 'generic_list',
+    subtitle: `AC Services Platform · ${MONTHS[selMonth]} ${selYear} · ${shown.length} Technicians`,
+    docId: 'ATT-EXPORT',
+    columns: ATTENDANCE_COLUMNS,
+    rows: exportRows,
+    showTotals: true,
+    totalColumns: ['presentDays', 'absentDays', 'hdCount', 'leaves', 'lateCount', 'holidayCount']
+  });
+
   // ── FIX 4: markAllPresent — optimistic update + backend persist ─────────────
   const markAllPresent = useCallback(() => {
     if (markingAll) return;
@@ -991,12 +1063,14 @@ const AttendancePage = ({
               {f.options.map(o => <option key={String(o.value)} value={o.value}>{o.label}</option>)}
             </select>)}
 
-          <button className="btn ap-attendance-page-115" onClick={() => openModal('report', {
+          {/* <button className="btn ap-attendance-page-115" onClick={() => openModal('report', {
           title: 'Attendance Report',
           format: 'CSV'
         })}>
             Export
-          </button>
+          </button> */}
+
+          <ExportDropdown {...exportProps} />
 
           <button className="btn ap-attendance-page-116" onClick={markAllPresent} disabled={markingAll} style={{
           cursor: markingAll ? "wait" : "pointer",

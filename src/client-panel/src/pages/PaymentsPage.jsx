@@ -524,7 +524,7 @@ export default function ClientPaymentsPage() {
 
         @media (max-width: 760px) {
           .cpay-kpi-grid { grid-template-columns:repeat(2,1fr); }
-          .cpay-method-grid { grid-template-columns:repeat(3,1fr); }
+          .cpay-method-grid { grid-template-columns:repeat(1,1fr); }
           .cpay-detail-grid { grid-template-columns:1fr; }
           .cpay-hdr { flex-direction:column; }
         }
