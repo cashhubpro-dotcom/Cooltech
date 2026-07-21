@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { COLORS, FONTS } from "../constants/tokens";
 import { Lock, Bell, Shield, Smartphone, Eye, EyeOff, Monitor, Moon, Sun, Globe, CheckCircle, AlertTriangle, Key, Trash2, LogOut, Save, ToggleLeft, ToggleRight, Loader } from "lucide-react";
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const token = () => localStorage.getItem("admin_token");
 const authFetch = (url, opts = {}) => fetch(`${API}${url}`, {
   ...opts,
@@ -136,7 +136,7 @@ const AccountSettingsPage = () => {
     setPwSaving(true);
     setPwToast(null);
     try {
-      const res = await authFetch("/api/account/password", {
+      const res = await authFetch("/account/password", {
         method: "PUT",
         body: JSON.stringify({
           currentPassword: pwForm.current,
@@ -189,7 +189,7 @@ const AccountSettingsPage = () => {
     setNotifs(updated); // optimistic update
     setNotifSaving(true);
     try {
-      const res = await authFetch("/api/account/notifications", {
+      const res = await authFetch("/account/notifications", {
         method: "PUT",
         body: JSON.stringify({
           [key]: val
@@ -223,7 +223,7 @@ const AccountSettingsPage = () => {
     setAppSaving(true);
     setAppToast(null);
     try {
-      const res = await authFetch("/api/account/preferences", {
+      const res = await authFetch("/account/preferences", {
         method: "PUT",
         body: JSON.stringify(prefs)
       });
@@ -261,7 +261,7 @@ const AccountSettingsPage = () => {
   const handle2FA = async () => {
     setTwoFASaving(true);
     try {
-      const res = await authFetch("/api/account/security/2fa", {
+      const res = await authFetch("/account/security/2fa", {
         method: "PUT",
         body: JSON.stringify({
           enabled: !twoFA
@@ -282,7 +282,7 @@ const AccountSettingsPage = () => {
   };
   const handleRevoke = async sessionId => {
     try {
-      const res = await authFetch(`/api/account/security/sessions/${sessionId}`, {
+      const res = await authFetch(`/account/security/sessions/${sessionId}`, {
         method: "DELETE"
       });
       if (res.ok) setSessions(prev => prev.filter(s => s._id !== sessionId));
@@ -290,7 +290,7 @@ const AccountSettingsPage = () => {
   };
   const handleRevokeAll = async () => {
     try {
-      const res = await authFetch("/api/account/security/sessions", {
+      const res = await authFetch("/account/security/sessions", {
         method: "DELETE"
       });
       if (res.ok) {
@@ -306,7 +306,7 @@ const AccountSettingsPage = () => {
   const handleDeleteAccount = async () => {
     if (!deletePassword) return setDeleteError("Please enter your password to confirm.");
     try {
-      const res = await authFetch("/api/account/account", {
+      const res = await authFetch("/account/account", {
         method: "DELETE",
         body: JSON.stringify({
           password: deletePassword
@@ -327,7 +327,7 @@ const AccountSettingsPage = () => {
     const load = async () => {
       setPageLoading(true);
       try {
-        const [nRes, pRes, sRes] = await Promise.all([authFetch("/api/account/notifications"), authFetch("/api/account/preferences"), authFetch("/api/account/security")]);
+        const [nRes, pRes, sRes] = await Promise.all([authFetch("/account/notifications"), authFetch("/account/preferences"), authFetch("/account/security")]);
         if (nRes.ok) setNotifs(await nRes.json());
         if (pRes.ok) setPrefs(await pRes.json());
         if (sRes.ok) {
