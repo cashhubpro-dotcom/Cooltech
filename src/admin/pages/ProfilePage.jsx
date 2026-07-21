@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { COLORS, FONTS } from "../constants/tokens";
 import { User, Mail, Phone, MapPin, Shield, Clock, Briefcase, Camera, CheckCircle, Edit3, Save, X, Loader, Upload, Trash2 } from "lucide-react";
 import { fmtDateDMY } from '../../shared/formatDate';
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const token = () => localStorage.getItem("admin_token");
 
 // ─── Sync user fields to localStorage + notify Sidebar instantly ─────────────
@@ -117,7 +117,7 @@ const AvatarEditor = ({
     try {
       const formData = new FormData();
       formData.append("avatar", file);
-      const res = await fetch(`${API}/api/profile/avatar`, {
+      const res = await fetch(`${API}/profile/avatar`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token()}`
@@ -143,7 +143,7 @@ const AvatarEditor = ({
     setRemoving(true);
     setShowMenu(false);
     try {
-      const res = await fetch(`${API}/api/profile/avatar`, {
+      const res = await fetch(`${API}/profile/avatar`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token()}`
@@ -246,7 +246,7 @@ const ProfilePage = ({
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API}/api/profile`, {
+        const res = await fetch(`${API}/profile`, {
           headers: {
             Authorization: `Bearer ${token()}`
           }
@@ -270,7 +270,7 @@ const ProfilePage = ({
     // Try attendance sessions for attendance days count
     // Tries /api/attendance/sessions first, falls back to /api/attendance
     const fetchAttendance = async () => {
-      const URLS = [`${API}/api/attendance/sessions`, `${API}/api/attendance`, `${API}/api/timelogs`];
+      const URLS = [`${API}/attendance/sessions`, `${API}/attendance`, `${API}/timelogs`];
       for (const url of URLS) {
         try {
           const res = await fetch(url, {
@@ -308,7 +308,7 @@ const ProfilePage = ({
     setSaving(true);
     setError("");
     try {
-      const res = await fetch(`${API}/api/profile`, {
+      const res = await fetch(`${API}/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
