@@ -195,23 +195,25 @@ const AdvancesPage = () => {
       </div>
 
       <div className="card tp-advances-page-15">
-        <table className="data-table">
-          <thead>
-            <tr><th>Record ID</th><th>Date</th><th>Amount</th><th>Reason</th><th>Status</th><th></th></tr>
-          </thead>
-          <tbody>
-            {loading && <tr><td colSpan={6} className="tp-advances-page-16">Loading…</td></tr>}
-            {!loading && filtered.length === 0 && <tr><td colSpan={6} className="tp-advances-page-17">No advance requests yet.</td></tr>}
-            {!loading && filtered.map(r => <tr key={r.recordId} onClick={() => setViewTarget(r)} className="tp-advances-page-18">
-                <td>{r.recordId}</td>
-                <td>{fmtDisplay(r.date || r.createdAt)}</td>
-                <td>{fmtMoney(r.amount)}</td>
-                <td className="tp-advances-page-19">{r.reason || '—'}</td>
-                <td><SBadge s={r.status} map={ADVANCE_STATUS} /></td>
-                <td className="tp-advances-page-20">View →</td>
-              </tr>)}
-          </tbody>
-        </table>
+        <div className="adv-table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr><th>Record ID</th><th>Date</th><th>Amount</th><th>Reason</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              {loading && <tr><td colSpan={6} className="tp-advances-page-16">Loading…</td></tr>}
+              {!loading && filtered.length === 0 && <tr><td colSpan={6} className="tp-advances-page-17">No advance requests yet.</td></tr>}
+              {!loading && filtered.map(r => <tr key={r.recordId} onClick={() => setViewTarget(r)} className="tp-advances-page-18">
+                  <td>{r.recordId}</td>
+                  <td>{fmtDisplay(r.date || r.createdAt)}</td>
+                  <td>{fmtMoney(r.amount)}</td>
+                  <td className="tp-advances-page-19">{r.reason || '—'}</td>
+                  <td><SBadge s={r.status} map={ADVANCE_STATUS} /></td>
+                  <td className="tp-advances-page-20">View →</td>
+                </tr>)}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <RequestModal open={showRequest} onClose={() => setShowRequest(false)} form={form} setForm={setForm} onSubmit={submitRequest} saving={saving} />

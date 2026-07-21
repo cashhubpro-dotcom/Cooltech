@@ -444,7 +444,7 @@ const LeavesPage = () => {
           </select>
         </div>
 
-        <div className="lv-table-wrap">
+        <div className="lv-table-wrap lv-no-stack">
           <table className="lv-table">
             <thead>
               <tr>

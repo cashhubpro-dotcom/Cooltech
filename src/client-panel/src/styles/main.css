@@ -505,3 +505,150 @@
 .client-portal-scope .text-right { text-align: right; }
 .client-portal-scope .font-mono { font-family: var(--font-mono); }
 .client-portal-scope .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Dark-mode icon button: desktop only */
+.client-portal-scope .header-darkmode-btn { display: flex; }
+
+/* Dark-mode dropdown item: mobile only */
+.client-portal-scope .dropdown-darkmode-item { display: none; }
+
+@media (max-width: 1023px) {
+  .client-portal-scope .header-darkmode-btn    { display: none !important; }
+  .client-portal-scope .dropdown-darkmode-item { display: block !important; }
+
+  /* ── Force-hide the sidebar's own collapse hamburger on mobile.
+     !important guards against source-order issues if .hamburger-btn's
+     base rule happens to load after this media query. ── */
+  .client-portal-scope .hamburger-btn        { display: none !important; }
+  .client-portal-scope .sidebar-close-btn    { display: flex !important; }
+  .client-portal-scope .header-hamburger-btn { display: flex !important; }
+}
+
+/* ── Dashboard mobile + tablet responsiveness ────────────────────────── */
+
+/* Tablet (640px–1023px) — banner stays a row but tightens up */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .client-portal-scope .portal-banner.cp-dashboard-4 {
+    padding: 20px;
+  }
+  .client-portal-scope .cp-dashboard-14 {
+    right: 90px;
+    transform: scale(0.75);
+    transform-origin: bottom right;
+  }
+  .client-portal-scope .cp-dashboard-6 { font-size: 19px; }
+  .client-portal-scope .cp-dashboard-8 { gap: 8px; }
+  .client-portal-scope .cp-dashboard-9,
+  .client-portal-scope .cp-dashboard-12 { padding: 4px 10px; font-size: 10.5px; }
+
+  .client-portal-scope .cp-dashboard-71 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* Mobile (<640px) */
+@media (max-width: 639px) {
+
+  .client-portal-scope .portal-banner.cp-dashboard-4 {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 16px;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .client-portal-scope .portal-avatar {
+    width: 44px; height: 44px; border-radius: 12px; font-size: 16px;
+  }
+
+  .client-portal-scope .cp-dashboard-5 {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+  .client-portal-scope .cp-dashboard-6 { font-size: 17px; }
+  .client-portal-scope .cp-dashboard-7 { font-size: 12px; }
+
+  .client-portal-scope .cp-dashboard-8 {
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .client-portal-scope .cp-dashboard-9,
+  .client-portal-scope .cp-dashboard-12 {
+    padding: 4px 9px;
+    font-size: 10px;
+  }
+
+  /* Cityscape — kept, but shrunk and pinned to bottom-right as a faded
+     backdrop behind the date/time row instead of competing with the
+     welcome text for horizontal space */
+  .client-portal-scope .cp-dashboard-14 {
+    right: -20px;
+    bottom: -6px;
+    transform: scale(0.55);
+    transform-origin: bottom right;
+    opacity: 0.55;
+  }
+
+  .client-portal-scope .cp-dashboard-15 {
+    width: 100%;
+    text-align: left;
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+  }
+  .client-portal-scope .cp-dashboard-16,
+  .client-portal-scope .cp-dashboard-18 {
+    justify-content: flex-start;
+  }
+
+  .client-portal-scope .cp-dashboard-72 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .client-portal-scope .cp-dashboard-76 {
+    width: 100%;
+    text-align: center;
+  }
+
+  .client-portal-scope .cp-dashboard-71 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .client-portal-scope .page-content { padding: 14px; }
+}
+
+/* ── Tablet (640px–1023px): fixed pixel-width grids collapse and
+   misalign — override to stack, matching the mobile fallback, since
+   there isn't enough width for 300–340px fixed side columns + 1fr ── */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .client-portal-scope .cp-dashboard-28,
+  .client-portal-scope .cp-dashboard-42,
+  .client-portal-scope .cp-contracts-page-12,
+  .client-portal-scope .cp-invoices-page-93,
+  .client-portal-scope .cp-profile-page-2,
+  .client-portal-scope .cp-amc-page-46 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* KPI row: 5 fixed-ish columns also too tight at 768px — go 2-up */
+  .client-portal-scope .cp-dashboard-20 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Documents grid uses auto-fill minmax(260px,1fr) — fine as-is,
+     no override needed */
+}
+
+@media (max-width: 639px) {
+  .client-portal-scope .notif-dropdown {
+    position: fixed !important;
+    top: var(--header-height) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-height: calc(100vh - var(--header-height) - 24px) !important;
+  }
+}

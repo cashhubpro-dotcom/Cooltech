@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { X } from 'lucide-react';
 import { CLIENT_NAV, CLIENT_PATH } from '../../constants/navigation';
 import { COLORS } from '../../constants/tokens';
 
@@ -50,10 +51,17 @@ const Sidebar = ({
                 <div className="sidebar-logo-sub">CLIENT PORTAL</div>
               </div>
             </>}
+
+          {/* Desktop-only: collapse/expand toggle */}
           <button className="hamburger-btn" onClick={() => setSidebarOpen(o => !o)} title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}>
             <span className="hamburger-line" />
             <span className="hamburger-line" />
             <span className="hamburger-line" />
+          </button>
+
+          {/* Mobile-only: close drawer */}
+          <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)} aria-label="Close menu">
+            <X size={16} />
           </button>
         </div>
 

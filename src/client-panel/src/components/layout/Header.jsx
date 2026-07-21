@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 import { CLIENT_TITLES } from '../../constants/navigation';
 import { COLORS } from '../../constants/tokens';
 import { LOGGED_IN_CLIENT } from '../../data/mockData';
@@ -61,6 +61,16 @@ const Header = ({
   return <header className="header">
       {/* Left */}
       <div className="header-left">
+        {/* ── Mobile-only hamburger — opens the sidebar drawer. Hidden on
+            desktop (>=1024px) via CSS since the sidebar has its own
+            collapse toggle there. ── */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="header-hamburger-btn"
+          aria-label="Open menu"
+        >
+          <Menu size={18} color={COLORS.muted} strokeWidth={2} />
+        </button>
         <span className="header-sep">❄</span>
         <span className="header-title">{title}</span>
       </div>
@@ -95,7 +105,7 @@ const Header = ({
           {notifOpen && (
             <>
               <div onClick={() => setNotifOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-              <div style={{
+              <div className="notif-dropdown" style={{
                 position: 'absolute', top: 36, right: 0, width: 340, maxHeight: 420,
                 background: '#fff', border: `1px solid ${COLORS.border || '#E5E7EB'}`, borderRadius: 12,
                 boxShadow: '0 8px 24px rgba(0,0,0,.12)', zIndex: 50, display: 'flex', flexDirection: 'column',
@@ -141,7 +151,7 @@ const Header = ({
           )}
         </div>
 
-        <button onClick={() => setIsDark(d => !d)} className="icon-btn" title="Toggle dark mode">
+        <button onClick={() => setIsDark(d => !d)} className="icon-btn header-darkmode-btn" title="Toggle dark mode">
           {isDark ? '☀️' : '🌙'}
         </button>
 
@@ -165,7 +175,14 @@ const Header = ({
           }, {
             label: '🔔 Reminders',
             action: () => { navigate('/portal/reminders'); setProfileOpen(false); }
-          }].map(item => <button key={item.label} onClick={item.action} className="cp-header-8">
+          },{
+      // ── Mobile-only: same toggle as the header icon-btn, just
+      // relocated here since there's no room for a separate icon
+      // in the mobile header. ──
+      label: isDark ? '☀️ Light Mode' : '🌙 Dark Mode',
+      action: () => setIsDark(d => !d),
+      mobileOnly: true,
+    }].map(item => <button key={item.label} onClick={item.action} className="cp-header-8">
                   {item.label}
                 </button>)}
               <div className="cp-header-9">

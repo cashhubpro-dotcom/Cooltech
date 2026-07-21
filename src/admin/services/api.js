@@ -237,6 +237,7 @@ export const suppliersApi  = { ...crud('suppliers'),
   stats: () => req('GET', '/suppliers/stats/summary'),
 }
 export const purchaseApi   = crud('purchase-orders');
+export const salesOrdersApi = crud('sales-orders');
 export const assetsApi     = crud('assets');
 export const contractsApi = {
   ...crud('contracts'),

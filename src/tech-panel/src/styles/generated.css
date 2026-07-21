@@ -4380,7 +4380,10 @@
   gap: 6px;
 }
   @media (max-width: 639px) {
-    .tech-panel-scope .tp-schedule-page-84 { grid-template-columns: 1fr !important; }
+    .tech-panel-scope .tp-schedule-page-84 { grid-template-columns: repeat(2, 1fr) !important; }
+    .tech-panel-scope .tp-expenses-page-62 {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
   }
 
 
@@ -4709,4 +4712,55 @@
   text-align: center;
   color: var(--faint);
   font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  /* Welcome banner: stack instead of squeezing into a row */
+  .tech-panel-scope .tp-dashboard-6 {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 16px;
+    gap: 14px;
+  }
+
+  .tech-panel-scope .tp-dashboard-8 {
+    width: 100%;
+  }
+
+  .tech-panel-scope .tp-dashboard-9 {
+    font-size: 17px;
+  }
+
+  /* Illustration block: sit below the text, side-by-side with its own caption */
+  .tech-panel-scope .tp-dashboard-13 {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .tech-panel-scope .tp-dashboard-13 svg {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .tech-panel-scope .tp-dashboard-14 {
+    max-width: none;
+    flex: 1;
+  }
+
+  /* Job completion donut + legend: stack vertically */
+  .tech-panel-scope .tp-dashboard-26 {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tech-panel-scope .tp-dashboard-27 {
+    margin: 0 auto;
+  }
+
+  /* Timeline row: shrink the fixed time column a bit */
+  .tech-panel-scope .tp-dashboard-46 {
+    min-width: 44px;
+  }
 }

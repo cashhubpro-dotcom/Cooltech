@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { suppliersApi, purchaseApi } from '../../services/api';
+import { suppliersApi, purchaseApi, salesOrdersApi } from '../../services/api';
 import { PO_STATUS } from '../../constants/statusMaps';
 import { COLORS } from '../../constants/tokens';
 import { SBadge } from '../../components/ui/Badges';
@@ -350,6 +350,252 @@ const TabBar = ({
     </div>;
 };
 
+// ─── Shared helpers for the new action modals ─────────────────────────────────
+const isoDate = (d = new Date()) => d.toISOString().slice(0, 10);
+const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'UPI', 'Cheque', 'Card'];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── StatusUpdateModal — used by both PO (draft/ordered/received) and
+//     SO (processing/shipped/delivered/cancelled) status changes ───────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+const StatusUpdateModal = ({ orderId, statusMap, targetStatus, onClose, onConfirm }) => {
+  const [status, setStatus] = useState(targetStatus || Object.keys(statusMap)[0]);
+  const [date, setDate] = useState(isoDate());
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handle = async () => {
+    setLoading(true);
+    try {
+      await onConfirm({ status, statusDate: date, statusNotes: notes });
+      onClose();
+    } catch (e) {
+      alert('Failed to update status: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box modal-box--narrow" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Update Status — {orderId}</div>
+          <button className="modal-close-btn" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-row">
+            <label className="form-label">New Status</label>
+            <select className="form-select" value={status} onChange={e => setStatus(e.target.value)}>
+              {Object.entries(statusMap).map(([key, m]) => (
+                <option key={key} value={key}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-row">
+            <label className="form-label">Effective Date</label>
+            <input type="date" className="form-input" value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+          <div className="form-row">
+            <label className="form-label">Notes (optional)</label>
+            <textarea className="form-textarea" rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any additional context…" />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className="btn btn-primary" onClick={handle} disabled={loading}>
+            {loading ? 'Saving…' : 'Update Status'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── MarkPaidModal — shared by PO (supplier payment) and SO (customer
+//     payment) — collects amount, method, reference, date ──────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+const MarkPaidModal = ({ orderId, orderTotal, onClose, onConfirm }) => {
+  const [amount, setAmount] = useState(orderTotal ?? '');
+  const [method, setMethod] = useState(PAYMENT_METHODS[0]);
+  const [reference, setReference] = useState('');
+  const [date, setDate] = useState(isoDate());
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handle = async () => {
+    if (!amount || Number(amount) <= 0) return alert('Enter a valid amount');
+    setLoading(true);
+    try {
+      await onConfirm({
+        payStatus: 'paid',
+        paidAmount: Number(amount),
+        paymentMethod: method,
+        paymentRef: reference,
+        paymentDate: date,
+        paymentNotes: notes
+      });
+      onClose();
+    } catch (e) {
+      alert('Failed to mark as paid: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box modal-box--narrow" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Mark {orderId} Paid</div>
+          <button className="modal-close-btn" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-row">
+            <label className="form-label">Amount Paid (₹)</label>
+            <input type="number" className="form-input" value={amount} onChange={e => setAmount(e.target.value)} />
+          </div>
+          <div className="grid-form-2">
+            <div className="form-row">
+              <label className="form-label">Payment Method</label>
+              <select className="form-select" value={method} onChange={e => setMethod(e.target.value)}>
+                {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div className="form-row">
+              <label className="form-label">Payment Date</label>
+              <input type="date" className="form-input" value={date} onChange={e => setDate(e.target.value)} />
+            </div>
+          </div>
+          <div className="form-row">
+            <label className="form-label">Reference / Transaction ID (optional)</label>
+            <input className="form-input" value={reference} onChange={e => setReference(e.target.value)} placeholder="UTR / Cheque no. / UPI ref…" />
+          </div>
+          <div className="form-row">
+            <label className="form-label">Notes (optional)</label>
+            <textarea className="form-textarea" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className="btn btn-success-solid" onClick={handle} disabled={loading}>
+            {loading ? 'Saving…' : '✓ Mark Paid'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── MarkReceivedModal — PO only: goods received from supplier ────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+const MarkReceivedModal = ({ orderId, onClose, onConfirm }) => {
+  const [date, setDate] = useState(isoDate());
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handle = async () => {
+    setLoading(true);
+    try {
+      await onConfirm({ status: 'received', receivedDate: date, receivedNotes: notes });
+      onClose();
+    } catch (e) {
+      alert('Failed to mark as received: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box modal-box--narrow" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Mark {orderId} Received</div>
+          <button className="modal-close-btn" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-row">
+            <label className="form-label">Received Date</label>
+            <input type="date" className="form-input" value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+          <div className="form-row">
+            <label className="form-label">Notes (optional)</label>
+            <textarea className="form-textarea" rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Partial delivery, damaged packaging, etc." />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className="btn btn-primary" onClick={handle} disabled={loading}>
+            {loading ? 'Saving…' : '📦 Mark Received'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── MarkShippedModal — SO only: order shipped to customer ────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+const MarkShippedModal = ({ orderId, onClose, onConfirm }) => {
+  const [date, setDate] = useState(isoDate());
+  const [carrier, setCarrier] = useState('');
+  const [tracking, setTracking] = useState('');
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handle = async () => {
+    setLoading(true);
+    try {
+      await onConfirm({ status: 'shipped', shippedDate: date, carrier, trackingNumber: tracking, shippedNotes: notes });
+      onClose();
+    } catch (e) {
+      alert('Failed to mark as shipped: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box modal-box--narrow" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Mark {orderId} Shipped</div>
+          <button className="modal-close-btn" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-row">
+            <label className="form-label">Shipped Date</label>
+            <input type="date" className="form-input" value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+          <div className="grid-form-2">
+            <div className="form-row">
+              <label className="form-label">Carrier (optional)</label>
+              <input className="form-input" value={carrier} onChange={e => setCarrier(e.target.value)} placeholder="e.g. Delhivery, BlueDart…" />
+            </div>
+            <div className="form-row">
+              <label className="form-label">Tracking No. (optional)</label>
+              <input className="form-input" value={tracking} onChange={e => setTracking(e.target.value)} />
+            </div>
+          </div>
+          <div className="form-row">
+            <label className="form-label">Notes (optional)</label>
+            <textarea className="form-textarea" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className="btn btn-primary" onClick={handle} disabled={loading}>
+            {loading ? 'Saving…' : '🚚 Mark Shipped'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── PO Detail (Admin) ────────────────────────────────────────────────────────
 const PODetail = ({
   po,
@@ -357,9 +603,17 @@ const PODetail = ({
   onBack,
   onSave,
   onDelete,
-  openModal,
   initialEditMode
 }) => {
+  const [modal, setModal] = useState(null); // { type: 'status'|'received'|'paid', targetStatus? }
+
+  // Persists a partial update to the backend, then merges it into the local
+  // order object via onSave (same callback EditableDetailView's Save uses).
+  const applyPatch = async (patch) => {
+    await purchaseApi.update(po.id, patch);
+    onSave({ ...po, ...patch });
+  };
+
   const fields = [{
     key: 'supplier'
   }, {
@@ -380,17 +634,14 @@ const PODetail = ({
   const sidebar = <div className="po-sidebar">
       <div className="po-sidebar-card">
         <div className="po-sidebar-title">Update Status</div>
-        {['draft', 'ordered', 'received'].map(s => {
+        {['draft', 'ordered', 'received', 'cancelled'].map(s => {
         const m = PO_STATUS[s];
         if (!m) return null;
         return <button key={s} className={`btn po-status-btn${po.status === s ? ' po-status-btn--active' : ''}`} style={po.status === s ? {
           background: m.bg,
           color: m.color,
           borderColor: m.color + '40'
-        } : {}} onClick={() => openModal('report', {
-          title: `Update to ${m.label}`,
-          format: 'Update'
-        })}>
+        } : {}} onClick={() => setModal({ type: 'status', targetStatus: s })}>
               {po.status === s ? '● ' : '○ '}{m.label}
             </button>;
       })}
@@ -404,7 +655,8 @@ const PODetail = ({
             </div>)}
         </div>}
     </div>;
-  return <EditableDetailView id={po.id} breadcrumb="Purchase Orders" onBack={onBack} fields={fields} data={po} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(po.id)} sidebar={sidebar}>
+  return <>
+      <EditableDetailView id={po.id} breadcrumb="Purchase Orders" onBack={onBack} fields={fields} data={po} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(po.id)} sidebar={sidebar}>
       {({
       editMode,
       editData,
@@ -482,16 +734,10 @@ const PODetail = ({
                 </div> : po.notes && <div className="po-notes">📌 {po.notes}</div>}
 
               {!editMode && <div className="po-actions">
-                  <button className="btn btn-primary po-action-main" onClick={() => openModal('report', {
-              title: `Mark ${po.id} Received`,
-              format: 'Update'
-            })}>
+                  <button className="btn btn-primary po-action-main" onClick={() => setModal({ type: 'received' })}>
                     📦 Mark Received
                   </button>
-                  <button className="btn btn-success po-action-paid" onClick={() => openModal('report', {
-              title: `Mark ${po.id} Paid`,
-              format: 'Update'
-            })}>
+                  <button className="btn btn-success po-action-paid" onClick={() => setModal({ type: 'paid' })}>
                     ✓ Mark Paid
                   </button>
                 </div>}
@@ -500,7 +746,24 @@ const PODetail = ({
             {sidebar}
           </div>;
     }}
-    </EditableDetailView>;
+    </EditableDetailView>
+
+      {modal?.type === 'status' && (
+        <StatusUpdateModal
+          orderId={po.id}
+          statusMap={PO_STATUS}
+          targetStatus={modal.targetStatus}
+          onClose={() => setModal(null)}
+          onConfirm={applyPatch}
+        />
+      )}
+      {modal?.type === 'received' && (
+        <MarkReceivedModal orderId={po.id} onClose={() => setModal(null)} onConfirm={applyPatch} />
+      )}
+      {modal?.type === 'paid' && (
+        <MarkPaidModal orderId={po.id} orderTotal={po.total} onClose={() => setModal(null)} onConfirm={applyPatch} />
+      )}
+    </>;
 };
 
 // ─── SO Detail (Customer) ─────────────────────────────────────────────────────
@@ -509,9 +772,15 @@ const SODetail = ({
   onBack,
   onSave,
   onDelete,
-  openModal,
   initialEditMode
 }) => {
+  const [modal, setModal] = useState(null); // { type: 'status'|'shipped'|'paid', targetStatus? }
+
+   const applyPatch = async (patch) => {
+    await salesOrdersApi.update(so.id, patch);
+    onSave({ ...so, ...patch });
+  };
+
   const fields = [{
     key: 'customer'
   }, {
@@ -541,10 +810,7 @@ const SODetail = ({
           background: m.bg,
           color: m.color,
           borderColor: m.color + '40'
-        } : {}} onClick={() => openModal('report', {
-          title: `Update to ${m.label}`,
-          format: 'Update'
-        })}>
+        } : {}} onClick={() => setModal({ type: 'status', targetStatus: s })}>
               {so.status === s ? '● ' : '○ '}{m.label}
             </button>;
       })}
@@ -558,7 +824,8 @@ const SODetail = ({
             </div> : null)}
       </div>
     </div>;
-  return <EditableDetailView id={so.id} breadcrumb="Customer Orders" onBack={onBack} fields={fields} data={so} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(so.id)} sidebar={sidebar}>
+  return <>
+      <EditableDetailView id={so.id} breadcrumb="Customer Orders" onBack={onBack} fields={fields} data={so} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(so.id)} sidebar={sidebar}>
       {({
       editMode,
       editData,
@@ -636,16 +903,10 @@ const SODetail = ({
                 </div> : so.notes && <div className="po-notes">📌 {so.notes}</div>}
 
               {!editMode && <div className="po-actions">
-                  <button className="btn btn-primary po-action-main" onClick={() => openModal('report', {
-              title: `Mark ${so.id} Shipped`,
-              format: 'Update'
-            })}>
+                  <button className="btn btn-primary po-action-main" onClick={() => setModal({ type: 'shipped' })}>
                     🚚 Mark Shipped
                   </button>
-                  <button className="btn btn-success po-action-paid" onClick={() => openModal('report', {
-              title: `Mark ${so.id} Paid`,
-              format: 'Update'
-            })}>
+                  <button className="btn btn-success po-action-paid" onClick={() => setModal({ type: 'paid' })}>
                     ✓ Mark Paid
                   </button>
                 </div>}
@@ -654,7 +915,24 @@ const SODetail = ({
             {sidebar}
           </div>;
     }}
-    </EditableDetailView>;
+    </EditableDetailView>
+
+      {modal?.type === 'status' && (
+        <StatusUpdateModal
+          orderId={so.id}
+          statusMap={SO_STATUS}
+          targetStatus={modal.targetStatus}
+          onClose={() => setModal(null)}
+          onConfirm={applyPatch}
+        />
+      )}
+      {modal?.type === 'shipped' && (
+        <MarkShippedModal orderId={so.id} onClose={() => setModal(null)} onConfirm={applyPatch} />
+      )}
+      {modal?.type === 'paid' && (
+        <MarkPaidModal orderId={so.id} orderTotal={so.total} onClose={() => setModal(null)} onConfirm={applyPatch} />
+      )}
+    </>;
 };
 
 // ─── Admin PO List ────────────────────────────────────────────────────────────
@@ -745,7 +1023,7 @@ const AdminPOList = ({
   };
   const po = open ? orders.find(p => p.id === open) : null;
   if (po) {
-    return <PODetail po={po} suppliers={suppliers} onBack={handleBack} onSave={handleSave} onDelete={handleDelete} openModal={openModal} initialEditMode={initialEdit} />;
+    return <PODetail po={po} suppliers={suppliers} onBack={handleBack} onSave={handleSave} onDelete={handleDelete} initialEditMode={initialEdit} />;
   }
   return <>
       {/* Header */}
@@ -858,10 +1136,7 @@ const CustomerSOList = ({
     };
   };
   useEffect(() => {
-    purchaseApi.list({
-      limit: 200
-    }).then(r => {
-      // Only replace mock data if the API actually returns customer orders
+    salesOrdersApi.list({ limit: 200 }).then(r => {
       if ((r.data ?? []).length) setOrders(r.data.map(normaliseSO));
     }).catch(() => {});
   }, []);
@@ -920,7 +1195,7 @@ const CustomerSOList = ({
   };
   const so = open ? orders.find(o => o.id === open) : null;
   if (so) {
-    return <SODetail so={so} onBack={handleBack} onSave={handleSave} onDelete={handleDelete} openModal={openModal} initialEditMode={initialEdit} />;
+    return <SODetail so={so} onBack={handleBack} onSave={handleSave} onDelete={handleDelete} initialEditMode={initialEdit} />;
   }
 
   // FIX #1: guard pending pay total

@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { X } from 'lucide-react';
 import { NAV, PATHS } from '../../constants/navigation';
 
 const TECH_PREFIX = '/tech';
@@ -40,8 +41,15 @@ const Sidebar = ({ open, setOpen, notifs = [] }) => {
                 <div className="sb-logo-sub">TECHNICIAN PANEL</div>
               </div>
             </>}
+
+          {/* Desktop-only: collapse/expand toggle */}
           <button className="hbg" onClick={() => setOpen(o => !o)}>
             <span className="hbg-line" /><span className="hbg-line" /><span className="hbg-line" />
+          </button>
+
+          {/* Mobile-only: close drawer */}
+          <button className="sb-close-btn" onClick={() => setOpen(false)} aria-label="Close menu">
+            <X size={16} />
           </button>
         </div>
 
