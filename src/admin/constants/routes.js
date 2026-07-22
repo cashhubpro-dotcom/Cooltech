@@ -1,9 +1,19 @@
-// src/constants/routes.js
 export const PATH_FOR = {
   dashboard:      '/',
   calendar:       '/calendar',
   jobs:           '/jobs',
   quotations:     '/quotations',
+
+  // ── Parent-only nav items (toggle a dropdown, no route of their own) ──
+  leadsCRM:       null,
+  contract:       null,
+  customer:       null,
+  invoice:        null,
+  technician:     null,
+  salary_payroll: null,
+  inventories:    null,
+  setting:        null,
+
   customers:      '/customers',
   customer_type:  '/customers/customer-type',
   amc:            '/amc',

@@ -14,20 +14,24 @@ import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // ─── Dynamic month options ─────────────────────────────────────────────────
-// Generates a rolling window of "Month YYYY" labels based on the real
-// current date — most recent first — so the dropdown never goes stale and
-// automatically rolls into the next year when the calendar does.
+// Add this near generateMonthOptions — separate from fmtDateDMY,
+// which is for actual dates (Requested On, etc.)
+function fmtMonthYear(d) {
+  return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+}
+
 function generateMonthOptions(monthsBack = 6, monthsForward = 12) {
   const now = new Date();
   const options = [];
   for (let i = monthsForward; i >= -monthsBack; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    options.push(fmtDateDMY(d));
+    options.push(fmtMonthYear(d)); // was fmtDateDMY(d)
   }
   return options;
 }
 
 const MONTHS = generateMonthOptions();
+const CURRENT_MONTH = fmtMonthYear(new Date()); 
 
 // Fallback defaults — used only until the API has data, same convention as
 // RECOVERY_PLAN_DEFAULTS below. Once IncentiveType option-set records exist,
@@ -239,6 +243,19 @@ const DRow = ({
     <span className="ap-advance-incentive-page-20">{value}</span>
   </div>;
 
+const Field = ({
+    label,
+    required,
+    children,
+    error
+  }) => <div className="ap-advance-incentive-page-28">
+      <label className="ap-advance-incentive-page-29">
+        {label}{required && <span className="ap-advance-incentive-page-30"> *</span>}
+      </label>
+      {children}
+      {error && <div className="ap-advance-incentive-page-31">{error}</div>}
+    </div>;
+
 // ─── REMARKS MODAL ────────────────────────────────────────────────────────────
 const RemarksModal = ({
   title,
@@ -280,7 +297,7 @@ const NewRequestModal = ({
   const [form, setForm] = useState({
     techId: prefillTech?._id || '',
     amount: '',
-    month: 'April 2026',
+    month: CURRENT_MONTH,
     reason: '',
     recoveryPlan: recoveryPlanList[0] || '1 month (full)',
     type: incentiveTypeList[0] || 'Performance'
@@ -342,18 +359,7 @@ const NewRequestModal = ({
     boxSizing: 'border-box',
     background: '#fff'
   });
-  const Field = ({
-    label,
-    required,
-    children,
-    error
-  }) => <div className="ap-advance-incentive-page-28">
-      <label className="ap-advance-incentive-page-29">
-        {label}{required && <span className="ap-advance-incentive-page-30"> *</span>}
-      </label>
-      {children}
-      {error && <div className="ap-advance-incentive-page-31">{error}</div>}
-    </div>;
+  
   const amt = Number(form.amount) || 0;
   const recoveryMonths = monthsFromRecoveryLabel(form.recoveryPlan);
  const perMonth = recoveryMonths > 0 ? Math.round(amt / recoveryMonths) : 0;
@@ -647,7 +653,7 @@ const AdvanceTab = ({
     }).catch(e => setLoadError(e.message || 'Could not load advance requests')).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-  const [selMonth, setSelMonth] = useState('April 2026');
+  const [selMonth, setSelMonth] = useState(CURRENT_MONTH);
   // Auto-open modal if prefillTech provided
   const [showNew, setShowNew] = useState(!!prefillTech);
   const [activePrefill, setActivePrefill] = useState(prefillTech);
@@ -893,7 +899,7 @@ const IncentiveTab = ({
   };
   useEffect(() => { load(); }, []);
   const incentiveTypeList = incentiveTypes.length ? incentiveTypes : INCENTIVE_TYPES;
-  const [selMonth, setSelMonth] = useState('April 2026');
+  const [selMonth, setSelMonth] = useState(CURRENT_MONTH);
   const [showNew, setShowNew] = useState(false);
   const [remarksModal, setRemarksModal] = useState(null);
   const [detailItem, setDetailItem] = useState(null);

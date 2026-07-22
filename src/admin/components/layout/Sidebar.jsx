@@ -7,11 +7,23 @@ import { useCompany } from "../../context/CompanyContext";
 
 // ─── Admin panel is mounted at /admin/* — every route must be prefixed ───────
 const ADMIN_PREFIX = "/admin";
+// const pathFor = id => {
+//   const p = PATH_FOR[id];
+//   if (p === undefined || p === "" || p === "/") return ADMIN_PREFIX;
+//   return `${ADMIN_PREFIX}${p.startsWith("/") ? p : `/${p}`}`;
+// };
+
 const pathFor = id => {
   const p = PATH_FOR[id];
-  if (p === undefined || p === "" || p === "/") return ADMIN_PREFIX;
+  if (p === null) return null;               // parent-only item — no route, by design
+  if (p === undefined) {
+    console.warn(`No PATH_FOR entry for nav id "${id}"`);
+    return null;                              // fail safe, not fail silent-into-dashboard
+  }
+  if (p === "" || p === "/") return ADMIN_PREFIX;
   return `${ADMIN_PREFIX}${p.startsWith("/") ? p : `/${p}`}`;
 };
+
 
 const Sidebar = ({
   setOpenJob,
@@ -108,12 +120,12 @@ const Sidebar = ({
           const hasKids = !!childrenOf[n.id];
           const isOpen = !!expanded[n.id];
           const isSub = !!n.sub;
-          const to = pathFor(n.id);
+          const to = hasKids ? null : pathFor(n.id);
           if (isSub) return null;
           return <div key={n.id} className="nav-item" onMouseEnter={isCollapsed && hasKids ? e => openFlyout(n.id, e.currentTarget) : undefined} onMouseLeave={isCollapsed && hasKids ? closeFlyout : undefined}>
                 {n.section && !isCollapsed && <div className="nav-section-header">{n.section}</div>}
                 {isCollapsed && <div className="nav-tooltip">{n.label}{badge > 0 ? ` (${badge})` : ""}</div>}
-                <Link to={to} onClick={() => {
+                {/* <Link to={to} onClick={() => {
               if (hasKids && !isCollapsed) toggleExpand(n.id);
               setOpenJob(null);
               handleMobileClose();
@@ -126,7 +138,42 @@ const Sidebar = ({
               }} className="ap-sidebar-8">
                       <ChevronRight height={18} />
                     </span>}
-                </Link>
+                </Link> */}
+                {hasKids ? (
+  <button
+    type="button"
+    onClick={() => {
+      if (!isCollapsed) toggleExpand(n.id);
+    }}
+    style={{
+      background: 'none',
+      border: 'none',
+      width: '100%',
+      textAlign: 'left',
+      font: 'inherit',
+      cursor: 'pointer'
+    }}
+    className={`${["sidebar-nav-btn", isActive ? "active" : "", !isActive && activeParent === n.id ? "parent-active" : ""].filter(Boolean).join(" ")} ap-sidebar-7`}
+  >
+    <span className="nav-icon">{n.icon}</span>
+    <span className="nav-label">{n.label}</span>
+    {badge > 0 && <span className="nav-badge">{badge}</span>}
+    {!isCollapsed && <span style={{
+          transform: isOpen ? "rotate(90deg)" : "rotate(0deg)"
+        }} className="ap-sidebar-8">
+        <ChevronRight height={18} />
+      </span>}
+  </button>
+) : (
+  <Link to={to} onClick={() => {
+        setOpenJob(null);
+        handleMobileClose();
+      }} className={`${["sidebar-nav-btn", isActive ? "active" : "", !isActive && activeParent === n.id ? "parent-active" : ""].filter(Boolean).join(" ")} ap-sidebar-7`}>
+    <span className="nav-icon">{n.icon}</span>
+    <span className="nav-label">{n.label}</span>
+    {badge > 0 && <span className="nav-badge">{badge}</span>}
+  </Link>
+)}
                 {hasKids && isOpen && !isCollapsed && <div className="ap-sidebar-9">
                     {childrenOf[n.id].map(childId => {
                 const child = NAV.find(x => x.id === childId);
