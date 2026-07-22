@@ -234,7 +234,12 @@ const SPECIAL_PROPS = new Set([
   'dashboard', 'jobs', 'clock', 'lead_sources', 'customer_type',
   'sm_dashboard', 'notifications', 'profile',
   // ↓ advance_incentive needs prefillAdvance injected
-  'advance_incentive','contract_settings','amc'
+  'advance_incentive','amc'
+  // NOTE: contract_settings deliberately NOT here — ContractSettingsPage
+  // takes no props at all; it calls useContractTypes()/usePlans() itself,
+  // which share state with every other caller via useOptionSet's shared
+  // store, so it needs nothing injected. Adding it back here would just
+  // route it through a case that ignores whatever you pass it.
 ]);
 
 // =============================================================================
@@ -590,6 +595,7 @@ function AppShell() {
         );
       case 'amc':
         return <Page openModal={openModal} goToInvoices={() => setPage('invoices')} />;
+      case 'advance_incentive':
         return (
           <Page
             openModal={openModal}
@@ -597,7 +603,7 @@ function AppShell() {
             onPrefillConsumed={() => setPrefillAdvance(null)}
             recoveryPlans={activeRecoveryPlans}
             onAddRecoveryPlan={addRecoveryPlan}
-             incentiveTypes={activeIncentiveTypes}
+            incentiveTypes={activeIncentiveTypes}
             onAddIncentiveType={addIncentiveType}
           />
         );
