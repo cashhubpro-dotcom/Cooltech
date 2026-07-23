@@ -84,6 +84,7 @@ import ExpensesPage      from './pages/finance/ExpensesPage';
 import PaymentsPage      from './pages/finance/PaymentsPage';
 import PriceListPage     from './pages/finance/PriceListPage';
 import CreateInvoicePage from './pages/finance/CreateInvoicePage';
+import FinancePage from './pages/finance/FinancePage';
 
 // ── Pages — HR ────────────────────────────────────────────────────────────────
 import AttendancePage       from './pages/hr/AttendancePage';
@@ -181,6 +182,7 @@ const ROUTE_MAP = [
   { id: 'create_invoice',     component: CreateInvoicePage },
   { id: 'expenses',           component: ExpensesPage },
   { id: 'payments',           component: PaymentsPage },
+  { id: 'finance',            component: FinancePage },
   { id: 'pricelist',          component: PriceListPage },
   { id: 'attendance',         component: AttendancePage },
   { id: 'salary',             component: SalaryPage },

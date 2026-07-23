@@ -111,6 +111,19 @@ function initials(name) {
   return (name || "").split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
 }
 
+// ── Trigger a browser download from a Blob ────────────────────────────────────
+function triggerDownload(blob, filename) {
+  if (!blob) return;
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function OptCard({
   label,
@@ -264,6 +277,10 @@ export default function GeneratePayroll() {
   const [toastMsg, setToastMsg] = useState("");
   const [toastError, setToastError] = useState(false);
 
+  // Download format for the Generate button (pdf | excel)
+  const [downloadFormat, setDownloadFormat] = useState("pdf");
+  const [showFormatMenu, setShowFormatMenu] = useState(false);
+
   // Settings modal
   const [showSettings, setShowSettings] = useState(false);
 
@@ -326,7 +343,6 @@ export default function GeneratePayroll() {
     return true;
   });
   useEffect(() => {
-    console.log('rowChecks reset effect fired. technicians.length:', technicians.length, 'filtered.length:', filtered.length);
     setRowChecks(filtered.map(() => true));
     setSelectAll(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -344,7 +360,7 @@ export default function GeneratePayroll() {
   }, [selectedCycle, selMonth, selWeek, selBiweek, selQuarter, customFrom, customTo]);
   const monthTag = selMonth ? selMonth.split(" ")[0].substring(0, 3) + " " + (selMonth.split(" ")[1] || selectedYear) : selectedYear;
 
-  // ── Fetch live preview (basic/hra/travel/pf/incentive/advance/gross/net) ──
+  // ── Fetch live preview (basic/hra/travel/expense/overtime/pf/lop/incentive/advance/gross/net) ──
   const refreshPreview = useCallback(async () => {
     if (!checkedTechs.length || !periodLabel) {
       setPreviewRows([]);
@@ -370,11 +386,13 @@ export default function GeneratePayroll() {
     }
   }, [checkedTechs, periodLabel, opts]);
 
-  // Re-run preview whenever the relevant inputs change
+  // Re-run preview whenever the relevant inputs change — now includes ALL
+  // four option checkboxes, not just opts.advances, so toggling expense /
+  // timelog / attendance actually refreshes the preview table.
   useEffect(() => {
     refreshPreview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowChecks.join(","), periodLabel, opts.advances, selDept, selEmp]);
+  }, [rowChecks.join(","), periodLabel, opts.expense, opts.timelog, opts.attendance, opts.advances, selDept, selEmp]);
   const toggleRow = i => {
     const next = [...rowChecks];
     next[i] = !next[i];
@@ -388,10 +406,14 @@ export default function GeneratePayroll() {
 
   // Totals from live preview data (server-computed, not hardcoded)
   const totalGross = previewRows.reduce((s, r) => s + (r.gross || 0), 0);
-  const totalDed = previewRows.reduce((s, r) => s + (r.pf || 0) + (r.advance || 0), 0);
+  const totalDed = previewRows.reduce((s, r) => s + (r.pf || 0) + (r.advance || 0) + (r.lop || 0), 0);
   const totalNet = previewRows.reduce((s, r) => s + (r.net || 0), 0);
   const totalPF = previewRows.reduce((s, r) => s + (r.pf || 0), 0);
   const totalAdv = previewRows.reduce((s, r) => s + (r.advance || 0), 0);
+  const totalExpense = previewRows.reduce((s, r) => s + (r.expense || 0), 0);
+  const totalOvertime = previewRows.reduce((s, r) => s + (r.overtime || 0), 0);
+  const totalLOP = previewRows.reduce((s, r) => s + (r.lop || 0), 0);
+
   const handleGenerate = useCallback(async () => {
     if (!checkedTechs.length || !periodLabel) return;
     setGenerating(true);
@@ -409,21 +431,23 @@ export default function GeneratePayroll() {
       });
       setProgress(60);
 
-      // Auto-download payslips for the runs just created
       const runIds = (result.data || []).map(r => r._id);
       if (runIds.length) {
-        const blob = await payrollApi.downloadPayslips(runIds);
-        if (blob) {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `payslips-${periodLabel.replace(/\s+/g, '-')}.zip`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(url);
+        if (downloadFormat === "excel") {
+          const blob = await payrollApi.downloadExcel(runIds);
+          triggerDownload(blob, `payroll-${periodLabel.replace(/\s+/g, '-')}.xlsx`);
+        } else if (runIds.length === 1) {
+          // Single technician → plain PDF, not zipped
+          const blob = await payrollApi.downloadOne(runIds[0]);
+          const techName = (result.data[0].techName || "technician").replace(/\s+/g, '-');
+          triggerDownload(blob, `payslip-${techName}-${periodLabel.replace(/\s+/g, '-')}.pdf`);
+        } else {
+          // Multiple technicians → zip of PDFs
+          const blob = await payrollApi.downloadPayslips(runIds);
+          triggerDownload(blob, `payslips-${periodLabel.replace(/\s+/g, '-')}.zip`);
         }
       }
+
       setProgress(100);
       setToastMsg(`${result.count} technician${result.count !== 1 ? "s" : ""} processed for ${periodLabel}.`);
       setShowToast(true);
@@ -437,7 +461,8 @@ export default function GeneratePayroll() {
       setProgress(0);
       setTimeout(() => setShowToast(false), 5000);
     }
-  }, [checkedTechs, periodLabel, selectedCycle, paymentMode, cutoff, opts, refreshPreview]);
+  }, [checkedTechs, periodLabel, selectedCycle, paymentMode, cutoff, opts, refreshPreview, downloadFormat]);
+
   return <div className="gp-page">
 
       {/* ── Page Header ── */}
@@ -587,7 +612,7 @@ export default function GeneratePayroll() {
                   <th className="gp-th ap-generate-payroll-1">
                     <input type="checkbox" checked={selectAll} onChange={e => toggleAll(e.target.checked)} className="ap-generate-payroll-2" />
                   </th>
-                  {["Technician", "Role", "Basic", "HRA", "Travel", "Incentive", "Gross", "PF", "Advance", "Net pay", "Period"].map(h => <th key={h} className="gp-th">{h}</th>)}
+                  {["Technician", "Role", "Basic", "HRA", "Travel", "Incentive", "Expense", "Overtime", "Gross", "PF", "LOP", "Advance", "Net pay", "Period"].map(h => <th key={h} className="gp-th">{h}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -617,9 +642,12 @@ export default function GeneratePayroll() {
                       <td className="gp-td">{checked ? inr(row.hra) : "—"}</td>
                       <td className="gp-td">{checked ? inr(row.travel) : "—"}</td>
                       <td className="gp-td">{checked ? inr(row.incentive) : "—"}</td>
+                      <td className="gp-td">{checked ? inr(row.expense) : "—"}</td>
+                      <td className="gp-td">{checked ? inr(row.overtime) : "—"}</td>
                       <td className="gp-td orange">{checked ? inr(row.gross) : "—"}</td>
                       <td className="gp-td red">{checked ? inr(row.pf) : "—"}</td>
-                      <td className={`gp-td${row.advance ? " red" : " faint"}`}>{checked ? row.advance ? inr(row.advance) : "—" : "—"}</td>
+                      <td className={`gp-td${row.lop ? " red" : " faint"}`}>{checked ? (row.lop ? inr(row.lop) : "—") : "—"}</td>
+                      <td className={`gp-td${row.advance ? " red" : " faint"}`}>{checked ? (row.advance ? inr(row.advance) : "—") : "—"}</td>
                       <td className="gp-td green">{checked ? inr(row.net) : "—"}</td>
                       <td className="gp-td"><span className="gp-month-tag">{monthTag}</span></td>
                     </tr>;
@@ -627,9 +655,12 @@ export default function GeneratePayroll() {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={7} className="gp-tfoot-td">Total</td>
+                  <td colSpan={6} className="gp-tfoot-td">Total</td>
+                  <td className="gp-tfoot-td">{inr(totalExpense)}</td>
+                  <td className="gp-tfoot-td">{inr(totalOvertime)}</td>
                   <td className="gp-tfoot-td orange">{inr(totalGross)}</td>
                   <td className="gp-tfoot-td red">{inr(totalPF)}</td>
+                  <td className="gp-tfoot-td red">{inr(totalLOP)}</td>
                   <td className="gp-tfoot-td red">{inr(totalAdv)}</td>
                   <td className="gp-tfoot-td green">{inr(totalNet)}</td>
                   <td className="gp-tfoot-td" />
@@ -647,19 +678,41 @@ export default function GeneratePayroll() {
             </svg>
             Preview
           </button>
-          <button className="gp-btn-prim" onClick={handleGenerate} disabled={generating || checkedTechs.length === 0}>
-            {generating ? <>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="1.5" className="gp-spin">
-                  <path d="M8 2a6 6 0 1 1-4.24 1.76" />
-                </svg>
-                Generating...
-              </> : <>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M13 7H9V3H7v4H3v2h4v4h2V9h4V7z" />
-                </svg>
-                Generate payroll
-              </>}
-          </button>
+
+          {/* ── Split Generate button: main click generates + downloads in
+                the currently-selected format; caret opens PDF/Excel choice ── */}
+          <div className="gp-split-btn">
+            <button className="gp-btn-prim gp-split-btn-main" onClick={handleGenerate} disabled={generating || checkedTechs.length === 0}>
+              {generating ? <>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="1.5" className="gp-spin">
+                    <path d="M8 2a6 6 0 1 1-4.24 1.76" />
+                  </svg>
+                  Generating...
+                </> : <>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M13 7H9V3H7v4H3v2h4v4h2V9h4V7z" />
+                  </svg>
+                  Generate &amp; download {downloadFormat === "excel" ? "Excel" : "PDF"}
+                </>}
+            </button>
+            <button className="gp-btn-prim gp-split-btn-caret" disabled={generating} onClick={() => setShowFormatMenu(v => !v)} aria-label="Choose download format">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 4 4-4" /></svg>
+            </button>
+            {showFormatMenu && <div className="gp-format-menu">
+                <button className={`gp-format-opt${downloadFormat === "pdf" ? " active" : ""}`} onClick={() => {
+              setDownloadFormat("pdf");
+              setShowFormatMenu(false);
+            }}>
+                  PDF
+                </button>
+                <button className={`gp-format-opt${downloadFormat === "excel" ? " active" : ""}`} onClick={() => {
+              setDownloadFormat("excel");
+              setShowFormatMenu(false);
+            }}>
+                  Excel
+                </button>
+              </div>}
+          </div>
         </div>
       </div>
 

@@ -18,10 +18,10 @@ const stores = new WeakMap();
 function getStore(api, defaults) {
   let store = stores.get(api);
   if (store) {
-    console.log('[useOptionSet] reusing store — items:', store.snapshot.items.length, 'loading:', store.snapshot.loading, 'names:', store.snapshot.items.map(i => i.name));
+    // console.log('[useOptionSet] reusing store — items:', store.snapshot.items.length, 'loading:', store.snapshot.loading, 'names:', store.snapshot.items.map(i => i.name));
     return store;
   }
-  console.log('[useOptionSet] creating NEW store for api', api);
+  // console.log('[useOptionSet] creating NEW store for api', api);
 
   const items = normalize(defaults);
   store = {
@@ -38,7 +38,7 @@ function getStore(api, defaults) {
 
 function setStoreState(store, patch) {
   store.snapshot = { ...store.snapshot, ...patch };
-  console.log('[useOptionSet] NOTIFY → listeners:', store.listeners.size, 'new item count:', store.snapshot.items.length, 'names:', store.snapshot.items.map(i => i.name));
+  // console.log('[useOptionSet] NOTIFY → listeners:', store.listeners.size, 'new item count:', store.snapshot.items.length, 'names:', store.snapshot.items.map(i => i.name));
   store.listeners.forEach(l => l());
 }
 

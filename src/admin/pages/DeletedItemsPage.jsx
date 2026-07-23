@@ -603,9 +603,18 @@ function normalise(doc, resource) {
   }
 
   // ── Generic fallback ───────────────────────────────────────────────────────
-  let id = doc.customerId ?? doc.quotationId ?? doc.invoiceNo ?? doc.invoiceId ?? doc.ticketId ?? doc.leadId ?? doc.contractId;
-  if (!id && resource.key === 'amc') id = doc.amcId || 'AMC-' + String(doc._id).slice(-6).toUpperCase();else if (!id && resource.key === 'jobs') id = doc.jobId || 'JOB-' + String(doc._id).slice(-6).toUpperCase();else if (!id && resource.key === 'purchase-orders') id = doc.poId || 'PO-' + String(doc._id).slice(-6).toUpperCase();else if (!id && resource.key === 'notices') id = doc.noticeId || 'NOT-' + String(doc._id).slice(-6).toUpperCase();else if (!id && resource.key === 'warranty') id = doc.warrantyId || 'WR-' + String(doc._id).slice(-6).toUpperCase();else if (!id && resource.key === 'gaslog') id = doc.logId || 'GAS-' + String(doc._id).slice(-6).toUpperCase();else if (!id && resource.key === 'projects') id = doc.projectId || 'PRJ-' + String(doc._id).slice(-6).toUpperCase();else if (!id && resource.key === 'recruitment') id = doc.appId || 'REC-' + String(doc._id).slice(-6).toUpperCase();
-  id = id ?? doc._id;
+  
+let id = resource.key === 'customers' ? doc.customerId : null;
+id = id ?? doc.invoiceNo ?? doc.quotationId ?? doc.invoiceId ?? doc.ticketId ?? doc.leadId ?? doc.contractId;
+if (!id && resource.key === 'amc') id = doc.amcId || 'AMC-' + String(doc._id).slice(-6).toUpperCase();
+else if (!id && resource.key === 'jobs') id = doc.jobId || 'JOB-' + String(doc._id).slice(-6).toUpperCase();
+else if (!id && resource.key === 'purchase-orders') id = doc.poId || 'PO-' + String(doc._id).slice(-6).toUpperCase();
+else if (!id && resource.key === 'notices') id = doc.noticeId || 'NOT-' + String(doc._id).slice(-6).toUpperCase();
+else if (!id && resource.key === 'warranty') id = doc.warrantyId || 'WR-' + String(doc._id).slice(-6).toUpperCase();
+else if (!id && resource.key === 'gaslog') id = doc.logId || 'GAS-' + String(doc._id).slice(-6).toUpperCase();
+else if (!id && resource.key === 'projects') id = doc.projectId || 'PRJ-' + String(doc._id).slice(-6).toUpperCase();
+else if (!id && resource.key === 'recruitment') id = doc.appId || 'REC-' + String(doc._id).slice(-6).toUpperCase();
+id = id ?? doc._id; 
   const customerName = typeof doc.customer === 'object' && doc.customer !== null ? doc.customer.name : doc.customerName ?? doc.customer ?? null;
   const name = customerName ?? doc.name ?? doc.title ?? doc.issue ?? doc.subject ?? doc.company ?? '—';
   return {
@@ -979,7 +988,7 @@ const DeletedItemsPage = () => {
                     <td className="ap-deleted-items-page-38" data-label="ID">{r.id}</td>
                     <td className="ap-deleted-items-page-37" data-label="Name / Title">
                       <div className="ap-deleted-items-page-39">{r.name}</div>
-                      <div className="ap-deleted-items-page-40">{r.module}</div>
+                      {/* <div className="ap-deleted-items-page-40">{r.module}</div> */}
                     </td>
                     <td className="ap-deleted-items-page-37" data-label="Module"><Badge module={r.module} /></td>
                     <td className="ap-deleted-items-page-41" data-label="Deleted by">{r.by}</td>
