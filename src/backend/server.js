@@ -57,6 +57,7 @@ import { protect } from './middleware/auth.js';
 import { initTicketSocket } from './sockets/ticketSocket.js';
 import announcementRoutes from './routes/announcementRoutes.js';
 import dashboardOverviewRoutes from './routes/dashboardOverview.routes.js';
+import financeRoutes from './routes/finance.routes.js';
 
 // ── Process-level safety net ──────────────────────────────────────────────
 // Without these, ANY unhandled rejection anywhere (e.g. a Puppeteer crash
@@ -145,6 +146,7 @@ app.use('/api/ad-campaigns', adCampaignRouter);
 app.use('/api/whatsapp', whatsappRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/dashboard', dashboardOverviewRoutes);
+app.use('/api/finance', financeRoutes);
 
 
 // ── Extended / Missing Modules ────────────────────────────────────────────────

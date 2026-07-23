@@ -73,4 +73,5 @@ export const PATH_FOR = {
   deleted_item:   '/deleted-page',
   profile:          '/profile',
   account_settings: '/account-settings',
+  finance:        '/finance',
 };

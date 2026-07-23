@@ -168,6 +168,15 @@ export const expensesApi = {
   softDelete:    (id)        => req('PUT', `/expenses/${id}/soft-delete`),
   restore:       (id)        => req('PUT', `/expenses/${id}/restore`),
 };
+
+export const financeApi = {
+  summary:   (period = 'this_month') => req('GET', `/finance/summary?period=${encodeURIComponent(period)}`),
+  trend:     ()                      => req('GET', '/finance/trend'),
+  breakdown: (type, period = 'this_month') =>
+    req('GET', `/finance/breakdown?type=${encodeURIComponent(type)}&period=${encodeURIComponent(period)}`),
+  jobs:      (period = 'this_month') => req('GET', `/finance/jobs?period=${encodeURIComponent(period)}`),
+};
+
 export const inventoryApi  = {
   ...crud('inventory'),
   adjustStock: (id, adj) => req('PUT', `/inventory/${id}/stock`, { adjustment: adj }),
@@ -201,7 +210,7 @@ export const salaryApi     = {
 export const payrollApi = {
   preview:  (body) => req('POST', '/payroll/preview', body),
   generate: (body) => req('POST', '/payroll/generate', body),
-  // ── NEW — admin Salary page ────────────────────────────────────────────
+  // ── admin Salary page ──────────────────────────────────────────────────
   listRuns: (period) => req('GET', `/payroll/runs?period=${encodeURIComponent(period)}`),
   markPaid: (id)     => req('PATCH', `/payroll/runs/${id}/pay`),
   downloadOne: (id)  => reqBlob('GET', `/payroll/runs/${id}/download`),
@@ -218,13 +227,37 @@ export const payrollApi = {
     });
     if (res.status === 401) {
       localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_user');
-    window.location.href = '/login';
+      localStorage.removeItem('admin_user');
+      window.location.href = '/login';
       return;
     }
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Failed to download payslips');
+    }
+    return res.blob();
+  },
+  // ── NEW — Excel export ──────────────────────────────────────────────────
+  downloadExcel: async (runIds) => {
+    const res = await fetch(`${BASE}/payroll/payslips/excel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(localStorage.getItem('admin_token')
+          ? { Authorization: `Bearer ${localStorage.getItem('admin_token')}` }
+          : {}),
+      },
+      body: JSON.stringify({ runIds }),
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.href = '/login';
+      return;
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to download Excel');
     }
     return res.blob();
   },

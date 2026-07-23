@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-// models/Payroll.js
 const payrollRunSchema = new mongoose.Schema({
   runId:       { type: String, unique: true },
   technician:  { type: mongoose.Schema.Types.ObjectId, ref: 'Technician', required: true },
@@ -12,20 +11,20 @@ const payrollRunSchema = new mongoose.Schema({
   travel:      { type: Number, default: 0 },
   incentive:   { type: Number, default: 0 },
 
-  // ── NEW — optional, defaulted so existing generate() calls don't break ──
   uniformAllw: { type: Number, default: 0 },
   toolAllw:    { type: Number, default: 0 },
-  overtime:    { type: Number, default: 0 },
+  expense:     { type: Number, default: 0 },   // ← NEW — wired to "Expense claims" checkbox
+  overtime:    { type: Number, default: 0 },   // ← wired to "Add timelogs to salary" checkbox
   tds:         { type: Number, default: 0 },
-  lop:         { type: Number, default: 0 },        // loss-of-pay amount
-  presentDays: { type: Number, default: null },      // null = attendance not linked yet
-  totalDays:   { type: Number, default: null },       // working days in the period
+  lop:         { type: Number, default: 0 },   // ← wired to "Use attendance" checkbox
+  presentDays: { type: Number, default: null },
+  totalDays:   { type: Number, default: null },
   absentDays:  { type: Number, default: 0 },
 
-  gross:       { type: Number, default: 0 },   // basic + hra + travel + incentive (+ new fields once wired in)
+  gross:       { type: Number, default: 0 },
   pf:          { type: Number, default: 0 },
   advance:     { type: Number, default: 0 },
-  net:         { type: Number, default: 0 },   // gross - pf - advance - lop - tds
+  net:         { type: Number, default: 0 },
   paymentMode: { type: String },
   cutoffDate:  { type: Date },
   status:      { type: String, enum: ['draft', 'generated', 'paid'], default: 'generated' },
