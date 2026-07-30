@@ -123,7 +123,12 @@ export const SendRemindersModal = ({
     }
   };
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title="📤 Send Payment Reminders" width={480}>
+  return <Modal open={open} onClose={onClose} title="📤 Send Payment Reminders" width={480} footer={<>
+        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+        <FBtn onClick={handleSend} disabled={loading || overdueInvoices.length === 0}>
+          {loading ? 'Sending…' : 'Send All Reminders'}
+        </FBtn>
+      </>}>
       <ErrorBanner message={error} />
       <div className="ap-hr-modals-10">
         <div className="ap-hr-modals-11">Overdue & Pending Invoices</div>
@@ -142,12 +147,6 @@ export const SendRemindersModal = ({
       </FRow>
       <div className="ap-hr-modals-15">
         📤 {overdueInvoices.length} reminder{overdueInvoices.length !== 1 ? 's' : ''} will be sent automatically
-      </div>
-      <div className="ap-hr-modals-16">
-        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <FBtn onClick={handleSend} disabled={loading || overdueInvoices.length === 0}>
-          {loading ? 'Sending…' : 'Send All Reminders'}
-        </FBtn>
       </div>
     </Modal>;
 };
@@ -211,7 +210,10 @@ export const RecordPaymentModal = ({
     submit(form);
   };
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title="💳 Record Payment" width={460}>
+  return <Modal open={open} onClose={onClose} title="💳 Record Payment" width={460} footer={<>
+        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Recording…' : 'Record Payment'}</FBtn>
+      </>}>
       <ErrorBanner message={error} />
       <FRow label="Invoice *">
         <FSelect value={selectedInvoice} onChange={e => setSelectedInvoice(e.target.value)}>
@@ -240,10 +242,6 @@ export const RecordPaymentModal = ({
       <FRow label="Notes">
         <FInput placeholder="Optional payment notes" value={form.notes} onChange={set('notes')} />
       </FRow>
-      <div className="ap-hr-modals-18">
-        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Recording…' : 'Record Payment'}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -337,7 +335,10 @@ export const NewPriceItemModal = ({
   };
 
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title={isEditing ? '✏️ Edit Price Item' : '🏷 Add Price Item'} width={480}>
+  return <Modal open={open} onClose={onClose} title={isEditing ? '✏️ Edit Price Item' : '🏷 Add Price Item'} width={480} footer={<>
+        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Saving…' : isEditing ? 'Save Changes' : 'Save Item'}</FBtn>
+      </>}>
       <ErrorBanner message={error} />
       <FRow label="Service Name *">
         <FInput placeholder="Split AC Service (1.5T)" value={form.serviceName} onChange={set('serviceName')} />
@@ -372,10 +373,6 @@ export const NewPriceItemModal = ({
           <option>Active</option><option>Inactive</option>
         </FSelect>
       </FRow>
-      <div className="ap-hr-modals-21">
-        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Saving…' : isEditing ? 'Save Changes' : 'Save Item'}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -423,7 +420,10 @@ export const NewReminderModal = ({
     submit(form);
   };
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title="🔔 Add Service Reminder" width={460}>
+  return <Modal open={open} onClose={onClose} title="🔔 Add Service Reminder" width={460} footer={<>
+        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Adding…' : 'Add Reminder'}</FBtn>
+      </>}>
       <ErrorBanner message={error} />
       <FRow label="Customer *">
         <FSelect value={form.customer} onChange={set('customer')}>
@@ -450,10 +450,6 @@ export const NewReminderModal = ({
           {['Yes – auto send 7 days before', 'Yes – send now', 'No – manual only'].map(o => <option key={o}>{o}</option>)}
         </FSelect>
       </FRow>
-      <div className="ap-hr-modals-23">
-        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Adding…' : 'Add Reminder'}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -510,7 +506,10 @@ export const ApplyLeaveModal = ({
     submit({ ...form, techName: t?.name || '' });
   };
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title="🌴 Apply for Leave" width={460}>
+  return <Modal open={open} onClose={onClose} title="🌴 Apply for Leave" width={460} footer={<>
+        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Submitting…' : 'Submit Application'}</FBtn>
+      </>}>
       <ErrorBanner message={error} />
       <FRow label="Technician *">
         <FSelect value={form.technician} onChange={set('technician')}>
@@ -542,10 +541,6 @@ export const ApplyLeaveModal = ({
           <div className="ap-hr-modals-28">📎 Upload medical certificate / document (optional)</div>
         </div>
       </FRow>
-      <div className="ap-hr-modals-29">
-        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Submitting…' : 'Submit Application'}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -651,7 +646,10 @@ export const LogGasModal = ({
     });
   };
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title="🧪 Log Gas / Refrigerant Usage" width={660}>
+  return <Modal open={open} onClose={onClose} title="🧪 Log Gas / Refrigerant Usage" width={660} footer={<>
+        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Saving…' : 'Save Gas Log'}</FBtn>
+      </>}>
       <ErrorBanner message={error} />
  
       <SectionHead title="Job & Technician" />
@@ -765,11 +763,6 @@ export const LogGasModal = ({
         <span>⚠️</span>
         <span>This log is a compliance record. Ensure the technician holds a valid F-Gas certificate before handling refrigerants.</span>
       </div>
- 
-      <div className="ap-hr-modals-38">
-        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Saving…' : 'Save Gas Log'}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -845,7 +838,13 @@ export const NewTaskModal = ({
     });
   };
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title="✅ New Task" width={700}>
+  return <Modal open={open} onClose={onClose} title="✅ New Task" width={700} footer={<>
+        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+        <button onClick={onClose} className="ap-hr-modals-62">
+          💾 Save &amp; Add More
+        </button>
+        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Saving…' : '✓ Save'}</FBtn>
+      </>}>
       <ErrorBanner message={error} />
  
       <div className="ntm-section-label">Task Info</div>
@@ -992,14 +991,6 @@ export const NewTaskModal = ({
             </div>
           </FRow>
         </>}
- 
-      <div className="ap-hr-modals-61">
-        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <button onClick={onClose} className="ap-hr-modals-62">
-          💾 Save &amp; Add More
-        </button>
-        <FBtn onClick={handleSave} disabled={loading}>{loading ? 'Saving…' : '✓ Save'}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -1460,7 +1451,12 @@ export const LogTimeModal = ({
     });
   };
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title="⏱ Log Time" width={520}>
+  return <Modal open={open} onClose={onClose} title="⏱ Log Time" width={520} footer={<>
+        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={loading || hrs <= 0}>
+          {loading ? 'Saving…' : '⏱ Log Time'}
+        </FBtn>
+      </>}>
       <ErrorBanner message={error} />
 
       <SectionHead title="Who & What" />
@@ -1532,13 +1528,6 @@ export const LogTimeModal = ({
         <FRow label="Notes">
           <FInput placeholder="Optional notes…" value={form.notes} onChange={set('notes')} />
         </FRow>
-      </div>
-
-      <div className="ap-hr-modals-125">
-        <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={loading || hrs <= 0}>
-          {loading ? 'Saving…' : '⏱ Log Time'}
-        </FBtn>
       </div>
     </Modal>;
 };

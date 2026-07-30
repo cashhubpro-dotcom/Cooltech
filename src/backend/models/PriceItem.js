@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PriceItemCategory, PriceItemUnit } from "./optionSetModels.js";
 
 // Auto-generate PRC-01, PRC-02 style IDs
 const generatePriceId = async () => {
@@ -7,6 +8,8 @@ const generatePriceId = async () => {
   return `PRC-${String(next).padStart(2, "0")}`;
 };
 
+// Kept as fallback/legacy exports in case anything else still imports these —
+// no longer used for schema validation below (see category / unit fields).
 export const VALID_CATEGORIES = ["Service", "Gas Refill", "Installation", "Repair", "AMC", "Other"];
 export const VALID_UNITS = ["per visit", "per cylinder", "per unit", "per hour", "per kg", "per set", "per year", "per month", "per day"];
 export const VALID_GST = [0, 5, 12, 18, 28];
@@ -29,21 +32,23 @@ const priceItemSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, "Category is required"],
-      enum: {
-        values: VALID_CATEGORIES,
-        message: `Category must be one of: ${VALID_CATEGORIES.join(", ")}`,
-      },
       default: "Service",
+      validate: {
+        validator: async (value) =>
+          !!(await PriceItemCategory.exists({ name: value, isActive: true, isDeleted: false })),
+        message: (props) => `"${props.value}" is not a valid Category`,
+      },
     },
 
     unit: {
       type: String,
       required: [true, "Unit is required"],
-      enum: {
-        values: VALID_UNITS,
-        message: `Unit must be one of: ${VALID_UNITS.join(", ")}`,
-      },
       default: "per visit",
+      validate: {
+        validator: async (value) =>
+          !!(await PriceItemUnit.exists({ name: value, isActive: true, isDeleted: false })),
+        message: (props) => `"${props.value}" is not a valid Unit`,
+      },
     },
 
     price: {

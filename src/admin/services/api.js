@@ -127,6 +127,16 @@ export const invoicesApi = {
   ...crud('invoices'),
   pay:         (id, b)    => req('PUT',   `/invoices/${id}/pay`, b),
   updateStatus: (id, body) => req('PATCH', `/invoices/${id}/status`, body),
+  convertToCreditNote: (id, body = {}) => req('POST', `/invoices/${id}/convert-to-credit-note`, body),
+};
+
+export const creditNotesApi = {
+  list:   (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return req('GET', `/credit-notes${qs ? '?' + qs : ''}`);
+  },
+  get:    (id) => req('GET', `/credit-notes/${id}`),
+  remove: (id) => req('DELETE', `/credit-notes/${id}`),
 };
 
 // ── Payments (Razorpay-backed) ─────────────────────────────────────────────────

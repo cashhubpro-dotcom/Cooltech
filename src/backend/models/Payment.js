@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { PaymentMethod } from './optionSetModels.js';
 
 const paymentSchema = new mongoose.Schema(
   {
@@ -26,8 +27,12 @@ const paymentSchema = new mongoose.Schema(
 
     method: {
       type: String,
-      enum: ['UPI', 'Cash', 'Cheque', 'Bank Transfer', 'Credit Card', 'Razorpay', '—'],
       default: '—',
+      validate: {
+        validator: async (value) =>
+          value === '—' || !!(await PaymentMethod.exists({ name: value, isActive: true, isDeleted: false })),
+        message: (props) => `"${props.value}" is not a valid Payment Method`,
+      },
     },
 
     // Actual received-date (Date), display formatting happens on the frontend.

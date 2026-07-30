@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
+import { PartType, PartWarrantyType } from './optionSetModels.js';
 
+// Kept as fallback/legacy exports in case anything else still imports these —
+// no longer used for schema validation below (see partType / type fields).
 export const PART_TYPES = [
   'Compressor', 'PCB Board', 'Capacitor', 'Fan Motor',
   'Gas Charge', 'IDU/ODU Coil', 'Remote', 'Sensor', 'Other',
@@ -21,7 +24,15 @@ const partWarrantySchema = new mongoose.Schema(
     linkedUnit:      { type: mongoose.Schema.Types.ObjectId, ref: 'Warranty' },
     linkedUnitLabel: { type: String, default: '' }, // e.g. "WRT-0001 — Ankit Patel"
 
-    partType: { type: String, enum: PART_TYPES, required: true },
+    partType: {
+      type: String,
+      required: true,
+      validate: {
+        validator: async (value) =>
+          !!(await PartType.exists({ name: value, isActive: true, isDeleted: false })),
+        message: (props) => `"${props.value}" is not a valid Part Type`,
+      },
+    },
 
     brand:  { type: String, default: '' },
     model:  { type: String, default: '' },
@@ -30,7 +41,15 @@ const partWarrantySchema = new mongoose.Schema(
     startDate: { type: Date }, // install date
     endDate:   { type: Date, required: true }, // warranty end date
 
-    type:   { type: String, enum: WARRANTY_TYPES, default: 'Manufacturer' }, // warranty type
+    type: {
+      type: String,
+      default: 'Manufacturer',
+      validate: {
+        validator: async (value) =>
+          !!(await PartWarrantyType.exists({ name: value, isActive: true, isDeleted: false })),
+        message: (props) => `"${props.value}" is not a valid Warranty Type`,
+      },
+    }, // warranty type
     status: { type: String, enum: ['active', 'expired'], default: 'active' },
 
     claimsCount: { type: Number, default: 0 },

@@ -1,5 +1,5 @@
 // controllers/technicianLeaveController.js
-import Leave from '../models/leaveModel.js';
+import { Leave } from '../models/hrModels.js';
 
 const ok  = (res, data, status = 200) => res.status(status).json({ success: true,  data });
 const err = (res, msg,  status = 500) => res.status(status).json({ success: false, message: msg });
@@ -100,7 +100,6 @@ export const applyLeave = async (req, res) => {
     technicianName: req.technician.name,
     techName:       req.technician.name, // legacy field support
     type, from, to,
-    startDate: from, endDate: to,        // legacy field support
     days, reason,
     status: 'pending',
   });
@@ -121,8 +120,6 @@ export const updateMyLeave = async (req, res) => {
   leave.type = type ?? leave.type;
   leave.from = from ?? leave.from;
   leave.to   = to   ?? leave.to;
-  leave.startDate = leave.from;
-  leave.endDate   = leave.to;
   leave.days   = days;
   leave.reason = reason ?? leave.reason;
   await leave.save();

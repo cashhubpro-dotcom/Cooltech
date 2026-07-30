@@ -82,6 +82,11 @@ export const INV_STATUS = {
     label: "Overdue",
     bg: "var(--danger-bg)",
     color: "var(--danger-text)"
+  },
+  credited: {
+    label: "Credited",
+    bg: "var(--success-bg)",
+    color: "var(--success-text)"
   }
 };
 export const TECH_STATUS = {

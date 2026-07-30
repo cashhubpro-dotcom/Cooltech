@@ -942,6 +942,21 @@
   overflow-y: auto;
   box-shadow: var(--shadow-modal);
   font-family: var(--font-sans);
+
+  /* Scroll shadow: since the real scrollbar is hidden site-wide (see note
+     below), this is the only visual cue telling the user there's more
+     content to scroll to. Two gradients scroll with the content (fading
+     the edges in/out as you approach top/bottom) and two stay fixed to the
+     box (the soft drop-shadow strips), so the shadow only shows while
+     there's actually more to see in that direction. Pure CSS, no JS. */
+  background-image:
+    linear-gradient(var(--white) 30%, rgba(255, 255, 255, 0)),
+    linear-gradient(rgba(255, 255, 255, 0), var(--white) 70%) 0 100%,
+    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .18), rgba(0, 0, 0, 0)),
+    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .18), rgba(0, 0, 0, 0)) 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+  background-attachment: local, local, scroll, scroll;
 }
 /* scrollbar-hiding for .modal-box, .cal-modal-card, .gp-modal, .dcm-card
    is now centralized in src/shared/base.css */
@@ -971,7 +986,17 @@
   color: var(--text-muted);
 }
 .modal-body { padding: 20px 22px; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px 20px;
+  position: sticky;
+  bottom: 0;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  z-index: 1;
+}
 
 /* ============================================================
    TOAST
@@ -3817,7 +3842,7 @@ html {
   }
   .modal-header { padding: 16px 16px; }
   .modal-body   { padding: 16px 16px; }
-  .modal-footer { padding: 0 16px 16px; flex-wrap: wrap; }
+  .modal-footer { padding: 12px 16px 16px; flex-wrap: wrap; }
   .modal-footer .btn { flex: 1 1 auto; justify-content: center; }
 }
 @media (max-width: 479px) {
@@ -6616,7 +6641,7 @@ html {
 /* ── Modal form fields — spacing between stacked fields ── */
 .finance-page ~ .modal-overlay .form-field,
 .modal-overlay .form-field { margin-bottom: 14px; }
-.modal-overlay .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-overlay .form-row { display: grid; gap: 12px; }
 @media (max-width: 480px) { .modal-overlay .form-row { grid-template-columns: 1fr; } }
 
 .fin-period-select { min-width: 130px; width: auto;}

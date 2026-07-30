@@ -1274,7 +1274,7 @@ const InvoicesPage = ({
       <div className="ap-invoices-page-125">
         <div className="ap-invoices-page-126">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by invoice #, customer, job…" />
-          <FilterSelect value={activeFilters.status} onChange={val => setFilter('status', val)} options={['paid', 'pending', 'overdue', 'draft']} allLabel="All Statuses" />
+          <FilterSelect value={activeFilters.status} onChange={val => setFilter('status', val)} options={['paid', 'pending', 'overdue', 'draft', 'credited']} allLabel="All Statuses" />
           <div className="ap-invoices-page-127"><ExportDropdown {...exportProps} /></div>
         </div>
 

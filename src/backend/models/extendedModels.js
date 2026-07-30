@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { IncentiveType, RecoveryPlan } from './optionSetModels.js';
 
 // ── Notice Board ──────────────────────────────────────────────────────────────
 const noticeSchema = new mongoose.Schema({
@@ -109,7 +110,11 @@ const advanceIncentiveSchema = new mongoose.Schema({
   recordId:   { type: String, unique: true },
   technician: { type: mongoose.Schema.Types.ObjectId, ref: 'Technician', required: true },
   techName:   { type: String },
-  type:       { type: String, required: true },
+  // Fixed by business logic (which tab it shows in, whether it adds to or
+  // deducts from payroll) — not admin-extensible like incentiveType/
+  // recoveryPlan below, so a plain enum is correct here, not an option set.
+  // '/summary/:technicianId' already computes totals for all 4 of these.
+  type: { type: String, enum: ['advance', 'incentive', 'bonus', 'deduction'], required: true },
   amount:     { type: Number, required: true },
   reason:     { type: String },
   date:       { type: Date, default: Date.now },
@@ -117,6 +122,32 @@ const advanceIncentiveSchema = new mongoose.Schema({
   status:     { type: String, enum: ['pending', 'approved', 'paid', 'rejected'], default: 'pending' },
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   notes:      { type: String },
+
+  // Structured versions of what used to be folded into `reason`/`notes` as
+  // free text — keeps these queryable/filterable/reportable instead of
+  // living only inside a formatted string.
+  incentiveType: {
+    type: String,
+    validate: {
+      validator: async function (value) {
+        if (this.type !== 'incentive' || !value) return true;
+        return !!(await IncentiveType.exists({ name: value, isActive: true, isDeleted: false }));
+      },
+      message: (props) => `"${props.value}" is not a valid Incentive Type`,
+    },
+  },
+  recoveryPlan: {
+    type: String,
+    validate: {
+      validator: async function (value) {
+        if (this.type !== 'advance' || !value) return true;
+        return !!(await RecoveryPlan.exists({ name: value, isActive: true, isDeleted: false }));
+      },
+      message: (props) => `"${props.value}" is not a valid Recovery Plan`,
+    },
+  },
+  recoveryMonths: { type: Number }, // months parsed from recoveryPlan, e.g. "3 months (split)" → 3
+
   isDeleted:  { type: Boolean, default: false },
   deletedAt:  { type: Date, default: null },
 }, { timestamps: true });

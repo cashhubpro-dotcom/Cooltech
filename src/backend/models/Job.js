@@ -1,12 +1,21 @@
 import mongoose from 'mongoose';
 import ChecklistTemplate from './ChecklistTemplate.js';
+import { JobType } from './optionSetModels.js';
 
 const jobSchema = new mongoose.Schema({
   jobId:      { type: String, unique: true },
   customer:   { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true, index: true },
   customerName: { type: String },
   address:    { type: String },
-  type:       { type: String, enum: ['Service', 'Installation', 'Repair', 'AMC Visit', 'Inspection'], default: 'Service' },
+  type: {
+    type: String,
+    default: 'Service',
+    validate: {
+      validator: async (value) =>
+        !!(await JobType.exists({ name: value, isActive: true, isDeleted: false })),
+      message: (props) => `"${props.value}" is not a valid Job Type`,
+    },
+  },
   priority:   { type: String, enum: ['normal', 'high', 'urgent'], default: 'normal' },
   status:     { type: String, enum: ['new', 'assigned', 'in_progress', 'completed', 'invoiced', 'cancelled'], default: 'new' },
   technician: { type: mongoose.Schema.Types.ObjectId, ref: 'Technician' },

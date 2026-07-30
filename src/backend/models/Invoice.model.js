@@ -36,7 +36,7 @@ const InvoiceSchema = new mongoose.Schema(
     subject:   { type: String, default: "",    trim: true },
     date:      { type: String, default: "" },   // "YYYY-MM-DD"
     dueDate:   { type: String, default: "" },
-    status:    { type: String, enum: ["draft", "saved", "paid", "pending"], default: "pending" },
+    status:    { type: String, enum: ["draft", "saved", "paid", "pending", "credited"], default: "pending" },
     paid:      { type: Boolean, default: false },
     notes:     { type: String, default: "" },
     terms:     { type: String, default: "" },

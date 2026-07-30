@@ -1,6 +1,7 @@
 import express from "express";
 import Invoice  from "../models/Invoice.model.js";
 import Customer from "../models/Customer.js";
+import CreditNote from "../models/CreditNote.model.js";
 
 const router = express.Router();
 
@@ -200,6 +201,33 @@ router.delete("/:id/hard", asyncWrap(async (req, res) => {
   const doc = await Invoice.findByIdAndDelete(req.params.id);
   if (!doc) return res.status(404).json({ success: false, message: "Invoice not found" });
   res.json({ success: true, message: "Invoice permanently deleted" });
+}));
+
+// ─── POST /api/invoices/:id/convert-to-credit-note ───────────────────────────
+router.post("/:id/convert-to-credit-note", asyncWrap(async (req, res) => {
+  const invoice = await Invoice.findById(req.params.id);
+  if (!invoice) return res.status(404).json({ success: false, message: "Invoice not found" });
+
+  if (invoice.status === "credited") {
+    return res.status(400).json({ success: false, message: "Invoice is already credited" });
+  }
+
+  const creditNote = new CreditNote({
+    invoice:    invoice._id,
+    invoiceNo:  invoice.invoiceNo,
+    customer:   invoice.customer,
+    customerId: invoice.customerId,
+    subtotal:   invoice.subtotal,
+    gstAmount:  invoice.gstAmount,
+    total:      invoice.total,
+    reason:     req.body?.reason || "",
+  });
+  await creditNote.save();
+
+  invoice.status = "credited";
+  await invoice.save();
+
+  res.status(201).json({ success: true, data: creditNote });
 }));
 
 router.use((err, req, res, _next) => {

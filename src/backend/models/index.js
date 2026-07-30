@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { ExpenseCategory, ItemCategory } from './optionSetModels.js';
 
 // ── Payment ──────────────────────────────────────────────────────────────────
 // const paymentSchema = new mongoose.Schema({
@@ -27,7 +28,15 @@ import mongoose from 'mongoose';
 // ── Expense ───────────────────────────────────────────────────────────────────
 const expenseSchema = new mongoose.Schema({
   expenseId:    { type: String, unique: true },
-  category:     { type: String, enum: ['Fuel', 'Tools', 'Parts', 'Miscellaneous', 'Training', 'Office', 'Other'], default: 'Other' },
+  category: {
+    type: String,
+    default: 'Other',
+    validate: {
+      validator: async (value) =>
+        !!(await ExpenseCategory.exists({ name: value, isActive: true, isDeleted: false })),
+      message: (props) => `"${props.value}" is not a valid Expense Category`,
+    },
+  },
   technician:   { type: mongoose.Schema.Types.ObjectId, ref: 'Technician' },
   techName:     { type: String },
   job:          { type: mongoose.Schema.Types.ObjectId, ref: 'Job', default: null },
@@ -58,7 +67,15 @@ export const Expense = mongoose.model('Expense', expenseSchema);
 const inventorySchema = new mongoose.Schema({
   itemId:     { type: String, unique: true },
   name:       { type: String, required: true },
-  category:   { type: String, enum: ['Refrigerant', 'Filter', 'Electrical', 'Piping', 'Lubricant', 'Tool', 'Other'], default: 'Other' },
+  category: {
+    type: String,
+    default: 'Other',
+    validate: {
+      validator: async (value) =>
+        !!(await ItemCategory.exists({ name: value, isActive: true, isDeleted: false })),
+      message: (props) => `"${props.value}" is not a valid Item Category`,
+    },
+  },
   sku:        { type: String },
   qty:        { type: Number, default: 0 },
   unit:       { type: String, default: 'Piece' },

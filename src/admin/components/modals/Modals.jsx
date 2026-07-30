@@ -315,7 +315,10 @@ const NewTicketModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="🎫 New Support Ticket" width={640}>
+  return <Modal open={open} onClose={onClose} title="🎫 New Support Ticket" width={640} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Save Ticket"}</FBtn>
+      </>}>
       <div className="ap-modals-2">
         <FRow label="Customer *">
           <FSelect value={form.customer} onChange={handleCustomerChange}>
@@ -385,11 +388,6 @@ const NewTicketModal = ({
       {error && <div className="ap-modals-7">
           {error}
         </div>}
-
-      <div className="ap-modals-8">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Save Ticket"}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -542,7 +540,12 @@ const NewJobModal = ({
       address: composedAddress
     });
   };
-  return <Modal open={open} onClose={onClose} title="➕ Create New Work Order" width={620}>
+  return <Modal open={open} onClose={onClose} title="➕ Create New Work Order" width={620} footer={<>
+        <FBtn secondary onClick={onClose}>
+          Cancel
+        </FBtn>
+        <FBtn onClick={handleSave}>Create Job</FBtn>
+      </>}>
       <div className="ap-modals-9">
         <FRow label="Customer *">
           <FSelect value={form.customer} onChange={set("customer")}>
@@ -594,12 +597,6 @@ const NewJobModal = ({
         <FInput placeholder="e.g. Flat 4B, Green Apartments, MG Road" value={form.address} onChange={set("address")} />
       </FRow>
       <AddressFields prefix="job_" value={addr} onChange={setAddr} />
-      <div className="ap-modals-10">
-        <FBtn secondary onClick={onClose}>
-          Cancel
-        </FBtn>
-        <FBtn onClick={handleSave}>Create Job</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -1042,7 +1039,12 @@ const NewQuotationModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="📄 New Quotation" width={620}>
+  return <Modal open={open} onClose={onClose} title="📄 New Quotation" width={620} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>
+          {saving ? "Creating…" : "Create Quotation"}
+        </FBtn>
+      </>}>
       <div className="ap-modals-29">
         <FRow label="Customer *">
           <FSelect value={form.customer} onChange={handleCustomerChange}>
@@ -1110,13 +1112,6 @@ const NewQuotationModal = ({
       {error && <div className="ap-modals-42">
           {error}
         </div>}
-
-      <div className="ap-modals-43">
-        <FBtn secondary onClick={onClose}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>
-          {saving ? "Creating…" : "Create Quotation"}
-        </FBtn>
-      </div>
     </Modal>;
 };
 
@@ -1249,7 +1244,10 @@ const NewCustomerModal = ({
     }
   };
   return <>
-      <Modal open={open} onClose={onClose} title="👤 Add New Customer" width={620}>
+      <Modal open={open} onClose={onClose} title="👤 Add New Customer" width={620} footer={<>
+          <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+          <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Customer"}</FBtn>
+        </>}>
         <div className="ap-modals-56">
           <FRow label="Full Name / Company *">
             <FInput placeholder="Sharma Residency" value={form.name} onChange={set("name")} />
@@ -1287,11 +1285,6 @@ const NewCustomerModal = ({
         {error && <div className="ap-modals-60">
             {error}
           </div>}
-
-        <div className="ap-modals-61">
-          <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-          <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Customer"}</FBtn>
-        </div>
       </Modal>
       {showAddType && <AddTypeModal onClose={() => setShowAddType(false)} onSave={handleAddType} label="Customer Type" placeholder="e.g. Industrial, Government…" />}
     </>;
@@ -1417,7 +1410,10 @@ const NewAMCModal = ({
     }
   };
  
-  return <Modal open={open} onClose={onClose} title="📋 New Contract" width={700}>
+  return <Modal open={open} onClose={onClose} title="📋 New Contract" width={700} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Creating…" : "Create Contract"}</FBtn>
+      </>}>
       <SectionHead title="Contract Details" />
       <div className="ap-modals-62">
         <FRow label="Contract Number *">
@@ -1552,10 +1548,6 @@ const NewAMCModal = ({
         </FRow>
       </div>
       {error && <div className="ap-modals-60">{error}</div>}
-      <div className="ap-modals-79">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Creating…" : "Create Contract"}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -1613,7 +1605,10 @@ const NewInvoiceModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="🧾 Create Invoice">
+  return <Modal open={open} onClose={onClose} title="🧾 Create Invoice" footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Generating…" : "Generate Invoice"}</FBtn>
+    </>}>
     <div className="ap-modals-80">
       <FRow label="Job / Contract Ref">
         <FSelect value={form.jobRef} onChange={set("jobRef")}>
@@ -1638,10 +1633,6 @@ const NewInvoiceModal = ({
       <FTextarea placeholder="Labour: ₹1200&#10;Parts: R-32 Refrigerant × 1 – ₹2800&#10;Service charge: ₹500" rows={4} value={form.description} onChange={set("description")} />
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-81">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Generating…" : "Generate Invoice"}</FBtn>
-    </div>
   </Modal>;
 };
 
@@ -2044,7 +2035,10 @@ const AddTechnicianModal = ({
     }
   };
  
-  return <Modal open={open} onClose={onClose} title="👷 Add New Technician" width={700}>
+  return <Modal open={open} onClose={onClose} title="👷 Add New Technician" width={700} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Technician"}</FBtn>
+      </>}>
       <div className="ap-modals-108">
         <div onClick={() => document.getElementById("tech-photo-input")?.click()} className="ap-modals-109">
           {photo ? <img src={URL.createObjectURL(photo)} alt="avatar" className="ap-modals-110" /> : <span className="ap-modals-111">👤</span>}
@@ -2315,11 +2309,6 @@ const AddTechnicianModal = ({
       </FRow>
  
       {error && <div className="ap-modals-60">{error}</div>}
- 
-      <div className="ap-modals-150">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Technician"}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -2398,7 +2387,10 @@ const AddExpenseModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="💸 Add Expense Claim">
+  return <Modal open={open} onClose={onClose} title="💸 Add Expense Claim" footer={<>
+        <FBtn secondary onClick={onClose}>Cancel</FBtn>
+        <FBtn onClick={handleSubmit} disabled={saving}>{saving ? "Submitting…" : "Submit Claim"}</FBtn>
+      </>}>
       <div className="ap-modals-151">
         <FRow label="Category">
           <DynamicSelect options={expenseCategoryList} value={form.category} onChange={v => set('category', v)} onAddOption={v => onAddExpenseCategory?.(v)} addLabel="Expense Category" addPlaceholder="e.g. Software, Insurance…" />
@@ -2435,11 +2427,6 @@ const AddExpenseModal = ({
       </FRow>
  
       {error && <div className="ap-modals-156">{error}</div>}
- 
-      <div className="ap-modals-157">
-        <FBtn secondary onClick={onClose}>Cancel</FBtn>
-        <FBtn onClick={handleSubmit} disabled={saving}>{saving ? "Submitting…" : "Submit Claim"}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -2502,7 +2489,10 @@ const AddInventoryModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="📦 Add Inventory Item">
+  return <Modal open={open} onClose={onClose} title="📦 Add Inventory Item" footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Item"}</FBtn>
+      </>}>
       <div className="ap-modals-158">
         <FRow label="Item Name *">
           <FInput placeholder="R-32 Refrigerant" value={form.name} onChange={set("name")} />
@@ -2533,10 +2523,6 @@ const AddInventoryModal = ({
         </FRow>
       </div>
       {error && <div className="ap-modals-60">{error}</div>}
-      <div className="ap-modals-159">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Item"}</FBtn>
-      </div>
     </Modal>;
 };
 const AddLeadSourceModal = ({
@@ -2646,7 +2632,12 @@ const NewLeadModal = ({
     });
   };
   return <>
-      <Modal open={open} onClose={onClose} title="🎯 Add New Lead">
+      <Modal open={open} onClose={onClose} title="🎯 Add New Lead" footer={<>
+          <FBtn secondary onClick={onClose}>
+            Cancel
+          </FBtn>
+          <FBtn onClick={handleSave}>Create Lead</FBtn>
+        </>}>
         <div className="ap-modals-172">
           <FRow label="Company / Name *">
             <FInput placeholder="ABC Apartments" value={form.name} onChange={set("name")} />
@@ -2689,12 +2680,6 @@ const NewLeadModal = ({
         <FRow label="Notes">
           <FTextarea placeholder="Initial enquiry details…" rows={2} value={form.notes} onChange={set("notes")} />
         </FRow>
-        <div className="ap-modals-176">
-          <FBtn secondary onClick={onClose}>
-            Cancel
-          </FBtn>
-          <FBtn onClick={handleSave}>Create Lead</FBtn>
-        </div>
       </Modal>
       {showAddSource && <AddLeadSourceModal onClose={() => setShowAddSource(false)} onSave={handleAddSource} />}
     </>;
@@ -2790,7 +2775,10 @@ const NewPOModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="🛒 New Purchase Order" width={680}>
+  return <Modal open={open} onClose={onClose} title="🛒 New Purchase Order" width={680} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Creating…" : "Create PO"}</FBtn>
+      </>}>
       <SectionHead title="Supplier & Order Info" />
       <div className="ap-modals-177">
         <FRow label="Supplier *">
@@ -2898,10 +2886,6 @@ const NewPOModal = ({
       </FRow>
  
       {error && <div className="ap-modals-60">{error}</div>}
-      <div className="ap-modals-205">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Creating…" : "Create PO"}</FBtn>
-      </div>
       {showAddCategory && <AddOptionModal label="Item Category" placeholder="e.g. Insulation, Sensors…" onClose={() => setShowAddCategory(false)} onSave={v => onAddItemCategory?.(v)} />}
     </Modal>;
 };
@@ -2947,7 +2931,10 @@ const NewSupplierModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="🏭 Add New Supplier">
+  return <Modal open={open} onClose={onClose} title="🏭 Add New Supplier" footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Supplier"}</FBtn>
+      </>}>
       <div className="ap-modals-206">
         <FRow label="Company Name *">
           <FInput placeholder="ABC Traders" value={form.name} onChange={set("name")} />
@@ -2974,10 +2961,6 @@ const NewSupplierModal = ({
         <FTextarea placeholder="Full address…" rows={2} value={form.address} onChange={set("address")} />
       </FRow>
       {error && <div className="ap-modals-60">{error}</div>}
-      <div className="ap-modals-207">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Supplier"}</FBtn>
-      </div>
     </Modal>;
 };
 
@@ -3105,7 +3088,12 @@ const NewAssetModal = ({
     };
     onSave(payload, editAsset?._id);
   };
-  return <Modal open={open} onClose={onClose} title={isEditing ? '✏️ Edit Asset' : '🚗 Add Asset / Vehicle'} width={640}>
+  return <Modal open={open} onClose={onClose} title={isEditing ? '✏️ Edit Asset' : '🚗 Add Asset / Vehicle'} width={640} footer={<>
+        <FBtn secondary onClick={onClose}>Cancel</FBtn>
+        <FBtn onClick={handleSave}>
+          {isEditing ? 'Save Changes' : tab === 'Vehicle' ? 'Add Vehicle' : 'Add Equipment'}
+        </FBtn>
+      </>}>
 
       {/* Tabs */}
       <div className="ap-modals-208">
@@ -3184,13 +3172,6 @@ const NewAssetModal = ({
       <FRow label="Notes">
         <FTextarea placeholder="Any additional notes…" rows={2} value={form.notes} onChange={set('notes')} />
       </FRow>
-
-      <div className="ap-modals-211">
-        <FBtn secondary onClick={onClose}>Cancel</FBtn>
-        <FBtn onClick={handleSave}>
-          {isEditing ? 'Save Changes' : tab === 'Vehicle' ? 'Add Vehicle' : 'Add Equipment'}
-        </FBtn>
-      </div>
     </Modal>;
 };
 
@@ -3553,6 +3534,12 @@ const NewNoticeModal = ({
   };
   const isEditing = !!editId;
   return <Modal open={open} onClose={handleClose} title={isEditing ? '✏️ Edit Notice' : '📢 Post New Notice'} // ← dynamic title
+  footer={<>
+        <FBtn secondary onClick={handleClose}>Cancel</FBtn>
+        <FBtn onClick={handleSave}>
+          {saving ? isEditing ? 'Saving…' : 'Posting…' : isEditing ? 'Save Changes' : 'Post Notice'}
+        </FBtn>
+      </>}
   >
       <FRow label="Title">
         <FInput placeholder="Notice title…" value={form.title} onChange={e => setForm(p => ({
@@ -3600,12 +3587,6 @@ const NewNoticeModal = ({
         content: e.target.value
       }))} />
       </FRow>
-      <div className="ap-modals-238">
-        <FBtn secondary onClick={handleClose}>Cancel</FBtn>
-        <FBtn onClick={handleSave}>
-          {saving ? isEditing ? 'Saving…' : 'Posting…' : isEditing ? 'Save Changes' : 'Post Notice'}
-        </FBtn>
-      </div>
     </Modal>;
 };
 const MarkAttendanceModal = ({
@@ -3643,7 +3624,10 @@ const MarkAttendanceModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="📅 Mark Today's Attendance" width={600}>
+  return <Modal open={open} onClose={onClose} title="📅 Mark Today's Attendance" width={600} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Save Attendance"}</FBtn>
+    </>}>
     <div className="ap-modals-239">
       Marking attendance for: <strong>{fmtDateDMY(new Date(date))}</strong>
     </div>
@@ -3658,10 +3642,6 @@ const MarkAttendanceModal = ({
         </div>
       </div>)}
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-246">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Save Attendance"}</FBtn>
-    </div>
   </Modal>;
 };
 const AdvanceModal = ({
@@ -3708,7 +3688,10 @@ const AdvanceModal = ({
     d.setMonth(d.getMonth() + i);
     return d.toLocaleString("default", { month: "long", year: "numeric" });
   });
-  return <Modal open={open} onClose={onClose} title="⬆ Give Advance" width={420}>
+  return <Modal open={open} onClose={onClose} title="⬆ Give Advance" width={420} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Approving…" : "Approve Advance"}</FBtn>
+    </>}>
     <FRow label="Technician *">
       <FSelect value={form.technician} onChange={set("technician")}>
         <option value="">Select technician…</option>
@@ -3728,10 +3711,6 @@ const AdvanceModal = ({
       <FTextarea placeholder="Reason for advance…" rows={2} value={form.reason} onChange={set("reason")} />
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-247">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Approving…" : "Approve Advance"}</FBtn>
-    </div>
   </Modal>;
 };
 const SendQuotationModal = ({
@@ -3769,7 +3748,10 @@ const SendQuotationModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="📧 Send Quotation to Customer" width={460}>
+  return <Modal open={open} onClose={onClose} title="📧 Send Quotation to Customer" width={460} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Sending…" : "📤 Send Now"}</FBtn>
+    </>}>
     <div className="ap-modals-248">
       <div className="ap-modals-249">{quotId} – Ready to send</div>
     </div>
@@ -3785,10 +3767,6 @@ const SendQuotationModal = ({
       <FTextarea rows={3} value={form.message} onChange={set("message")} />
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-250">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Sending…" : "📤 Send Now"}</FBtn>
-    </div>
   </Modal>;
 };
 const ConvertToJobModal = ({
@@ -3839,7 +3817,10 @@ const ConvertToJobModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="✓ Convert Quotation to Job" width={460}>
+  return <Modal open={open} onClose={onClose} title="✓ Convert Quotation to Job" width={460} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn color="#16A34A" onClick={handleSave} disabled={saving}>{saving ? "Creating…" : "Create Job Order"}</FBtn>
+      </>}>
       <div className="ap-modals-251">
         <div className="ap-modals-252">{quotId} – Approved quotation</div>
       </div>
@@ -3859,10 +3840,6 @@ const ConvertToJobModal = ({
         <DynamicSelect options={jobTypeList} value={form.jobType} onChange={v => setForm(f => ({ ...f, jobType: v }))} onAddOption={v => onAddJobType?.(v)} addLabel="Job Type" addPlaceholder="e.g. Deep Cleaning, Gas Refill…" />
       </FRow>
       {error && <div className="ap-modals-7">{error}</div>}
-      <div className="ap-modals-253">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn color="#16A34A" onClick={handleSave} disabled={saving}>{saving ? "Creating…" : "Create Job Order"}</FBtn>
-      </div>
     </Modal>;
 };
  
@@ -3900,7 +3877,10 @@ const ReportModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title={`📊 Generate: ${title}`} width={460}>
+  return <Modal open={open} onClose={onClose} title={`📊 Generate: ${title}`} width={460} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleGenerate} disabled={saving}>{saving ? "Generating…" : `⬇ Download ${format}`}</FBtn>
+    </>}>
     <div className="ap-modals-254">
       <FRow label="From Date">
         <FInput type="date" value={form.from} onChange={set("from")} />
@@ -3924,10 +3904,6 @@ const ReportModal = ({
       </FSelect>
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-256">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleGenerate} disabled={saving}>{saving ? "Generating…" : `⬇ Download ${format}`}</FBtn>
-    </div>
   </Modal>;
 };
  
@@ -3967,7 +3943,10 @@ const AddAdminUserModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="👤 Add Admin User" width={440}>
+  return <Modal open={open} onClose={onClose} title="👤 Add Admin User" width={440} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add User"}</FBtn>
+      </>}>
       <FRow label="Full Name *">
         <FInput placeholder="Name" value={form.name} onChange={set("name")} />
       </FRow>
@@ -3981,10 +3960,6 @@ const AddAdminUserModal = ({
         <FInput type="password" placeholder="Set initial password" value={form.password} onChange={set("password")} />
       </FRow>
       {error && <div className="ap-modals-7">{error}</div>}
-      <div className="ap-modals-257">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add User"}</FBtn>
-      </div>
     </Modal>;
 };
 const UseInventoryModal = ({
@@ -4029,7 +4004,10 @@ const UseInventoryModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="📦 Log Inventory Usage" width={440}>
+  return <Modal open={open} onClose={onClose} title="📦 Log Inventory Usage" width={440} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Logging…" : "Log Usage"}</FBtn>
+    </>}>
     <FRow label="Item">
       <FInput value={itemName} disabled />
     </FRow>
@@ -4052,10 +4030,6 @@ const UseInventoryModal = ({
       <FInput placeholder="Optional notes" value={form.notes} onChange={set("notes")} />
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-258">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Logging…" : "Log Usage"}</FBtn>
-    </div>
   </Modal>;
 };
 const LogFuelModal = ({
@@ -4102,7 +4076,10 @@ const LogFuelModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="⛽ Log Fuel Entry" width={440}>
+  return <Modal open={open} onClose={onClose} title="⛽ Log Fuel Entry" width={440} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Logging…" : "Log Entry"}</FBtn>
+    </>}>
     <FRow label="Vehicle">
       <FInput value={assetName} disabled />
     </FRow>
@@ -4124,10 +4101,6 @@ const LogFuelModal = ({
       <FInput placeholder="HP / BPCL / IOC – Location" value={form.station} onChange={set("station")} />
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-260">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Logging…" : "Log Entry"}</FBtn>
-    </div>
   </Modal>;
 };
 const ScheduleAMCModal = ({
@@ -4169,7 +4142,10 @@ const ScheduleAMCModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="📅 Schedule AMC Visit" width={440}>
+  return <Modal open={open} onClose={onClose} title="📅 Schedule AMC Visit" width={440} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Scheduling…" : "Schedule Visit"}</FBtn>
+    </>}>
     <div className="ap-modals-261">{contractId}</div>
     <FRow label="Visit Date *">
       <FInput type="date" value={form.visitDate} onChange={set("visitDate")} />
@@ -4187,10 +4163,6 @@ const ScheduleAMCModal = ({
       <FTextarea placeholder="Visit notes or special instructions…" rows={2} value={form.notes} onChange={set("notes")} />
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-262">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Scheduling…" : "Schedule Visit"}</FBtn>
-    </div>
   </Modal>;
 };
 const RequestReviewModal = ({
@@ -4235,7 +4207,10 @@ const RequestReviewModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="⭐ Request Customer Review" width={460}>
+  return <Modal open={open} onClose={onClose} title="⭐ Request Customer Review" width={460} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Sending…" : "📤 Send Request"}</FBtn>
+    </>}>
     <FRow label="Customer *">
       <FSelect value={form.customer} onChange={set("customer")}>
         <option value="">Select customer…</option>
@@ -4257,10 +4232,6 @@ const RequestReviewModal = ({
       <FTextarea rows={3} value={form.message} onChange={set("message")} />
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-263">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Sending…" : "📤 Send Request"}</FBtn>
-    </div>
   </Modal>;
 };
 const AssignComplaintModal = ({
@@ -4298,7 +4269,12 @@ const AssignComplaintModal = ({
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="📋 Assign Complaint" width={440}>
+    <Modal open={open} onClose={onClose} title="📋 Assign Complaint" width={440} footer={<>
+      <FBtn secondary onClick={onClose}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving || !technicianId}>
+        {saving ? 'Assigning…' : 'Assign'}
+      </FBtn>
+    </>}>
       <div className="ap-modals-264">{compId}</div>
       <FRow label="Assign To">
         <FSelect value={technicianId} onChange={(e) => setTechnicianId(e.target.value)}>
@@ -4326,12 +4302,6 @@ const AssignComplaintModal = ({
           onChange={(e) => setNotes(e.target.value)}
         />
       </FRow>
-      <div className="ap-modals-265">
-        <FBtn secondary onClick={onClose}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving || !technicianId}>
-          {saving ? 'Assigning…' : 'Assign'}
-        </FBtn>
-      </div>
     </Modal>
   );
 };
@@ -4363,7 +4333,12 @@ const ResolveComplaintModal = ({
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="✅ Resolve Complaint" width={460}>
+    <Modal open={open} onClose={onClose} title="✅ Resolve Complaint" width={460} footer={<>
+      <FBtn secondary onClick={onClose}>Cancel</FBtn>
+      <FBtn color="#16A34A" onClick={handleSave} disabled={saving || !resolution.trim()}>
+        {saving ? 'Saving…' : 'Mark Resolved'}
+      </FBtn>
+    </>}>
       <div className="ap-modals-266">{compId}</div>
       <FRow label="Resolution Action Taken">
         <FTextarea
@@ -4389,12 +4364,6 @@ const ResolveComplaintModal = ({
           <option>Refund issued</option>
         </FSelect>
       </FRow>
-      <div className="ap-modals-267">
-        <FBtn secondary onClick={onClose}>Cancel</FBtn>
-        <FBtn color="#16A34A" onClick={handleSave} disabled={saving || !resolution.trim()}>
-          {saving ? 'Saving…' : 'Mark Resolved'}
-        </FBtn>
-      </div>
     </Modal>
   );
 };
@@ -4426,7 +4395,10 @@ const SetReminderModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="⏰ Set Follow-up Reminder" width={420}>
+  return <Modal open={open} onClose={onClose} title="⏰ Set Follow-up Reminder" width={420} footer={<>
+      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Set Reminder"}</FBtn>
+    </>}>
     <FRow label="Date *">
       <FInput type="date" value={form.date} onChange={set("date")} />
     </FRow>
@@ -4442,10 +4414,6 @@ const SetReminderModal = ({
       <FTextarea placeholder="Reminder note…" rows={2} value={form.note} onChange={set("note")} />
     </FRow>
     {error && <div className="ap-modals-7">{error}</div>}
-    <div className="ap-modals-268">
-      <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-      <FBtn onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Set Reminder"}</FBtn>
-    </div>
   </Modal>;
 };
 
@@ -4829,7 +4797,13 @@ const CustomReportModal = ({
       win.print();
     }
   };
-  return <Modal open={open} onClose={onClose} title="📊 Build Custom Report" width={520}>
+  return <Modal open={open} onClose={onClose} title="📊 Build Custom Report" width={520} footer={<>
+        <FBtn secondary onClick={onClose}>Cancel</FBtn>
+        <FBtn secondary onClick={generate} disabled={loading}>
+          {loading ? '⏳ Loading…' : '▶ Generate'}
+        </FBtn>
+        {chartData && !loading && <FBtn onClick={doExport}>⬇ Export {exportFmt}</FBtn>}
+      </>}>
 
       <FRow label="Report Name">
         <FInput value={name} onChange={e => setName(e.target.value)} placeholder="My Custom Report" />
@@ -4884,15 +4858,6 @@ const CustomReportModal = ({
     </div>
     <SVGChart data={chartData} type={chartType} />
   </div>}
-
-      {/* Actions */}
-      <div className="ap-modals-283">
-        <FBtn secondary onClick={onClose}>Cancel</FBtn>
-        <FBtn secondary onClick={generate} disabled={loading}>
-          {loading ? '⏳ Loading…' : '▶ Generate'}
-        </FBtn>
-        {chartData && !loading && <FBtn onClick={doExport}>⬇ Export {exportFmt}</FBtn>}
-      </div>
     </Modal>;
 };
 
@@ -4959,7 +4924,10 @@ const NewSOModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="🛍️ New Customer Order" width={680}>
+  return <Modal open={open} onClose={onClose} title="🛍️ New Customer Order" width={680} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Creating…" : "Create Order"}</FBtn>
+      </>}>
       <SectionHead title="Customer Info" />
       <div className="ap-modals-284">
         <FRow label="Customer *">
@@ -5036,10 +5004,6 @@ const NewSOModal = ({
       </FRow>
  
       {error && <div className="ap-modals-60">{error}</div>}
-      <div className="ap-modals-307">
-        <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
-        <FBtn onClick={handleSave} disabled={saving}>{saving ? "Creating…" : "Create Order"}</FBtn>
-      </div>
       {showAddCategory && <AddOptionModal label="Item Category" placeholder="e.g. Insulation, Sensors…" onClose={() => setShowAddCategory(false)} onSave={v => onAddItemCategory?.(v)} />}
     </Modal>;
 };
@@ -5073,7 +5037,14 @@ const StatusUpdateModal = ({
       setSaving(false);
     }
   };
-  return <Modal open={open} onClose={onClose} title="🔄 Update Ticket Status" width={420}>
+  return <Modal open={open} onClose={onClose} title="🔄 Update Ticket Status" width={420} footer={<>
+        <FBtn secondary onClick={onClose} disabled={saving}>
+          Cancel
+        </FBtn>
+        <FBtn onClick={handleConfirm} disabled={saving}>
+          {saving ? "Updating…" : "Confirm"}
+        </FBtn>
+      </>}>
       <div className="ap-modals-308">
         Mark <strong className="ap-modals-309">{ticket.displayId}</strong> — “{ticket.subject}” as:
       </div>
@@ -5088,15 +5059,6 @@ const StatusUpdateModal = ({
       {error && <div className="ap-modals-311">
           {error}
         </div>}
-
-      <div className="ap-modals-312">
-        <FBtn secondary onClick={onClose} disabled={saving}>
-          Cancel
-        </FBtn>
-        <FBtn onClick={handleConfirm} disabled={saving}>
-          {saving ? "Updating…" : "Confirm"}
-        </FBtn>
-      </div>
     </Modal>;
 };
 export { NewJobModal, NewQuotationModal, NewCustomerModal, NewAMCModal, NewInvoiceModal, AddTechnicianModal, AddExpenseModal, AddInventoryModal, NewLeadModal, NewPOModal, NewSupplierModal, NewAssetModal, RegisterWarrantyModal, NewNoticeModal, MarkAttendanceModal, AdvanceModal, SendQuotationModal, ConvertToJobModal, ReportModal, AddAdminUserModal, UseInventoryModal, LogFuelModal, ScheduleAMCModal, RequestReviewModal, AssignComplaintModal, ResolveComplaintModal, SetReminderModal, CustomReportModal, NewTicketModal, NewSOModal, StatusUpdateModal };

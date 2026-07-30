@@ -7,11 +7,19 @@ import { COLORS } from '../../constants/tokens';
 // Rendered via a portal straight to document.body so the fixed-position overlay
 // always covers the full viewport, even when this component is mounted deep
 // inside a scrollable ancestor (e.g. .page-content) which would otherwise clip it.
+//
+// `footer` (optional): action buttons (Cancel/Save etc.) rendered in a
+// `.modal-footer` that sits OUTSIDE the scrollable `.modal-body` — sticky to
+// the bottom of the box, same treatment as `.modal-header` at the top — so
+// they stay reachable on long forms without scrolling all the way down.
+// Existing callers that don't pass `footer` keep rendering their own
+// buttons inline at the end of `children`, unchanged.
 const Modal = ({
   open,
   onClose,
   title,
   children,
+  footer,
   width = 520
 }) => {
   useEffect(() => {
@@ -32,6 +40,7 @@ const Modal = ({
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">{children}</div>
+        {footer && <div className="modal-footer">{footer}</div>}
       </div>
     </div>, document.body);
 };

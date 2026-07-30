@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { LeaveType } from './optionSetModels.js';
 
 // ── Attendance ────────────────────────────────────────────────────────────────
 const attendanceSchema = new mongoose.Schema({
@@ -18,18 +19,40 @@ export const Attendance = mongoose.model('Attendance', attendanceSchema);
 
 // ── Leave ─────────────────────────────────────────────────────────────────────
 const leaveSchema = new mongoose.Schema({
-  leaveId:    { type: String, unique: true },
-  technician: { type: mongoose.Schema.Types.ObjectId, ref: 'Technician', required: true },
-  techName:   { type: String },
-  type:       { type: String, enum: ['sick', 'casual', 'earned', 'unpaid', 'emergency'], default: 'casual' },
-  startDate:  { type: Date, required: true },
-  endDate:    { type: Date, required: true },
-  days:       { type: Number, default: 1 },
-  reason:     { type: String },
-  status:     { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  notes:      { type: String },
+  leaveId:        { type: String, unique: true },
+  technician:     { type: mongoose.Schema.Types.ObjectId, ref: 'Technician', required: true },
+  technicianName: { type: String, default: '' },
+  techName:       { type: String, default: '' }, // legacy field support
+  type: {
+    type: String,
+    default: 'casual',
+    validate: {
+      validator: async (value) =>
+        !!(await LeaveType.exists({ name: value, isActive: true, isDeleted: false })),
+      message: (props) => `"${props.value}" is not a valid Leave Type`,
+    },
+  },
+  from:         { type: Date, required: true },
+  to:           { type: Date, required: true },
+  startDate:    { type: Date }, // legacy alias, mirrored from `from` below
+  endDate:      { type: Date }, // legacy alias, mirrored from `to` below
+  days:         { type: Number, default: 1 },
+  reason:       { type: String },
+  status:       { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  approvedBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  approvalNote: { type: String, default: '' },
+  approvedAt:   { type: Date },
+  rejectedAt:   { type: Date },
+  notes:        { type: String },
 }, { timestamps: true });
+
+// Keep legacy startDate/endDate mirrors in sync — anything still reading
+// those (older frontend code, reports) keeps working without a rewrite.
+leaveSchema.pre('save', function (next) {
+  if (this.from) this.startDate = this.from;
+  if (this.to) this.endDate = this.to;
+  next();
+});
 
 leaveSchema.pre('save', async function (next) {
   if (!this.leaveId) {

@@ -23,6 +23,7 @@ export const NAV=[
   {id:"invoice",       label:"Invoices",            icon:"💰"},
   {id:"invoices",       label:"Invoices",            icon:"💰", sub: true},
   {id:"create_invoice",       label:"Create Invoices", icon:"💰", sub: true},
+  {id:"credited_invoice",       label:"Credited Invoices", icon:"💰", sub: true},
   {id:"payments",       label:"Payments",            icon:"💳"},
   {id:"finance",         label:"Finance Overview",    icon:"📊"},
   {id:"pricelist",      label:"Price List",          icon:"🏷"},
@@ -96,5 +97,5 @@ export const TITLES = {
   tickets:"Support Tickets",        crm_analytics:"CRM Analytics",
   recruitment:"Recruitment",        dispatch:"Dispatch Board",
   notifications:"Notifications",    client_portal:"Client Portal", logout:"Logout", deleted_item:"Recently Deleted",
-  part_requests:"Parts Requests", contract_settings:"Settings", finance:"Finance Overview" 
+  part_requests:"Parts Requests", contract_settings:"Settings", finance:"Finance Overview", credited_invoice:"Credited Invoices", 
 };

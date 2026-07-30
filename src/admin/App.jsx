@@ -85,6 +85,7 @@ import PaymentsPage      from './pages/finance/PaymentsPage';
 import PriceListPage     from './pages/finance/PriceListPage';
 import CreateInvoicePage from './pages/finance/CreateInvoicePage';
 import FinancePage from './pages/finance/FinancePage';
+import CreditNotesPage from './pages/finance/CreditNotesPage';
 
 // ── Pages — HR ────────────────────────────────────────────────────────────────
 import AttendancePage       from './pages/hr/AttendancePage';
@@ -180,6 +181,7 @@ const ROUTE_MAP = [
   { id: 'reports',            component: ReportsPage },
   { id: 'invoices',           component: InvoicesPage },
   { id: 'create_invoice',     component: CreateInvoicePage },
+  { id: 'credited_invoice',     component: CreditNotesPage },
   { id: 'expenses',           component: ExpensesPage },
   { id: 'payments',           component: PaymentsPage },
   { id: 'finance',            component: FinancePage },

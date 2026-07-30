@@ -1,4 +1,4 @@
-import Leave from '../models/leaveModel.js';
+import { Leave } from '../models/hrModels.js';
 
 const calcDays = (from, to) => {
   const diff = Math.ceil((new Date(to) - new Date(from)) / 86400000) + 1;
@@ -32,26 +32,25 @@ export const getLeaves = async (req, res) => {
     // map to shape leavesApi / table expects: { id, tech, type, from, to, days, reason, approvedBy, status }
 
     const data = leaves.map(l => ({
-  id:             l.leaveId || l._id.toString(),
-  _id:            l._id.toString(),
-  // ↓ handle both old (techName) and new (technicianName) schema
-  tech:           l.technicianName || l.techName || l.technician?.name || '?',
-  technicianName: l.technicianName || l.techName || '',
-  type:           l.type,
-  // ↓ handle both old (startDate/endDate) and new (from/to) schema
-  from: (l.from || l.startDate)
-          ? new Date(l.from || l.startDate).toISOString().slice(0, 10)
-          : '',
-  to:   (l.to   || l.endDate)
-          ? new Date(l.to   || l.endDate).toISOString().slice(0, 10)
-          : '',
-  days:        l.days || 0,
-  reason:      l.reason || '',
-  approvedBy:  l.approvedBy || '',
-  approvalNote: l.approvalNote || '',
-  status:      l.status,
-  createdAt:   l.createdAt,
-}));
+      id:             l.leaveId || l._id.toString(),
+      _id:            l._id.toString(),
+      // ↓ handle both old (techName) and new (technicianName) schema
+      tech:           l.technicianName || l.techName || l.technician?.name || '?',
+      technicianName: l.technicianName || l.techName || '',
+      type:           l.type,
+      from: (l.from || l.startDate)
+              ? new Date(l.from || l.startDate).toISOString().slice(0, 10)
+              : '',
+      to:   (l.to   || l.endDate)
+              ? new Date(l.to   || l.endDate).toISOString().slice(0, 10)
+              : '',
+      days:        l.days || 0,
+      reason:      l.reason || '',
+      approvedBy:  l.approvedBy || '',
+      approvalNote: l.approvalNote || '',
+      status:      l.status,
+      createdAt:   l.createdAt,
+    }));
 
     res.json({ success: true, data, pagination: { total, page: +page, limit: +limit, totalPages: Math.ceil(total / +limit) } });
   } catch (e) { err(res, e.message); }
@@ -89,7 +88,7 @@ export const getLeaveById = async (req, res) => {
 export const createLeave = async (req, res) => {
   try {
     const { technician, technicianName, techName, type, from, to, startDate, endDate, reason } = req.body;
-    
+
     const resolvedName = technicianName || techName || '';
     const resolvedFrom = from || startDate;
     const resolvedTo   = to   || endDate;
@@ -100,14 +99,22 @@ export const createLeave = async (req, res) => {
     const days = calcDays(resolvedFrom, resolvedTo);
     if (days <= 0) return err(res, 'End date must be after start date', 400);
 
-    const overlap = await Leave.findOne({
-      $or: [{ technicianName: resolvedName }, { techName: resolvedName }],
+    // Overlap check — scoped to the same technician (by id when we have one,
+    // otherwise by name), and to date ranges that actually overlap. Previously
+    // this object had two `$or` keys in one literal, so the second silently
+    // clobbered the first and the technician-scoping clause was dropped —
+    // meaning it checked every technician's leave, not just this one's.
+    const overlapQuery = {
       status: { $ne: 'rejected' },
-      $or: [
-        { from: { $lte: new Date(resolvedTo) }, to: { $gte: new Date(resolvedFrom) } },
-        { startDate: { $lte: new Date(resolvedTo) }, endDate: { $gte: new Date(resolvedFrom) } },
-      ],
-    });
+      from: { $lte: new Date(resolvedTo) },
+      to:   { $gte: new Date(resolvedFrom) },
+    };
+    if (technician) {
+      overlapQuery.technician = technician;
+    } else {
+      overlapQuery.$or = [{ technicianName: resolvedName }, { techName: resolvedName }];
+    }
+    const overlap = await Leave.findOne(overlapQuery);
     if (overlap) return err(res, 'Overlapping leave already exists', 400);
 
     const leave = await Leave.create({
@@ -117,8 +124,6 @@ export const createLeave = async (req, res) => {
       type,
       from:      resolvedFrom,
       to:        resolvedTo,
-      startDate: resolvedFrom,        // ← save to both
-      endDate:   resolvedTo,          // ← save to both
       days,
       reason,
     });
@@ -127,8 +132,8 @@ export const createLeave = async (req, res) => {
       id:   leave.leaveId || leave._id.toString(),
       _id:  leave._id.toString(),
       tech: leave.technicianName || leave.techName,
-      from: new Date(leave.from || leave.startDate).toISOString().slice(0, 10),
-      to:   new Date(leave.to   || leave.endDate).toISOString().slice(0, 10),
+      from: new Date(leave.from).toISOString().slice(0, 10),
+      to:   new Date(leave.to).toISOString().slice(0, 10),
       ...leave.toObject(),
     }, 201);
   } catch (e) { err(res, e.message); }
@@ -160,18 +165,24 @@ export const deleteLeave = async (req, res) => {
 // PATCH /api/leaves/:id/approve
 export const approveLeave = async (req, res) => {
   try {
-    const { approvedBy = 'Admin User', note = '' } = req.body;
+    const { note = '' } = req.body;
     const leave = await Leave.findById(req.params.id);
     if (!leave)               return err(res, 'Leave not found', 404);
     if (leave.status !== 'pending') return err(res, 'Leave is not pending', 400);
 
-    leave.status      = 'approved';
-    leave.approvedBy  = approvedBy;
+    // Previously this defaulted `approvedBy` to the string 'Admin User' when
+    // the frontend didn't send one — but the schema types approvedBy as an
+    // ObjectId ref to User, so that string caused a CastError on save. Now
+    // that this route runs behind `protect` (see server.js), req.user is
+    // always populated here — use the actual logged-in admin's id.
+    leave.status       = 'approved';
+    leave.approvedBy   = req.user._id;
     leave.approvalNote = note;
-    leave.approvedAt  = new Date();
+    leave.approvedAt   = new Date();
     await leave.save();
 
-    ok(res, { id: leave._id.toString(), tech: leave.technicianName, ...leave.toObject() });
+    const populated = await leave.populate('approvedBy', 'name email');
+    ok(res, { id: leave._id.toString(), tech: leave.technicianName, ...populated.toObject() });
   } catch (e) { err(res, e.message); }
 };
 

@@ -27,6 +27,7 @@ export const PATH_FOR = {
   logout:         '/logout',
   invoices:       '/invoices',
   create_invoice: '/invoices/create-invoice',
+  credited_invoice: '/invoices/credited-invoices',
   expenses:       '/expenses',
   payments:       '/payments',
   pricelist:      '/pricelist',
