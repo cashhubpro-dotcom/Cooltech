@@ -346,8 +346,13 @@ const customerTypeSchema = new mongoose.Schema({
 
 customerTypeSchema.pre('save', async function (next) {
   if (!this.typeId) {
-    const count = await mongoose.model('CustomerType').countDocuments();
-    this.typeId = `CT-${String(count + 1).padStart(3, '0')}`;
+    const last = await mongoose.model('CustomerType')
+      .findOne({ typeId: { $regex: /^CT-\d+$/ } })
+      .sort({ typeId: -1 })
+      .collation({ locale: 'en_US', numericOrdering: true });
+
+    const lastNum = last ? parseInt(last.typeId.split('-')[1], 10) : 0;
+    this.typeId = `CT-${String(lastNum + 1).padStart(3, '0')}`;
   }
   next();
 });

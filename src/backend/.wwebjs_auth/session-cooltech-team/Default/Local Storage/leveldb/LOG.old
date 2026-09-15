@@ -1,2 +1,3 @@
-2026/09/15-17:16:59.215 2408 Creating DB D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\Local Storage\leveldb since it was missing.
-2026/09/15-17:17:01.065 2408 Reusing MANIFEST D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\Local Storage\leveldb/MANIFEST-000001
+2026/09/15-19:10:40.493 27dc Reusing MANIFEST D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\Local Storage\leveldb/MANIFEST-000001
+2026/09/15-19:10:40.565 27dc Recovering log #3
+2026/09/15-19:10:40.584 27dc Reusing old log D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\Local Storage\leveldb/000003.log 
