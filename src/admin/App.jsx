@@ -238,7 +238,7 @@ const SPECIAL_PROPS = new Set([
   'dashboard', 'jobs', 'clock', 'lead_sources', 'customer_type',
   'sm_dashboard', 'notifications', 'profile',
   // ↓ advance_incentive needs prefillAdvance injected
-  'advance_incentive','amc'
+  'advance_incentive','amc', 'customers'
   // NOTE: contract_settings deliberately NOT here — ContractSettingsPage
   // takes no props at all; it calls useContractTypes()/usePlans() itself,
   // which share state with every other caller via useOptionSet's shared
@@ -580,6 +580,8 @@ function AppShell() {
 }
       case 'customer_type':
         return <Page types={customerTypes} onAdd={addCustomerType} onDelete={deleteCustomerType} onToggle={toggleCustomerType} />;
+      case 'customers':
+  return <Page openModal={openModal} customerTypes={customerTypes} />;
       case 'lead_sources':
         return <Page sources={leadSources} onAdd={addLeadSource} onDelete={deleteLeadSource} onToggle={toggleLeadSource} />;
       case 'sm_dashboard':
@@ -688,7 +690,14 @@ function AppShell() {
   onSave={async (data) => { await saveWithFallback(quotationsApi.create, data, 'Quotation created!', showToast, closeModal); window.dispatchEvent(new Event('focus')); }}
   jobTypes={activeJobTypes} onAddJobType={addJobType}
 />
-      <NewCustomerModal      open={modal?.type === 'new_customer'}      onClose={closeModal} onSave={async (data) => { await saveWithFallback(customersApi.create, data, 'Customer added!', showToast, closeModal); window.dispatchEvent(new Event('focus')); }} />
+      {/* <NewCustomerModal      open={modal?.type === 'new_customer'}      onClose={closeModal} onSave={async (data) => { await saveWithFallback(customersApi.create, data, 'Customer added!', showToast, closeModal); window.dispatchEvent(new Event('focus')); }} /> */}
+      <NewCustomerModal
+  open={modal?.type === 'new_customer'}
+  onClose={closeModal}
+  onSave={async (data) => { await saveWithFallback(customersApi.create, data, 'Customer added!', showToast, closeModal); window.dispatchEvent(new Event('focus')); }}
+  activeTypes={customerTypes.filter(t => t.active).map(t => t.name)}
+  onAddType={addCustomerType}
+/>
       <NewAMCModal
   open={modal?.type === 'new_amc'}
   onClose={closeModal}

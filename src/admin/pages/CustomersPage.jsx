@@ -118,7 +118,8 @@ const CUSTOMER_COLUMNS = [{
 // FIX 3: accept `onDelete` prop (or `addToDeleted`) from parent for recently-deleted tracking
 const CustomersPage = ({
   openModal,
-  addToDeleted
+  addToDeleted,
+  customerTypes = []
 }) => {
   const [open, setOpen] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -135,6 +136,10 @@ const CustomersPage = ({
     units: c.units ?? 1,
     lastService: c.lastService ?fmtDateDMY(new Date(c.lastService)) : '—'
   });
+
+  const typeNames = customerTypes.length > 0
+  ? customerTypes.filter(t => t.active).map(t => t.name)
+  : ["Residential", "Commercial"];
 
   // Load all customers on mount
   useEffect(() => {
@@ -248,7 +253,7 @@ const CustomersPage = ({
   }, {
     key: "type",
     type: "select",
-    options: ["Residential", "Commercial"]
+    options: typeNames
   }, {
     key: "phone",
     type: "text"
@@ -300,12 +305,16 @@ const CustomersPage = ({
                 <Avatar name={editMode ? editData.name : cust.name} size={60} color={COLORS.brand} />
 
                 {editMode ? <input value={editData.name ?? ""} onChange={set("name")} className="ap-customers-page-4" /> : <div className="ap-customers-page-5">{cust.name}</div>}
-
+{/* 
                 {editMode ? <select value={editData.type ?? ""} onChange={set("type")} className="ap-customers-page-6">
                     <option>Residential</option>
                     <option>Commercial</option>
                     <option>Industrial</option>
-                  </select> : <div className="ap-customers-page-7">{cust.type}</div>}
+                  </select> : <div className="ap-customers-page-7">{cust.type}</div>} */}
+
+                  {editMode ? <select value={editData.type ?? ""} onChange={set("type")} className="ap-customers-page-6">
+    {typeNames.map(t => <option key={t}>{t}</option>)}
+  </select> : <div className="ap-customers-page-7">{cust.type}</div>}
 
                 <div className="ap-customers-page-8">
                   {editMode ? <label className="ap-customers-page-9">
@@ -406,7 +415,8 @@ const CustomersPage = ({
         {/* Search + filters + export */}
         <div className="ap-customers-page-40">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by name, phone, email…" />
-          <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={["Residential", "Commercial"]} allLabel="All Types" />
+          {/* <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={["Residential", "Commercial"]} allLabel="All Types" /> */}
+          <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={typeNames} allLabel="All Types" />
           <FilterSelect value={activeFilters.amc} onChange={val => setFilter("amc", val)} options={["true", "false"]} allLabel="All AMC" renderOption={val => val === "true" ? "AMC Active" : "No AMC"} />
           <div className="ap-customers-page-41">
             <ExportDropdown {...exportProps} />

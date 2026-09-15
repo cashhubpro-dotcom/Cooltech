@@ -1,0 +1,5 @@
+2026/09/15-17:17:06.203 3e14 Creating DB D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb since it was missing.
+2026/09/15-17:17:06.798 3e14 Reusing MANIFEST D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/09/15-18:31:22.375 225c Level-0 table #5: started
+2026/09/15-18:31:22.666 225c Level-0 table #5: 1089751 bytes OK
+2026/09/15-18:31:22.743 225c Delete type=0 #3
