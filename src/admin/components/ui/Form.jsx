@@ -9,22 +9,38 @@
   );
 
   // ─── FInput ───────────────────────────────────────────────────────────────────
-  export const FInput = ({ placeholder, defaultValue, type = 'text', value, onChange, ...rest }) => {
-    // Controlled vs uncontrolled — never pass both value and defaultValue
-    const props = value !== undefined
-      ? { value, onChange }
-      : { defaultValue };
+  // export const FInput = ({ placeholder, defaultValue, type = 'text', value, onChange, ...rest }) => {
+  //   // Controlled vs uncontrolled — never pass both value and defaultValue
+  //   const props = value !== undefined
+  //     ? { value, onChange }
+  //     : { defaultValue };
 
-    return (
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="form-input"
-        {...props}
-        {...rest}
-      />
-    );
-  };
+  //   return (
+  //     <input
+  //       type={type}
+  //       placeholder={placeholder}
+  //       className="form-input"
+  //       {...props}
+  //       {...rest}
+  //     />
+  //   );
+  // };
+
+  export const FInput = ({ placeholder, defaultValue, type = 'text', value, onChange, className, ...rest }) => {
+  const props = value !== undefined
+    ? { value, onChange }
+    : { defaultValue };
+
+  return (
+    <input
+      type={type}
+      placeholder={placeholder}
+      className={`form-input ${className || ''}`.trim()}
+      {...props}
+      {...rest}
+    />
+  );
+};
 
   // ─── FSelect ──────────────────────────────────────────────────────────────────
   export const FSelect = ({ children, defaultValue, value, onChange, ...rest }) => {

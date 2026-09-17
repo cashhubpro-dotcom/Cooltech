@@ -119,23 +119,30 @@ export const SevBadge = ({
 };
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
-export const Avatar = ({
-  name,
-  size = 36,
-  color = COLORS.brand
-}) => {
+export const Avatar = ({ name, size = 36, color = COLORS.brand }) => {
   const initials = (name || '?').split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase();
-  return <div className="avatar ap-badges-3" style={{
-    width: size,
-    height: size,
-    borderRadius: size / 3,
-    background: `${color}18`,
-    border: `1.5px solid ${color}30`,
-    fontSize: size * 0.33,
-    color
-  }}>
+  return (
+    <div
+      className="avatar ap-badges-3"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 3,
+        background: `color-mix(in srgb, ${color} 12%, transparent)`,
+        border: `1.5px solid color-mix(in srgb, ${color} 30%, transparent)`,
+        fontSize: size * 0.33,
+        color,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 700,
+        lineHeight: 1,
+        flexShrink: 0
+      }}
+    >
       {initials}
-    </div>;
+    </div>
+  );
 };
 
 // ─── Divider ──────────────────────────────────────────────────────────────────

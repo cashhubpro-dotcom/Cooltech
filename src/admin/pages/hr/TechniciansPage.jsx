@@ -7,7 +7,7 @@ import { Thead } from '../../components/ui/Cards';
 import ActionDropdown from '../../components/ui/ActionDropdown';
 import EditableDetailView from '../../components/ui/EditableDetailView';
 import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
-import PDFPreview from '../../components/layout/PDFPreview';
+// import PDFPreview from '../../components/layout/PDFPreview';
 import { useTableSearch } from '../../hooks/useTableSearch';
 import TableSearchBar from '../../components/ui/TableSearchBar';
 import FilterSelect from '../../components/ui/FilterSelect';
@@ -217,10 +217,11 @@ const TechnicianDetail = ({
   tech,
   onBack,
   initialEditMode = false,
-  openModal,
+  // openModal,
   jobs = []
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [docFiles, setDocFiles] = useState({ aadhaar: null, pan: null, licence: null, cert: null });
   const firstName = (tech.name ?? '').split(' ')[0];
   const techJobs = jobs.filter(j => (j.tech ?? '').toLowerCase().includes(firstName.toLowerCase()));
   const tabs = [{
@@ -236,8 +237,9 @@ const TechnicianDetail = ({
     key: 'bank',
     label: '🏦 Bank'
   }];
+  
   return <EditableDetailView id={tech.id} breadcrumb="Technicians" onBack={onBack} fields={TECH_FIELDS} data={tech} initialEditMode={initialEditMode} onSave={updated => {
-    console.log('Saved technician:', updated);
+    console.log('Saved technician:', { ...updated, documents: docFiles } );
   }} onDelete={() => {
     console.log('Deleted:', tech.id);
     onBack();
@@ -490,7 +492,7 @@ const TechnicianDetail = ({
                 mono: true,
                 placeholder: 'ABCDE1234F'
               })}
-                  <DS title="Document Uploads" icon="📎" />
+                  {/* <DS title="Document Uploads" icon="📎" />
                   <div className="ap-technicians-page-57">
                     {[{
                   label: 'Aadhaar Card',
@@ -535,7 +537,45 @@ const TechnicianDetail = ({
                           <div className="ap-technicians-page-61">{editMode ? 'Click to upload' : 'Not uploaded'}</div>
                         </div>
                       </div>)}
-                  </div>
+                  </div> */}
+
+                    <DS title="Document Uploads" icon="📎" />
+<div className="ap-technicians-page-57">
+  {[
+    { key: 'aadhaar', label: 'Aadhaar Card', icon: '🪪', color: '#1D4ED8', bg: '#EFF6FF', border: '#BFDBFE' },
+    { key: 'pan', label: 'PAN Card', icon: '💳', color: '#15803D', bg: '#F0FDF4', border: '#BBF7D0' },
+    { key: 'licence', label: 'Driving Licence', icon: '🏍️', color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
+    { key: 'cert', label: 'HVAC Certificate', icon: '📜', color: '#B45309', bg: '#FFFBEB', border: '#FDE68A' }
+  ].map(({ key, label, icon, color, bg, border }) => (
+    <div
+      key={key}
+      onClick={() => editMode && document.getElementById(`tech-doc-${key}`)?.click()}
+      style={{ background: bg, border: `1.5px dashed ${border}`, cursor: editMode ? "pointer" : "default" }}
+      className="ap-technicians-page-58"
+    >
+      {editMode && (
+        <input
+          id={`tech-doc-${key}`}
+          type="file"
+          accept="image/*,application/pdf"
+          style={{ display: "none" }}
+          onChange={e => {
+            const f = e.target.files?.[0] || null;
+            if (f) setDocFiles(d => ({ ...d, [key]: f }));
+          }}
+        />
+      )}
+      <span className="ap-technicians-page-59">{docFiles[key] ? "✅" : icon}</span>
+      <div>
+        <div style={{ color }} className="ap-technicians-page-60">{label}</div>
+        <div className="ap-technicians-page-61">
+          {docFiles[key] ? docFiles[key].name : editMode ? 'Click to upload' : 'Not uploaded'}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
                 </>}
 
                 {activeTab === 'bank' && <>

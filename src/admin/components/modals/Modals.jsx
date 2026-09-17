@@ -1800,40 +1800,69 @@ const SectionHeads = ({
   </div>;
 
 // ─── FileUploadField ──────────────────────────────────────────────────────────
+// const FileUploadField = ({
+//   label,
+//   accept = "image/*,application/pdf",
+//   hint,
+//   icon = "📎",
+//   onFile
+// }) => {
+//   const [fileName, setFileName] = useState(null);
+//   const inputRef = useRef();
+//   return <div>
+//       <div style={{
+//       border: `2px dashed ${fileName ? COLORS.brand : COLORS.border}`,
+//       background: fileName ? "var(--xea580c06)" : "var(--bg)"
+//     }} onClick={() => inputRef.current?.click()} onDragOver={e => e.preventDefault()} onDrop={e => {
+//       e.preventDefault();
+//       const f = e.dataTransfer.files[0];
+//       if (f) setFileName(f.name);
+//     }} className="ap-modals-102">
+//         <input ref={inputRef} type="file" accept={accept}  onChange={e => { if (e.target.files[0]) { setFileName(e.target.files[0].name); onFile?.(e.target.files[0]); } }} className="ap-modals-103" />
+//         <div className="ap-modals-104">
+//           {fileName ? "✅" : icon}
+//         </div>
+//         {fileName ? <div className="ap-modals-105">
+//             {fileName}
+//           </div> : <>
+//             <div className="ap-modals-106">
+//               Click or drag to upload {label}
+//             </div>
+//             <div className="ap-modals-107">
+//               {hint || "JPG, PNG or PDF · Max 5 MB"}
+//             </div>
+//           </>}
+//       </div>
+//     </div>;
+// };
+
 const FileUploadField = ({
-  label,
-  accept = "image/*,application/pdf",
-  hint,
-  icon = "📎",
-  onFile
+  label, accept = "image/*,application/pdf", hint, icon = "📎",
+  onFile, required = false, color = COLORS.brand, activeBg = "var(--xea580c06)"
 }) => {
   const [fileName, setFileName] = useState(null);
   const inputRef = useRef();
-  return <div>
-      <div style={{
-      border: `2px dashed ${fileName ? COLORS.brand : COLORS.border}`,
-      background: fileName ? "var(--xea580c06)" : "var(--bg)"
-    }} onClick={() => inputRef.current?.click()} onDragOver={e => e.preventDefault()} onDrop={e => {
-      e.preventDefault();
-      const f = e.dataTransfer.files[0];
-      if (f) setFileName(f.name);
-    }} className="ap-modals-102">
-        <input ref={inputRef} type="file" accept={accept}  onChange={e => { if (e.target.files[0]) { setFileName(e.target.files[0].name); onFile?.(e.target.files[0]); } }} className="ap-modals-103" />
-        <div className="ap-modals-104">
-          {fileName ? "✅" : icon}
-        </div>
-        {fileName ? <div className="ap-modals-105">
-            {fileName}
-          </div> : <>
-            <div className="ap-modals-106">
-              Click or drag to upload {label}
-            </div>
-            <div className="ap-modals-107">
-              {hint || "JPG, PNG or PDF · Max 5 MB"}
-            </div>
-          </>}
+  return (
+    <div>
+      <div className="ap-modals-313">
+        {label} {required && <span className="ap-modals-131">*</span>}
       </div>
-    </div>;
+      <div
+        style={{ border: `2px dashed ${fileName ? color : COLORS.border}`, background: fileName ? activeBg : "var(--bg)" }}
+        onClick={() => inputRef.current?.click()}
+        onDragOver={e => e.preventDefault()}
+        onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setFileName(f.name); onFile?.(f); } }}
+        className="ap-modals-102"
+      >
+        <input ref={inputRef} type="file" accept={accept} onChange={e => { if (e.target.files[0]) { setFileName(e.target.files[0].name); onFile?.(e.target.files[0]); } }} className="ap-modals-103" />
+        <div className="ap-modals-104">{fileName ? "✅" : icon}</div>
+        {fileName ? <div className="ap-modals-105" style={{ color }}>{fileName}</div> : <>
+          <div className="ap-modals-106">Click or drag to upload {label}</div>
+          <div className="ap-modals-107">{hint || "JPG, PNG or PDF · Max 5 MB"}</div>
+        </>}
+      </div>
+    </div>
+  );
 };
 
 // ─── PhotoUpload ──────────────────────────────────────────────────────────────
@@ -2227,7 +2256,7 @@ const AddTechnicianModal = ({
           <FInput placeholder="ABCDE1234F" maxLength={10} value={form.panNumber} onChange={set("panNumber")} className="ap-modals-128" />
         </FRow>
       </div>
-      <div className="ap-modals-129">
+      {/* <div className="ap-modals-129">
         <div>
           <div className="ap-modals-130">AADHAAR CARD UPLOAD <span className="ap-modals-131">*</span></div>
           <div onClick={() => document.getElementById("aadhaar-upload")?.click()} className="ap-modals-132">
@@ -2254,7 +2283,16 @@ const AddTechnicianModal = ({
         <FRow label="HVAC Certification Upload (optional)">
           <FileUploadField label="Certification" icon="📜" hint="JPG, PNG or PDF · Max 5 MB" onFile={f => setDocs(d => ({ ...d, cert: f }))} />
         </FRow>
-      </div>
+      </div> */}
+
+      <div className="ap-modals-129">
+  <FileUploadField label="Aadhaar Card" icon="🪪" required color="#3b82f6" activeBg="var(--info-bg)" hint="Front & Back · JPG, PNG or PDF · Max 5 MB" onFile={f => setDocs(d => ({ ...d, aadhaar: f }))} />
+  <FileUploadField label="PAN Card" icon="💳" required color="#10b981" activeBg="var(--success-bg)" hint="Clear scan / photo · JPG, PNG or PDF · Max 5 MB" onFile={f => setDocs(d => ({ ...d, pan: f }))} />
+</div>
+<div className="ap-modals-144">
+  <FileUploadField label="Driving Licence" icon="🏍️" hint="JPG, PNG or PDF · Max 5 MB" onFile={f => setDocs(d => ({ ...d, license: f }))} />
+  <FileUploadField label="Certification" icon="📜" hint="JPG, PNG or PDF · Max 5 MB" onFile={f => setDocs(d => ({ ...d, cert: f }))} />
+</div>
  
       <SectionHeads title="Bank Details (for Salary)" icon="🏦" />
       <div className="ap-modals-145">
