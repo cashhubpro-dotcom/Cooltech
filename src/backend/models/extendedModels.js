@@ -373,12 +373,27 @@ const leadSourceSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 leadSourceSchema.pre('save', async function (next) {
-  if (!this.sourceId) {
-    const count = await mongoose.model('LeadSource').countDocuments();
-    this.sourceId = `LS-${String(count + 1).padStart(3, '0')}`;
-  }
+  if (this.sourceId) return next();
+
+  const Model = mongoose.model('LeadSource');
+  let attempt = 0;
+  let candidate;
+
+  do {
+    const last = await Model.findOne({ sourceId: { $exists: true } })
+      .sort({ createdAt: -1 })
+      .select('sourceId')
+      .lean();
+
+    const lastNum = last?.sourceId ? parseInt(last.sourceId.split('-')[1], 10) : 0;
+    candidate = `LS-${String(lastNum + 1 + attempt).padStart(3, '0')}`;
+    attempt++;
+  } while (await Model.exists({ sourceId: candidate }) && attempt < 10);
+
+  this.sourceId = candidate;
   next();
 });
+
 export const LeadSource = mongoose.model('LeadSource', leadSourceSchema);
 
 // ── ContractType ──────────────────────────────────────────────────────────────

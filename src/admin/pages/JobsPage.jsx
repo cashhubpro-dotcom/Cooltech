@@ -148,13 +148,63 @@ const JOB_COLUMNS = [{
   format: val => JOB_STATUS[val]?.label ?? val
 }];
 
-// ── Cost constants used when computing a job's total. Currently hardcoded
-// here (and duplicated between the 'completed' and 'invoiced' branches below)
-// rather than pulled from your Settings → GST tab. See the explanation
-// alongside this file for why that's worth revisiting.
-const LABOUR_CHARGE = 1200;
-const SERVICE_CHARGE = 500;
+// ── Rates by job type ────────────────────────────────────────────────────
+// Previously LABOUR_CHARGE/SERVICE_CHARGE were flat constants applied to
+// EVERY job regardless of type — an AC gas top-up (Service) was billed the
+// same labour as a full split-unit Installation or an AMC visit, even
+// though your own Quotations feature already prices services individually.
+// This table lets labour/service vary by `job.type` instead.
+//
+// ⚠️ Placeholder numbers below — replace with your real per-type pricing.
+// Whatever type isn't listed here (or a custom JobType you add later)
+// falls back to DEFAULT_RATES, so nothing breaks if this table gets out of
+// sync with your JobType list — it just uses the fallback until updated.
+//
+// Longer-term, move this into a Settings page (admin-editable) rather than
+// code, same idea flagged in the original comment here — a code deploy
+// shouldn't be required every time prices change.
+const JOB_TYPE_RATES = {
+  Service:      { labour: 800,  service: 300 },
+  Repair:       { labour: 1200, service: 500 },
+  Installation: { labour: 2500, service: 500 },
+  AMC:          { labour: 600,  service: 200 },
+};
+const DEFAULT_RATES = { labour: 1200, service: 500 }; // used for any unlisted/unknown job type
 const GST_RATE = 0.18;
+
+const getRatesForType = type => JOB_TYPE_RATES[type] || DEFAULT_RATES;
+
+// A job's actual labour/service is its own override if one was set at
+// Mark Complete time (job.labourCharge / job.serviceCharge — null means
+// "no override"), otherwise the type-based default. Use this instead of
+// getRatesForType() directly anywhere you're computing an EXISTING job's
+// cost — getRatesForType() alone is only for picking the *default* to
+// pre-fill when no override exists yet (e.g. the Mark Complete modal).
+const getEffectiveRates = job => {
+  const fallback = getRatesForType(job?.type);
+  return {
+    labour: job?.labourCharge ?? fallback.labour,
+    service: job?.serviceCharge ?? fallback.service,
+  };
+};
+
+// Single source of truth for "labour + service + parts" — used by
+// handleSave, the 'completed' status branch, the 'invoiced' status branch,
+// AND the Cost Summary display, so the stored `job.amount` snapshot can
+// never silently drift from what the on-screen parts list actually adds up
+// to (that drift was the ₹1,700 vs ₹5,409 mismatch: `amount` was only ever
+// recomputed at Mark Complete / Invoice time, not when parts were edited
+// via a normal Save in between).
+// `parts` items may come in either shape: { rate } (the edit-mode working
+// list) or { cost } (the normalised job's parts) — this accepts both.
+// `rates` is a resolved { labour, service } object — pass the result of
+// getEffectiveRates(job) for an existing job, or an admin's in-progress
+// override values while completing a job.
+const computeSubtotal = (parts = [], rates) => {
+  const { labour, service } = rates || DEFAULT_RATES;
+  const partsTotal = parts.reduce((sum, p) => sum + (Number(p.qty) || 0) * (Number(p.rate ?? p.cost) || 0), 0);
+  return partsTotal + labour + service;
+};
 
 // ─── Normalise a raw job from the API ─────────────────────────────────────────
 // Keeps BOTH the real ObjectId refs (customerId/technicianId) and the
@@ -173,6 +223,8 @@ const normaliseJob = j => ({
   ac: j.ac || '',
   address: j.address || (typeof j.customer === 'object' ? j.customer?.address : '') || '',
   amount: j.amount ?? 0,
+  labourCharge: j.labourCharge ?? null,
+  serviceCharge: j.serviceCharge ?? null,
   parts: (j.parts || []).map(p => ({
     name: p.name,
     qty: p.qty,
@@ -343,6 +395,15 @@ const JobsPage = ({
           qty: Number(p.qty) || 0,
           cost: Number(p.rate) || 0
         })),
+        // Keep job.amount in sync with the parts list on every save — not
+        // just at Mark Complete — so the Cost Summary total and the Jobs
+        // table's Amount column never show a stale pre-edit value. Only
+        // for 'completed' jobs: once a job is 'invoiced', job.amount is
+        // GST-inclusive, and overwriting it here with a GST-less subtotal
+        // would corrupt the already-finalised invoiced total.
+        ...(updated.status === 'completed' ? {
+          amount: computeSubtotal(parts.filter(p => p.name && p.name.trim()), getEffectiveRates(updated))
+        } : {}),
         ...(updated.technicianId ? {
           technician: updated.technicianId,
           techName: updated.tech
@@ -361,7 +422,7 @@ const JobsPage = ({
   // doing a generic field patch — /assign and /complete carry side effects
   // (technician availability, job counts, customer totals) that a generic
   // update would silently skip.
-  const handleStatusUpdate = async (newStatus, note = '', technicianId = null) => {
+  const handleStatusUpdate = async (newStatus, note = '', technicianId = null, overrides = {}) => {
     if (!openJob || statusUpdating) return;
     const job = jobs.find(j => j._id === openJob);
     if (!job) return;
@@ -383,11 +444,22 @@ const JobsPage = ({
         // Same filter as handleSave — drop any unfilled "+ Add Part" rows
         // before they hit the backend's required `name` validation.
         const validParts = parts.filter(p => p.name && p.name.trim());
-        const partsTotal = validParts.reduce((sum, p) => sum + Number(p.qty) * Number(p.rate), 0);
-        const amount = partsTotal + LABOUR_CHARGE + SERVICE_CHARGE;
+        // `overrides` comes from the Mark Complete modal, where the admin
+        // can adjust labour/service for THIS job away from the type-based
+        // default (e.g. a job took longer, or extra work was involved).
+        // Falls back to the type default when left untouched. These are
+        // persisted on the job itself (not just used once here) so every
+        // later view of this job — and the eventual invoice — uses the
+        // same figures instead of silently reverting to the type default.
+        const typeDefault = getRatesForType(job.type);
+        const labourCharge = overrides.labour ?? typeDefault.labour;
+        const serviceCharge = overrides.service ?? typeDefault.service;
+        const amount = computeSubtotal(validParts, { labour: labourCharge, service: serviceCharge });
         res = await jobsApi.complete(job._id, {
           remarks: note,
           amount,
+          labourCharge,
+          serviceCharge,
           parts: validParts.map(p => ({
             name: p.name.trim(),
             qty: Number(p.qty) || 0,
@@ -413,25 +485,42 @@ const JobsPage = ({
       // Auto-create invoice when marked as invoiced
       if (newStatus === 'invoiced') {
         try {
-          const partsTotal = (updated.parts || []).reduce((sum, p) => sum + Number(p.qty) * Number(p.cost), 0);
-          const subtotal = partsTotal + LABOUR_CHARGE + SERVICE_CHARGE;
+          // Use whatever labour/service was actually set on this job — either
+          // the admin's override from Mark Complete, or the type default if
+          // none was set. Read off `job` (already known-good from the
+          // populated list load / the earlier Mark Complete), not `updated`
+          // — same reasoning as the customerName fallback above: the
+          // generic status-update response can't be trusted to carry every
+          // field back populated.
+          const { labour, service } = getEffectiveRates(job);
+          const subtotal = computeSubtotal(updated.parts || job.parts || [], { labour, service });
           const gst = Math.round(subtotal * GST_RATE);
           const total = subtotal + gst;
+          // `updated` comes from the generic status-update response, which
+          // doesn't repopulate the `customer` ref — only the initial
+          // jobsApi.list() load did that. Fall back to the name we already
+          // know from `job` so this never sends an empty customerName
+          // (was causing "invoice creation failed: Customer name is
+          // required" even though the job clearly has a customer).
+          const customerName = updated.customer || job.customer || updated.customerName || job.customerName || '';
+          if (!customerName) {
+            throw new Error('This job has no customer name on file — open it in Edit mode, fill in Customer, and save before invoicing.');
+          }
           await invoicesApi.create({
             job: job._id,
             jobRef: job.id,
-            customerName: updated.customer,
-            address: updated.address,
+            customerName,
+            address: updated.address || job.address,
             items: [{
               description: 'Labour Charges',
               qty: 1,
-              rate: LABOUR_CHARGE,
-              amount: LABOUR_CHARGE
+              rate: labour,
+              amount: labour
             }, {
               description: 'Service Charge',
               qty: 1,
-              rate: SERVICE_CHARGE,
-              amount: SERVICE_CHARGE
+              rate: service,
+              amount: service
             }, ...(updated.parts || []).map(p => ({
               description: p.name,
               qty: Number(p.qty),
@@ -823,16 +912,20 @@ const JobsPage = ({
 
                     {job.parts && job.parts.length > 0 ? <>
                         <div className="ap-jobs-page-72">
-                          <span className="ap-jobs-page-73">Labour</span>
-                          <span className="ap-jobs-page-74">₹{LABOUR_CHARGE.toLocaleString()}</span>
+                          <span className="ap-jobs-page-73">
+                            Labour ({job.type || 'Service'}){job.labourCharge != null ? ' — custom' : ''}
+                          </span>
+                          <span className="ap-jobs-page-74">₹{getEffectiveRates(job).labour.toLocaleString()}</span>
                         </div>
                         {job.parts.map((p, i) => <div key={i} className="ap-jobs-page-75">
                             <span className="ap-jobs-page-76">{p.name} × {p.qty}</span>
                             <span className="ap-jobs-page-77">₹{(p.qty * p.cost).toLocaleString()}</span>
                           </div>)}
                         <div className="ap-jobs-page-78">
-                          <span className="ap-jobs-page-79">Service Charge</span>
-                          <span className="ap-jobs-page-80">₹{SERVICE_CHARGE.toLocaleString()}</span>
+                          <span className="ap-jobs-page-79">
+                            Service Charge{job.serviceCharge != null ? ' — custom' : ''}
+                          </span>
+                          <span className="ap-jobs-page-80">₹{getEffectiveRates(job).service.toLocaleString()}</span>
                         </div>
                       </> : <div className="ap-jobs-page-81">
                         No cost breakdown yet — will populate once this job is marked Completed.
@@ -842,7 +935,12 @@ const JobsPage = ({
                       <span className="ap-jobs-page-83">
                         Total{job.status === 'invoiced' ? ' (incl. GST)' : ''}
                       </span>
-                      <span className="ap-jobs-page-84">₹{Number(job.amount || 0).toLocaleString()}</span>
+                      {/* Once invoiced, job.amount is the finalised GST-inclusive
+                          total — show it as-is. Before that, compute live from
+                          job.parts + this job's effective rates (same data the
+                          rows above already use) so this never shows a stale
+                          pre-edit snapshot. */}
+                      <span className="ap-jobs-page-84">₹{(job.status === 'invoiced' ? Number(job.amount || 0) : job.parts && job.parts.length > 0 ? computeSubtotal(job.parts, getEffectiveRates(job)) : 0).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -851,7 +949,22 @@ const JobsPage = ({
         </EditableDetailView>
 
         {/* ── Status modal — rendered outside EditableDetailView so it overlays everything ── */}
-        {statusModal && <JobStatusModal job={jobs.find(j => j._id === openJob)} targetStatus={statusModal.targetStatus} technicians={liveTechs} loading={statusUpdating} onConfirm={handleStatusUpdate} onClose={() => setStatusModal(null)} />}
+        {statusModal && (() => {
+          const modalJob = jobs.find(j => j._id === openJob);
+          const typeDefault = getRatesForType(modalJob?.type);
+          const partsTotal = (modalJob?.parts || []).reduce((sum, p) => sum + (Number(p.qty) || 0) * (Number(p.cost) || 0), 0);
+          return <JobStatusModal
+            job={modalJob}
+            targetStatus={statusModal.targetStatus}
+            technicians={liveTechs}
+            loading={statusUpdating}
+            defaultRates={typeDefault}
+            partsTotal={partsTotal}
+            gstRate={GST_RATE}
+            onConfirm={handleStatusUpdate}
+            onClose={() => setStatusModal(null)}
+          />;
+        })()}
       </>;
   }
 

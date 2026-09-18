@@ -28,15 +28,22 @@ export function useLeadSources() {
       .finally(() => setLoading(false));
   }, []);
 
+  // const addSource = async (name) => {
+  //   if (!name?.trim()) return;
+  //   try {
+  //     const created = await leadSourcesApi.create({ name: name.trim(), isActive: true, channel: 'Other' });
+  //     setSources(prev => [...prev, { ...created, name: created.name, active: true }]);
+  //   } catch {
+  //     setSources(prev => [...prev, { name: name.trim(), active: true }]);
+  //   }
+  // };
+
   const addSource = async (name) => {
-    if (!name?.trim()) return;
-    try {
-      const created = await leadSourcesApi.create({ name: name.trim(), isActive: true, channel: 'Other' });
-      setSources(prev => [...prev, { ...created, name: created.name, active: true }]);
-    } catch {
-      setSources(prev => [...prev, { name: name.trim(), active: true }]);
-    }
-  };
+  if (!name?.trim()) return;
+  const res = await leadSourcesApi.create({ name: name.trim(), isActive: true, channel: 'Other' });
+  const created = res?.data || res;
+  setSources(prev => [...prev, { ...created, name: created.name, active: created.isActive !== false }]);
+};
 
   const deleteSource = async (name) => {
     const found = sources.find(s => s.name === name);

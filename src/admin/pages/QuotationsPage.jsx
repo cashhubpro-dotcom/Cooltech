@@ -372,6 +372,12 @@ const QuotationDocView = ({
                 * If you have any questions about this quotation, feel free to contact us.
               </td>
             </tr>
+            {!editMode && (quot.notes || quot.terms) && <tr>
+                <td colSpan={5} className="ap-quotations-page-51">
+                  {quot.notes && <div className="ap-quotations-page-52"><div className="ap-quotations-page-53">NOTES</div><div className="ap-quotations-page-54">{quot.notes}</div></div>}
+                  {quot.terms && <div className="ap-quotations-page-55"><div className="ap-quotations-page-56">TERMS &amp; CONDITIONS</div><div className="ap-quotations-page-57">{quot.terms}</div></div>}
+                </td>
+              </tr>}
           </tbody>
         </table>
 
@@ -393,10 +399,6 @@ const QuotationDocView = ({
             terms: e.target.value
           }))} placeholder="Enter terms &amp; conditions…" rows={3} className="ap-quotations-page-50" />
             </div>
-          </div>}
-        {!editMode && (quot.notes || quot.terms) && <div className="ap-quotations-page-51">
-            {quot.notes && <div className="ap-quotations-page-52"><div className="ap-quotations-page-53">NOTES</div><div className="ap-quotations-page-54">{quot.notes}</div></div>}
-            {quot.terms && <div className="ap-quotations-page-55"><div className="ap-quotations-page-56">TERMS &amp; CONDITIONS</div><div className="ap-quotations-page-57">{quot.terms}</div></div>}
           </div>}
         <div className="ap-quotations-page-58">
           <div className="ap-quotations-page-59">

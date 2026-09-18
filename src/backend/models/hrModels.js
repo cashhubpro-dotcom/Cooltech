@@ -54,10 +54,23 @@ leaveSchema.pre('save', function (next) {
   next();
 });
 
+// leaveSchema.pre('save', async function (next) {
+//   if (!this.leaveId) {
+//     const count = await mongoose.model('Leave').countDocuments();
+//     this.leaveId = `LV-${String(count + 1).padStart(4, '0')}`;
+//   }
+//   next();
+// });
+
 leaveSchema.pre('save', async function (next) {
   if (!this.leaveId) {
-    const count = await mongoose.model('Leave').countDocuments();
-    this.leaveId = `LV-${String(count + 1).padStart(4, '0')}`;
+    const last = await mongoose.model('Leave')
+      .findOne({ leaveId: { $regex: /^LV-\d+$/ } })
+      .sort({ leaveId: -1 })
+      .collation({ locale: 'en_US', numericOrdering: true });
+
+    const lastNum = last ? parseInt(last.leaveId.split('-')[1], 10) : 0;
+    this.leaveId = `LV-${String(lastNum + 1).padStart(4, '0')}`;
   }
   next();
 });

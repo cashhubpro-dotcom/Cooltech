@@ -191,6 +191,7 @@ const ScoreBadge = ({
 };
 
 // ─── MoveStageModal ───────────────────────────────────────────────────────────
+// ─── MoveStageModal ───────────────────────────────────────────────────────────
 const MoveStageModal = ({
   lead,
   targetStage,
@@ -217,8 +218,38 @@ const MoveStageModal = ({
   };
   return <div onClick={onClose} className="ap-leads-page-5">
       <div style={{
-      border: `2px solid ${m.color}30`
+      border: `2px solid color-mix(in srgb, ${m.color} 30%, transparent)`,
+      position: 'relative'
     }} onClick={e => e.stopPropagation()} className="ap-leads-page-6">
+
+        {/* Close (X) button */}
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            position: 'absolute',
+            top: 14,
+            right: 14,
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            border: 'none',
+            background: 'transparent',
+            color: COLORS.muted,
+            fontSize: 16,
+            lineHeight: 1,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background .15s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          ✕
+        </button>
+
         {/* Header */}
         <div className="ap-leads-page-7">
           <div style={{
@@ -269,9 +300,13 @@ const MoveStageModal = ({
             Cancel
           </button>
           <button onClick={handle} disabled={saving} style={{
-          background: saving ? COLORS.muted : `linear-gradient(135deg,${m.color},${m.color}cc)`,
+          background: saving
+            ? COLORS.muted
+            : `linear-gradient(135deg, ${m.color}, color-mix(in srgb, ${m.color} 80%, black))`,
           cursor: saving ? "not-allowed" : "pointer",
-          boxShadow: saving ? 'none' : `0 4px 14px ${m.color}40`
+          boxShadow: saving
+            ? 'none'
+            : `0 4px 14px color-mix(in srgb, ${m.color} 25%, transparent)`
         }} className="ap-leads-page-20">
             {saving ? 'Updating…' : `Confirm → ${m.label}`}
           </button>

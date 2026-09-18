@@ -1706,19 +1706,23 @@
   color: #374151;
 }
 
-/* ── Dropdown panel ── */
+/* ── Dropdown panel ──
+   position is set inline (JS) as `position: fixed; top; left`, since the
+   menu is portalled to <body> to escape scrollable table ancestors.
+   This stylesheet only owns the visual styling + open animation. */
 .action-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
   z-index: 1000;
   background: #ffffff;
   border: 1px solid #E5E7EB;
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.06);
-  min-width: 140px;
+  min-width: 160px;
   padding: 4px;
   animation: ad-in 0.12s ease;
+}
+
+.action-menu--up {
+  animation: ad-in-up 0.12s ease;
 }
 
 @keyframes ad-in {
@@ -1729,6 +1733,17 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ad-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-100% + 4px)) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-100%) scale(1);
   }
 }
 

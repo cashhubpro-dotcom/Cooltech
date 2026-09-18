@@ -387,13 +387,24 @@ export const ConvertToJobModal = ({
         </div>
 
         {/* Items breakdown */}
-        {quot?.items?.length > 0 && <div className="ap-quotation-modals-59">
+        {/* {quot?.items?.length > 0 && <div className="ap-quotation-modals-59">
             <div className="ap-quotation-modals-60">Line Items → Parts</div>
             {quot.items.map((item, i) => <div key={i} className="ap-quotation-modals-61">
                 <span className="ap-quotation-modals-62">{item.desc}</span>
                 <span className="ap-quotation-modals-63">×{item.qty} · ₹{Number(item.rate || 0).toLocaleString()}</span>
               </div>)}
-          </div>}
+          </div>} */}
+
+          {/* Items breakdown */}
+{quot?.items?.length > 0 && <div className="ap-quotation-modals-59">
+    <div className="ap-quotation-modals-60">Line Items → Parts</div>
+    <div className="ap-quotation-modals-70">
+      {quot.items.map((item, i) => <div key={i} className="ap-quotation-modals-61">
+          <span className="ap-quotation-modals-62">{item.desc}</span>
+          <span className="ap-quotation-modals-63">×{item.qty} · ₹{Number(item.rate || 0).toLocaleString()}</span>
+        </div>)}
+    </div>
+  </div>}
 
         <div className="ap-quotation-modals-64">
           <div className="ap-quotation-modals-65">

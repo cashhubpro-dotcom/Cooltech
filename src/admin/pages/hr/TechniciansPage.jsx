@@ -222,6 +222,7 @@ const TechnicianDetail = ({
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [docFiles, setDocFiles] = useState({ aadhaar: null, pan: null, licence: null, cert: null });
+  const [prevEditMode, setPrevEditMode] = useState(false);
   const firstName = (tech.name ?? '').split(' ')[0];
   const techJobs = jobs.filter(j => (j.tech ?? '').toLowerCase().includes(firstName.toLowerCase()));
   const tabs = [{
@@ -237,9 +238,9 @@ const TechnicianDetail = ({
     key: 'bank',
     label: '🏦 Bank'
   }];
-  
+
   return <EditableDetailView id={tech.id} breadcrumb="Technicians" onBack={onBack} fields={TECH_FIELDS} data={tech} initialEditMode={initialEditMode} onSave={updated => {
-    console.log('Saved technician:', { ...updated, documents: docFiles } );
+    console.log('Saved technician:', { ...updated, documents: docFiles });
   }} onDelete={() => {
     console.log('Deleted:', tech.id);
     onBack();
@@ -249,6 +250,12 @@ const TechnicianDetail = ({
       editData,
       setEditData
     }) => {
+      if (editMode !== prevEditMode) {
+        setPrevEditMode(editMode);
+        if (!editMode) {
+          setDocFiles({ aadhaar: null, pan: null, licence: null, cert: null });
+        }
+      }
       const ef = (label, eKey, extra = {}) => <EF key={eKey} label={label} eKey={eKey} editMode={editMode} editData={editData} setEditData={setEditData} tech={tech} {...extra} />;
       return <div className="ap-technicians-page-14">
 
@@ -434,7 +441,7 @@ const TechnicianDetail = ({
                 type: 'number'
               })}
                   <DS title="AC Skills & Certifications" icon="❄️" />
-                  {ef('Experience (yrs)', 'experience', {
+                                    {ef('Experience (yrs)', 'experience', {
                 type: 'number'
               })}
                   {ef('AC Brands', 'brands')}
@@ -492,52 +499,6 @@ const TechnicianDetail = ({
                 mono: true,
                 placeholder: 'ABCDE1234F'
               })}
-                  {/* <DS title="Document Uploads" icon="📎" />
-                  <div className="ap-technicians-page-57">
-                    {[{
-                  label: 'Aadhaar Card',
-                  icon: '🪪',
-                  color: '#1D4ED8',
-                  bg: '#EFF6FF',
-                  border: '#BFDBFE'
-                }, {
-                  label: 'PAN Card',
-                  icon: '💳',
-                  color: '#15803D',
-                  bg: '#F0FDF4',
-                  border: '#BBF7D0'
-                }, {
-                  label: 'Driving Licence',
-                  icon: '🏍️',
-                  color: '#7C3AED',
-                  bg: '#F5F3FF',
-                  border: '#DDD6FE'
-                }, {
-                  label: 'HVAC Certificate',
-                  icon: '📜',
-                  color: '#B45309',
-                  bg: '#FFFBEB',
-                  border: '#FDE68A'
-                }].map(({
-                  label,
-                  icon,
-                  color,
-                  bg,
-                  border
-                }) => <div key={label} style={{
-                  background: bg,
-                  border: `1.5px dashed ${border}`,
-                  cursor: editMode ? "pointer" : "default"
-                }} className="ap-technicians-page-58">
-                        <span className="ap-technicians-page-59">{icon}</span>
-                        <div>
-                          <div style={{
-                      color
-                    }} className="ap-technicians-page-60">{label}</div>
-                          <div className="ap-technicians-page-61">{editMode ? 'Click to upload' : 'Not uploaded'}</div>
-                        </div>
-                      </div>)}
-                  </div> */}
 
                     <DS title="Document Uploads" icon="📎" />
 <div className="ap-technicians-page-57">

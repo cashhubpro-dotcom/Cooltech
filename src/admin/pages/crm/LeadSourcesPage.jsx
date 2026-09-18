@@ -283,10 +283,14 @@ const LeadSourcesPage = ({
       </div>
 
       {/* ── Add modal ── */}
-      {showAdd && <AddSourceModal onClose={() => setShowAdd(false)} onSave={name => {
-      onAdd(name);
-      setShowAdd(false);
-    }} />}
+      {showAdd && <AddSourceModal onClose={() => setShowAdd(false)} onSave={async name => {
+  try {
+    await onAdd(name);
+    setShowAdd(false);
+  } catch (err) {
+    alert(err.message || 'Failed to add source. Please try again.');
+  }
+}} />}
 
       {/* ── Delete confirm ── */}
       <DeleteConfirmModal isOpen={!!deleteTarget} onConfirm={() => {

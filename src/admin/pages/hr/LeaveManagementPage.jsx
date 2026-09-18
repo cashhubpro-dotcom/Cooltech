@@ -318,7 +318,7 @@ const ViewModal = ({
           color: TC[leave.type] || COLORS.body
         }} className="ap-leave-management-page-21">
                   {leave.type}
-                </span>], ['Duration', <strong className="ap-leave-management-page-22">{leave.days} day{leave.days > 1 ? 's' : ''}</strong>], ['From', <span className="ap-leave-management-page-23">{fmtDisplay(leave.from)}</span>], ['To', <span className="ap-leave-management-page-24">{fmtDisplay(leave.to)}</span>], ['Reason', leave.reason || '—'], ['Approved By', leave.approvedBy || '—']].map(([k, v]) => <div key={k}>
+                </span>], ['Duration', <strong className="ap-leave-management-page-22">{leave.days} day{leave.days > 1 ? 's' : ''}</strong>], ['From', <span className="ap-leave-management-page-23">{fmtDisplay(leave.from)}</span>], ['To', <span className="ap-leave-management-page-24">{fmtDisplay(leave.to)}</span>], ['Reason', leave.reason || '—'], ['Approved By', leave.approvedBy?.name || leave.approvedBy || '—']].map(([k, v]) => <div key={k}>
                 <div className="ap-leave-management-page-25">{k}</div>
                 <div className="ap-leave-management-page-26">{v}</div>
               </div>)}
@@ -829,7 +829,7 @@ const LeaveManagementPage = ({
                     {l.reason}
                   </td>
 
-                  <td className="ap-leave-management-page-77">{l.approvedBy || ''}</td>
+                  <td className="ap-leave-management-page-77">{l.approvedBy?.name || l.approvedBy || ''}</td>
 
                   <td className="ap-leave-management-page-78"><SBadge s={l.status} map={LEAVE_STATUS} /></td>
 

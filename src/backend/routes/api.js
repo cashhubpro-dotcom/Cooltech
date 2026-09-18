@@ -94,10 +94,10 @@ jobRouter.put('/:id/assign', async (req, res) => {
 // Extra: complete a job
 jobRouter.put('/:id/complete', async (req, res) => {
   try {
-    const { remarks, amount, parts } = req.body;
+    const { remarks, amount, parts, labourCharge, serviceCharge } = req.body;
     const job = await Job.findByIdAndUpdate(
       req.params.id,
-      { status: 'completed', completedAt: new Date(), remarks, amount, parts },
+      { status: 'completed', completedAt: new Date(), remarks, amount, parts, labourCharge, serviceCharge },
       { new: true }
     ).populate('customer technician');
     if (!job) return res.status(404).json({ message: 'Job not found.' });
@@ -1049,30 +1049,39 @@ const leaveRouter = createCRUD(Leave, {
   searchFields: ['leaveId', 'techName'],
   filterFields: ['status', 'type'],
   softDelete: false,
-  populate: ['technician'],
+  populate: ['technician', 'approvedBy'],
 });
 
-leaveRouter.put('/:id/approve', async (req, res) => {
+leaveRouter.put('/:id/approve', handleApprove);
+leaveRouter.patch('/:id/approve', handleApprove);
+
+async function handleApprove(req, res) {
   try {
+    const approverId = req.user?._id || null;
     const doc = await Leave.findByIdAndUpdate(
       req.params.id,
-      { status: 'approved', approvedBy: req.user._id },
+      { status: 'approved', approvedBy: approverId },
       { new: true }
-    );
+    ).populate('approvedBy', 'name').populate('technician', 'name');
     res.json(doc);
   } catch (err) {
+    console.error('Leave approve error:', err);
     res.status(500).json({ message: err.message });
   }
-});
+}
 
-leaveRouter.put('/:id/reject', async (req, res) => {
+leaveRouter.put('/:id/reject', handleReject);
+leaveRouter.patch('/:id/reject', handleReject);
+
+async function handleReject(req, res) {
   try {
     const doc = await Leave.findByIdAndUpdate(req.params.id, { status: 'rejected' }, { new: true });
     res.json(doc);
   } catch (err) {
+    console.error('Leave reject error:', err);
     res.status(500).json({ message: err.message });
   }
-});
+}
 
 router.use('/leaves', leaveRouter);
 

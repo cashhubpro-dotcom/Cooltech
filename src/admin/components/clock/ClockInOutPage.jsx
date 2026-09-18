@@ -6,6 +6,9 @@ import { Thead } from "../ui/Cards";
 import { Avatar } from "../ui/Badges";
 import * as api from "../../services/attendanceService";
 import { fmtDateDMY } from '../../../shared/formatDate';
+import ExportDropdown from "../layout/ExportDropdown";
+import useExport from "../../hooks/useExport";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
 
 // ─── Clock Helpers ────────────────────────────────────────────────────────────
 function fmtClockDur(totalSecs) {
@@ -154,7 +157,7 @@ const DeleteModal = ({
         {/* Session summary card */}
         <div className="ap-clock-in-out-page-22">
           <div className="ap-clock-in-out-page-23">
-            {[["📅 Date", session.date || "—"], ["🕘 Clock In", inTime], ["🕔 Clock Out", outTime], ["⏱ Worked", session.workedMins ? fmtClockMins(session.workedMins) : "—"], ["⚡ Overtime", session.otMins > 0 ? fmtClockMins(session.otMins) : "None"]].map(([label, value]) => <div key={label} className="ap-clock-in-out-page-24">
+            {[["📅 Date", fmtDateDMY(session.date)], ["🕘 Clock In", inTime], ["🕔 Clock Out", outTime], ["⏱ Worked", session.workedMins ? fmtClockMins(session.workedMins) : "—"], ["⚡ Overtime", session.otMins > 0 ? fmtClockMins(session.otMins) : "None"]].map(([label, value]) => <div key={label} className="ap-clock-in-out-page-24">
                 <span className="ap-clock-in-out-page-25">{label}</span>
                 <span className="ap-clock-in-out-page-26">{value}</span>
               </div>)}
@@ -184,6 +187,16 @@ const DeleteModal = ({
       </div>
     </div>;
 };
+
+const SESSION_COLUMNS = [
+  { label: "Date", key: "date", width: 14 },
+  { label: "In", key: "clockInTime", width: 12, format: v => toLocStr(v) },
+  { label: "Out", key: "clockOutTime", width: 12, format: v => toLocStr(v) },
+  { label: "Work", key: "workedMins", width: 10, format: v => fmtClockMins(v) },
+  { label: "Break", key: "totalBreakSecs", width: 10, format: v => v ? `${Math.floor(v / 60)}m` : "—" },
+  { label: "Overtime", key: "otMins", width: 10, format: v => v > 0 ? `+${fmtClockMins(v)}` : "—" },
+  { label: "Late", key: "lateMins", width: 10, format: v => v > 5 ? `${v}m late` : "On time" },
+];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  MAIN PAGE
@@ -292,6 +305,18 @@ const ClockInOutPage = ({
       setLoading(false);
     }
   }, [currentUserId]);
+
+  const { exportProps } = useExport({
+  title: "Clock In/Out Report",
+  filename: "cooltech-attendance-report",
+  template: "generic_list",
+  subtitle: `AC Services Platform · Attendance Report · ${reports?.sessions?.length || 0} sessions`,
+  docId: "ATT-REPORT",
+  columns: SESSION_COLUMNS,
+  rows: reports?.sessions || [],
+  showTotals: true,
+  totalColumns: ["workedMins", "otMins"],
+});
 
   // Initial load
   useEffect(() => {
@@ -693,7 +718,7 @@ const ClockInOutPage = ({
               background: i % 2 === 0 ? "var(--white)" : "var(--bg)"
             }}>
                     <td className="ap-clock-in-out-page-121">
-                      <div className="ap-clock-in-out-page-122">{s.date}</div>
+                      <div className="ap-clock-in-out-page-122">{fmtDateDMY(s.date)}</div>
                     </td>
                     <td className="ap-clock-in-out-page-123">
                       <div className="ap-clock-in-out-page-124">{toLocStr(s.clockInTime)}</div>
@@ -725,87 +750,167 @@ const ClockInOutPage = ({
         </div>}
 
       {/* ══════════ REPORTS TAB ══════════ */}
-      {tab === "reports" && <div className="ap-clock-in-out-page-137">
-          {loading ? <Spinner /> : reports && <>
-              <div className="ap-clock-in-out-page-138">
-                {[{
-            label: "Total Hours",
-            value: fmtClockMins(reports.totalWorkedMins),
-            sub: `${reports.totalSessions} sessions`,
-            color: "#3B82F6",
-            bg: "#EFF6FF",
-            icon: "⏱"
-          }, {
-            label: "Overtime",
-            value: fmtClockMins(reports.totalOTMins),
-            sub: reports.totalOTMins > 0 ? "Needs review" : "None",
-            color: reports.totalOTMins > 0 ? "#C2410C" : COLORS.faint,
-            bg: reports.totalOTMins > 0 ? "#FFF7ED" : COLORS.bg,
-            icon: "⚡"
-          }, {
-            label: "Late Arrivals",
-            value: `${reports.totalLateDays} day${reports.totalLateDays !== 1 ? "s" : ""}`,
-            sub: "vs shift start",
-            color: reports.totalLateDays > 0 ? "#B45309" : COLORS.faint,
-            bg: reports.totalLateDays > 0 ? "#FFFBEB" : COLORS.bg,
-            icon: "🕐"
-          }, {
-            label: "Avg Daily Hours",
-            value: fmtClockMins(reports.avgWorkedMins),
-            sub: `Max: ${fmtClockMins(reports.maxWorkedMins)}`,
-            color: "#7C3AED",
-            bg: "#F5F3FF",
-            icon: "📊"
-          }].map(s => <div key={s.label} className="card ap-clock-in-out-page-139">
-                    <div className="ap-clock-in-out-page-140">
-                      <div className="ap-clock-in-out-page-141">{s.label}</div>
-                      <div style={{
-                background: s.bg
-              }} className="ap-clock-in-out-page-142">{s.icon}</div>
-                    </div>
-                    <div style={{
-              color: s.color
-            }} className="ap-clock-in-out-page-143">{s.value}</div>
-                    <div className="ap-clock-in-out-page-144">{s.sub}</div>
-                  </div>)}
+{tab === "reports" && <div className="ap-clock-in-out-page-137">
+    {loading ? <Spinner /> : reports && <>
+        <div className="ap-clock-in-out-page-138">
+          {[{
+        label: "Total Hours",
+        value: fmtClockMins(reports.totalWorkedMins),
+        sub: `${reports.totalSessions} sessions`,
+        color: "#3B82F6",
+        bg: "#EFF6FF",
+        icon: "⏱"
+      }, {
+        label: "Overtime",
+        value: fmtClockMins(reports.totalOTMins),
+        sub: reports.totalOTMins > 0 ? "Needs review" : "None",
+        color: reports.totalOTMins > 0 ? "#C2410C" : COLORS.faint,
+        bg: reports.totalOTMins > 0 ? "#FFF7ED" : COLORS.bg,
+        icon: "⚡"
+      }, {
+        label: "Late Arrivals",
+        value: `${reports.totalLateDays} day${reports.totalLateDays !== 1 ? "s" : ""}`,
+        sub: "vs shift start",
+        color: reports.totalLateDays > 0 ? "#B45309" : COLORS.faint,
+        bg: reports.totalLateDays > 0 ? "#FFFBEB" : COLORS.bg,
+        icon: "🕐"
+      }, {
+        label: "Avg Daily Hours",
+        value: fmtClockMins(reports.avgWorkedMins),
+        sub: `Max: ${fmtClockMins(reports.maxWorkedMins)}`,
+        color: "#7C3AED",
+        bg: "#F5F3FF",
+        icon: "📊"
+      }].map(s => <div key={s.label} className="card ap-clock-in-out-page-139">
+              <div className="ap-clock-in-out-page-140">
+                <div className="ap-clock-in-out-page-141">{s.label}</div>
+                <div style={{
+            background: s.bg
+          }} className="ap-clock-in-out-page-142">{s.icon}</div>
               </div>
-              <div className="ap-clock-in-out-page-145">
-                <div className="ap-clock-in-out-page-146">Session Breakdown</div>
-                <div className="ap-clock-in-out-page-147"><table className="ap-clock-in-out-page-148">
-                  <Thead cols={["Date", "In", "Out", "Work", "Break", "Overtime", "Late", "Efficiency"]} />
-                  <tbody>
-                    {reports.sessions.map((s, i) => {
-                  const eff = s.workedMins && otThresholdH ? Math.min(100, Math.round(Math.min(s.workedMins, otThresholdH * 60) / (otThresholdH * 60) * 100)) : 0;
-                  return <tr key={s._id} className="row ap-clock-in-out-page-149" style={{
-                    background: i % 2 === 0 ? "var(--white)" : "var(--bg)"
-                  }}>
-                          <td className="ap-clock-in-out-page-150">{s.date}</td>
-                          <td className="ap-clock-in-out-page-151">{toLocStr(s.clockInTime)}</td>
-                          <td className="ap-clock-in-out-page-152">{toLocStr(s.clockOutTime)}</td>
-                          <td className="ap-clock-in-out-page-153">{fmtClockMins(s.workedMins)}</td>
-                          <td className="ap-clock-in-out-page-154">{s.totalBreakSecs ? `${Math.floor(s.totalBreakSecs / 60)}m` : "—"}</td>
-                          <td className="ap-clock-in-out-page-155">{(s.otMins || 0) > 0 ? <span className="badge ap-clock-in-out-page-156">+{fmtClockMins(s.otMins)}</span> : <span className="ap-clock-in-out-page-157">—</span>}</td>
-                          <td className="ap-clock-in-out-page-158">{(s.lateMins || 0) > 5 ? <span className="badge ap-clock-in-out-page-159">{s.lateMins}m late</span> : <span className="ap-clock-in-out-page-160">On time</span>}</td>
-                          <td className="ap-clock-in-out-page-161">
-                            <div className="ap-clock-in-out-page-162">
-                              <div className="ap-clock-in-out-page-163">
-                                <div style={{
-                            width: `${eff}%`,
-                            background: eff >= 90 ? "#16A34A" : eff >= 70 ? COLORS.brand : "#DC2626"
-                          }} className="ap-clock-in-out-page-164" />
-                              </div>
-                              <span style={{
-                          color: eff >= 90 ? "#16A34A" : eff >= 70 ? COLORS.brand : "#DC2626"
-                        }} className="ap-clock-in-out-page-165">{eff}%</span>
-                            </div>
-                          </td>
-                        </tr>;
-                })}
-                  </tbody>
-                </table></div>
-              </div>
-            </>}
-        </div>}
+              <div style={{
+        color: s.color
+      }} className="ap-clock-in-out-page-143">{s.value}</div>
+              <div className="ap-clock-in-out-page-144">{s.sub}</div>
+            </div>)}
+        </div>
+
+        {/* ── Daily Worked Hours chart ── */}
+      
+        {/* ── Charts row: Daily Worked Hours + Late Arrivals Trend ── */}
+<div className="ap-clock-in-out-page-200">
+  <div className="ap-clock-in-out-page-145">
+    <div className="ap-clock-in-out-page-146">Daily Worked Hours</div>
+    <div style={{ padding: "12px 16px 4px" }}>
+      {(() => {
+        const chartData = reports.sessions.map(s => ({
+          date: fmtDateDMY(s.date),
+          hours: Math.round((s.workedMins || 0) / 60 * 10) / 10,
+        }));
+        const totalHours = chartData.reduce((sum, d) => sum + d.hours, 0);
+        if (reports.sessions.length === 0 || totalHours === 0) {
+          return (
+            <div style={{ padding: "60px 0", textAlign: "center", color: COLORS.faint, fontSize: 13 }}>
+              {reports.sessions.length === 0 ? "No session data yet" : "No hours logged yet"}
+            </div>
+          );
+        }
+        return (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: COLORS.faint, fontFamily: FONTS.sans }} axisLine={{ stroke: COLORS.border }} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: COLORS.faint, fontFamily: FONTS.sans }} axisLine={false} tickLine={false} width={32} />
+              <Tooltip
+                formatter={(value) => [`${value}h`, "Worked"]}
+                contentStyle={{ borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 12, fontFamily: FONTS.sans }}
+                cursor={{ fill: COLORS.bg }}
+              />
+              <Bar dataKey="hours" fill={COLORS.brand} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      })()}
+    </div>
+  </div>
+
+  <div className="ap-clock-in-out-page-145">
+    <div className="ap-clock-in-out-page-146">Late Arrivals Trend</div>
+    <div style={{ padding: "12px 16px 4px" }}>
+      {(() => {
+        const lateData = reports.sessions.map(s => ({
+          date: fmtDateDMY(s.date),
+          late: s.lateMins || 0,
+        }));
+        const totalLate = lateData.reduce((sum, d) => sum + d.late, 0);
+        if (reports.sessions.length === 0 || totalLate === 0) {
+          return (
+            <div style={{ padding: "60px 0", textAlign: "center", color: COLORS.faint, fontSize: 13 }}>
+              {reports.sessions.length === 0 ? "No session data yet" : "No late arrivals 🎉"}
+            </div>
+          );
+        }
+        return (
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={lateData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: COLORS.faint, fontFamily: FONTS.sans }} axisLine={{ stroke: COLORS.border }} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: COLORS.faint, fontFamily: FONTS.sans }} axisLine={false} tickLine={false} width={32} />
+              <Tooltip
+                formatter={(value) => [`${value}m`, "Late by"]}
+                contentStyle={{ borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 12, fontFamily: FONTS.sans }}
+                cursor={{ stroke: COLORS.border, strokeDasharray: "3 3" }}
+              />
+              <ReferenceLine y={5} stroke="#FDBA74" strokeDasharray="4 4" label={{ value: "5m", fontSize: 9, fill: "#B45309", position: "right" }} />
+              <Line type="monotone" dataKey="late" stroke="#DC2626" strokeWidth={2.5} dot={{ r: 3, fill: "#DC2626" }} activeDot={{ r: 5 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        );
+      })()}
+    </div>
+  </div>
+</div>
+
+        <div className="ap-clock-in-out-page-145">
+          <div className="ap-clock-in-out-page-146" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span>Session Breakdown</span>
+            <ExportDropdown {...exportProps} />
+          </div>
+          <div className="ap-clock-in-out-page-147"><table className="ap-clock-in-out-page-148">
+            <Thead cols={["Date", "In", "Out", "Work", "Break", "Overtime", "Late", "Efficiency"]} />
+            <tbody>
+              {reports.sessions.map((s, i) => {
+            const eff = s.workedMins && otThresholdH ? Math.min(100, Math.round(Math.min(s.workedMins, otThresholdH * 60) / (otThresholdH * 60) * 100)) : 0;
+            return <tr key={s._id} className="row ap-clock-in-out-page-149" style={{
+              background: i % 2 === 0 ? "var(--white)" : "var(--bg)"
+            }}>
+                    <td className="ap-clock-in-out-page-150">{fmtDateDMY(s.date)}</td>
+                    <td className="ap-clock-in-out-page-151">{toLocStr(s.clockInTime)}</td>
+                    <td className="ap-clock-in-out-page-152">{toLocStr(s.clockOutTime)}</td>
+                    <td className="ap-clock-in-out-page-153">{fmtClockMins(s.workedMins)}</td>
+                    <td className="ap-clock-in-out-page-154">{s.totalBreakSecs ? `${Math.floor(s.totalBreakSecs / 60)}m` : "—"}</td>
+                    <td className="ap-clock-in-out-page-155">{(s.otMins || 0) > 0 ? <span className="badge ap-clock-in-out-page-156">+{fmtClockMins(s.otMins)}</span> : <span className="ap-clock-in-out-page-157">—</span>}</td>
+                    <td className="ap-clock-in-out-page-158">{(s.lateMins || 0) > 5 ? <span className="badge ap-clock-in-out-page-159">{s.lateMins}m late</span> : <span className="ap-clock-in-out-page-160">On time</span>}</td>
+                    <td className="ap-clock-in-out-page-161">
+                      <div className="ap-clock-in-out-page-162">
+                        <div className="ap-clock-in-out-page-163">
+                          <div style={{
+                      width: `${eff}%`,
+                      background: eff >= 90 ? "#16A34A" : eff >= 70 ? COLORS.brand : "#DC2626"
+                    }} className="ap-clock-in-out-page-164" />
+                        </div>
+                        <span style={{
+                    color: eff >= 90 ? "#16A34A" : eff >= 70 ? COLORS.brand : "#DC2626"
+                  }} className="ap-clock-in-out-page-165">{eff}%</span>
+                      </div>
+                    </td>
+                  </tr>;
+          })}
+            </tbody>
+          </table></div>
+        </div>
+      </>}
+  </div>}
 
       {/* ══════════ SETTINGS TAB ══════════ */}
       {tab === "settings" && localSettings && <div className="ap-clock-in-out-page-166">

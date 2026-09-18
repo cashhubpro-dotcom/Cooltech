@@ -36,6 +36,14 @@ const jobSchema = new mongoose.Schema({
   },
   cancelledBy: { type: String, enum: ['admin', 'client'] },
   amount:     { type: Number, default: 0 },
+  // ── Per-job cost overrides ────────────────────────────────────────────────
+  // Optional. When set, these take priority over the type-based default
+  // rate (Service/Repair/Installation/AMC) for THIS job specifically — set
+  // by the admin/technician at "Mark Complete" time when the real labour or
+  // service cost differs from the usual rate for that job type. `null`
+  // (the default) means "use the type-based default", not "charge zero".
+  labourCharge:  { type: Number, default: null },
+  serviceCharge: { type: Number, default: null },
 
   // ── Parts used ──────────────────────────────────────────────────────────
   // `inventoryItem` is optional — set only when the technician picks the

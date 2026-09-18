@@ -1394,6 +1394,19 @@
     font-family: Plus Jakarta Sans, sans-serif;
   }
 
+  .ap-clock-in-out-page-200 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 700px) {
+  .ap-clock-in-out-page-200 {
+    grid-template-columns: 1fr;
+  }
+}
+
   /* ── components/layout/ExportDropdown.jsx ── */
   .ap-export-dropdown-1 {
     position: relative;
@@ -8243,6 +8256,37 @@
     color: var(--brand);
   }
 
+  /* ── Editable Labour/Service override (Mark Complete) ── */
+  .ap-job-status-modal-32 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 5px 0;
+  }
+
+  .ap-job-status-modal-33 {
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .ap-job-status-modal-34 {
+    width: 90px;
+    padding: 3px 7px;
+    border: 1px solid var(--xe2e0db);
+    border-radius: 5px;
+    font-size: 12px;
+    font-family: monospace;
+    text-align: right;
+    background: var(--bg);
+    color: var(--text-h1);
+    outline: none;
+  }
+
+  .ap-job-status-modal-34:focus {
+    border-color: var(--brand);
+  }
+
   .ap-job-status-modal-25 {
     margin-bottom: 20px;
   }
@@ -8378,19 +8422,26 @@
   }
 
   .ap-quotation-modals-3 {
-    background: var(--white);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 24px 64px rgba(0,0,0,.22);
-  }
+  background: var(--white);
+  border-radius: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.22);
+  max-height: calc(100vh - 32px);
+}
 
   .ap-quotation-modals-4 {
-    padding: 20px 22px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-  }
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 2;
+  flex-shrink: 0;
+}
 
   .ap-quotation-modals-5 {
     font-size: 28px;
@@ -8814,12 +8865,21 @@
     max-width: 60%;
   }
 
-  .ap-quotation-modals-59 {
+  /* .ap-quotation-modals-59 {
     margin: 0 22px 16px;
     border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
-  }
+  } */
+
+  .ap-quotation-modals-59 {
+  margin: 0 22px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
   .ap-quotation-modals-60 {
     background: var(--bg);
@@ -8874,11 +8934,17 @@
   }
 
   .ap-quotation-modals-67 {
-    padding: 14px 22px 20px;
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
+  padding: 14px 22px 20px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  background: var(--white);
+  z-index: 2;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,.06);
+}
 
   .ap-quotation-modals-68 {
     padding: 9px 16px;
@@ -8898,6 +8964,11 @@
     font-size: 13px;
     font-weight: 700;
   }
+
+  .ap-quotation-modals-70 {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
   /* ── components/ui/RichTextEditorNoFile.jsx ── */
   .ap-rich-text-editor-no-file-1 {
@@ -17654,8 +17725,9 @@
   }
 
   .ap-quotations-page-51 {
-    padding: 10px 14px 4px;
-    border-top: 1px solid var(--border);
+    padding: 8px 8px;
+    border: 1px solid var(--x1a2e5c);
+    text-align: left;
   }
 
   .ap-quotations-page-52 {
@@ -56922,6 +56994,37 @@
     color: var(--brand);
   }
 
+  /* ── Editable Labour/Service override (Mark Complete) ── */
+  .ap-job-status-modal-32 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 5px 0;
+  }
+
+  .ap-job-status-modal-33 {
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .ap-job-status-modal-34 {
+    width: 90px;
+    padding: 3px 7px;
+    border: 1px solid var(--xe2e0db);
+    border-radius: 5px;
+    font-size: 12px;
+    font-family: monospace;
+    text-align: right;
+    background: var(--bg);
+    color: var(--text-h1);
+    outline: none;
+  }
+
+  .ap-job-status-modal-34:focus {
+    border-color: var(--brand);
+  }
+
   .ap-job-status-modal-25 {
     margin-bottom: 20px;
   }
@@ -57057,19 +57160,26 @@
   }
 
   .ap-quotation-modals-3 {
-    background: var(--white);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 24px 64px rgba(0,0,0,.22);
-  }
+  background: var(--white);
+  border-radius: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.22);
+  max-height: calc(100vh - 32px);
+}
 
   .ap-quotation-modals-4 {
-    padding: 20px 22px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-  }
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 2;
+  flex-shrink: 0;
+}
 
   .ap-quotation-modals-5 {
     font-size: 28px;
@@ -57493,12 +57603,21 @@
     max-width: 60%;
   }
 
-  .ap-quotation-modals-59 {
+  /* .ap-quotation-modals-59 {
     margin: 0 22px 16px;
     border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
-  }
+  } */
+
+  .ap-quotation-modals-59 {
+  margin: 0 22px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
   .ap-quotation-modals-60 {
     background: var(--bg);
@@ -57553,11 +57672,17 @@
   }
 
   .ap-quotation-modals-67 {
-    padding: 14px 22px 20px;
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
+  padding: 14px 22px 20px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  background: var(--white);
+  z-index: 2;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,.06);
+}
 
   .ap-quotation-modals-68 {
     padding: 9px 16px;
@@ -57577,6 +57702,11 @@
     font-size: 13px;
     font-weight: 700;
   }
+
+  .ap-quotation-modals-70 {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
   /* ── components/ui/RichTextEditorNoFile.jsx ── */
   .ap-rich-text-editor-no-file-1 {
@@ -66403,8 +66533,9 @@
   }
 
   .ap-quotations-page-51 {
-    padding: 10px 14px 4px;
-    border-top: 1px solid var(--border);
+    padding: 8px 8px;
+    border: 1px solid var(--x1a2e5c);
+    text-align: left;
   }
 
   .ap-quotations-page-52 {
