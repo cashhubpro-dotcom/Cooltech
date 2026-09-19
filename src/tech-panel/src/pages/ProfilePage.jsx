@@ -1,8 +1,202 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { COLORS, FONTS } from '../constants/token';
+import { Camera, Upload, Trash2, X, Loader } from 'lucide-react';
 import { Toast, ProgressBar } from '../components/ui/Components';
 import { technicianProfileApi, authApi } from '../services/technicianPortalApi';
 import { fmtDateDMY } from '../../../shared/formatDate';
+
+// ─── Same convention the admin panel's AvatarEditor uses ──────────────────
+// If technicianProfileApi doesn't yet expose uploadAvatar/removeAvatar, add
+// them to technicianPortalApi.js mirroring settingsApi.uploadLogo in the
+// admin api.js (FormData + fetch, same BASE/token as the rest of that file).
+const hasRealAvatar = url => url && url !== '' && url !== 'null' && url !== 'undefined';
+
+// ─── Avatar Editor — upload / take photo / remove, same UX as admin panel ──
+const AvatarEditor = ({
+  avatarUrl,
+  fallback,
+  editMode,
+  onAvatarChange
+}) => {
+  const fileInputRef = useRef();
+  const cameraInputRef = useRef();
+  const [showMenu, setShowMenu] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const hasAvatar = hasRealAvatar(avatarUrl);
+  const handleFile = async file => {
+    if (!file) return;
+    setUploading(true);
+    setShowMenu(false);
+    try {
+      const res = await technicianProfileApi.uploadAvatar(file);
+      onAvatarChange(res.data?.avatarUrl ?? res.avatarUrl ?? '');
+    } catch (err) {
+      alert(err.message || 'Upload failed.');
+    } finally {
+      setUploading(false);
+    }
+  };
+  const handleRemove = async () => {
+    setRemoving(true);
+    setShowMenu(false);
+    try {
+      await technicianProfileApi.removeAvatar();
+      onAvatarChange('');
+    } catch (err) {
+      alert(err.message || 'Failed to remove avatar.');
+    } finally {
+      setRemoving(false);
+    }
+  };
+  return <div style={{
+    position: 'relative',
+    display: 'inline-block'
+  }}>
+      <div className="tp-profile-page-6" style={{
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+        {hasAvatar ? <img src={avatarUrl} alt="avatar" style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover'
+      }} /> : fallback}
+        {(uploading || removing) && <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(255,255,255,.65)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+            <Loader size={18} color={COLORS.brand} className="tp-spin" />
+          </div>}
+      </div>
+
+      {editMode && <button type="button" onClick={() => setShowMenu(m => !m)} style={{
+      position: 'absolute',
+      bottom: -2,
+      right: -2,
+      width: 28,
+      height: 28,
+      borderRadius: '50%',
+      background: COLORS.brand,
+      border: '2px solid white',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer'
+    }}>
+          <Camera size={13} color="white" />
+        </button>}
+
+      {showMenu && editMode && <>
+          <div onClick={() => setShowMenu(false)} style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 40
+      }} />
+          <div style={{
+        position: 'absolute',
+        top: '100%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        marginTop: 8,
+        background: 'var(--white)',
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: 10,
+        boxShadow: '0 10px 30px rgba(0,0,0,.15)',
+        padding: 6,
+        width: 190,
+        zIndex: 41
+      }}>
+            <button onClick={() => {
+          fileInputRef.current.click();
+          setShowMenu(false);
+        }} style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          width: '100%',
+          padding: '8px 10px',
+          border: 'none',
+          background: 'none',
+          borderRadius: 7,
+          fontSize: 12.5,
+          fontWeight: 600,
+          color: COLORS.h2,
+          cursor: 'pointer',
+          textAlign: 'left'
+        }}>
+              <Upload size={14} color={COLORS.brand} /> Upload from device
+            </button>
+            <button onClick={() => {
+          cameraInputRef.current.click();
+          setShowMenu(false);
+        }} style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          width: '100%',
+          padding: '8px 10px',
+          border: 'none',
+          background: 'none',
+          borderRadius: 7,
+          fontSize: 12.5,
+          fontWeight: 600,
+          color: COLORS.h2,
+          cursor: 'pointer',
+          textAlign: 'left'
+        }}>
+              <Camera size={14} color={COLORS.brand} /> Take a photo
+            </button>
+            {hasAvatar && <button onClick={handleRemove} style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          width: '100%',
+          padding: '8px 10px',
+          border: 'none',
+          background: 'none',
+          borderRadius: 7,
+          fontSize: 12.5,
+          fontWeight: 600,
+          color: '#DC2626',
+          cursor: 'pointer',
+          textAlign: 'left'
+        }}>
+                <Trash2 size={14} color="#DC2626" /> Remove photo
+              </button>}
+            <button onClick={() => setShowMenu(false)} style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          width: '100%',
+          padding: '8px 10px',
+          border: 'none',
+          background: 'none',
+          borderRadius: 7,
+          fontSize: 12.5,
+          fontWeight: 600,
+          color: COLORS.muted,
+          cursor: 'pointer',
+          textAlign: 'left'
+        }}>
+              <X size={14} /> Cancel
+            </button>
+          </div>
+        </>}
+
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={e => handleFile(e.target.files[0])} style={{
+      display: 'none'
+    }} />
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="user" onChange={e => handleFile(e.target.files[0])} style={{
+      display: 'none'
+    }} />
+    </div>;
+};
+
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [perf, setPerf] = useState(null);
@@ -78,6 +272,7 @@ const ProfilePage = () => {
   if (!profile || !perf) return <div className="tp-profile-page-2">Failed to load profile.</div>;
   const t = profile;
   return <div>
+      <style>{`.tp-spin{ animation: tpSpin .8s linear infinite; } @keyframes tpSpin{ to{ transform: rotate(360deg); } }`}</style>
       <div className="sec-hdr">
         <div>
           <div className="sec-title">My Profile</div>
@@ -92,9 +287,10 @@ const ProfilePage = () => {
         <div className="tp-profile-page-4">
           <div className="card afu">
             <div className="card-body tp-profile-page-5">
-              <div className="tp-profile-page-6">
-                {t.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-              </div>
+              <AvatarEditor avatarUrl={t.avatarUrl} fallback={t.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()} editMode={editMode} onAvatarChange={url => setProfile(p => ({
+              ...p,
+              avatarUrl: url
+            }))} />
               <div className="tp-profile-page-7">{t.name}</div>
               <div className="tp-profile-page-8">{t.role}</div>
               <div className="tp-profile-page-9">📍 {t.area}</div>

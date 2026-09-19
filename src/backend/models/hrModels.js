@@ -188,6 +188,14 @@ const assetSchema = new mongoose.Schema({
   lastServiceDate: { type: Date },
   nextServiceDate: { type: Date },
 
+  serviceHistory: [{
+    date:        { type: Date, required: true },
+    serviceType: { type: String, enum: ['Maintenance', 'Calibration', 'Repair', 'Inspection'], default: 'Maintenance' },
+    performedBy: { type: String },
+    cost:        { type: Number, default: 0 },
+    notes:       { type: String },
+  }],
+
   assignedTo:  { type: mongoose.Schema.Types.ObjectId, ref: 'Technician' },
   techName:    { type: String, default: 'Office' }, // denormalized display name
 

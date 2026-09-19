@@ -82,7 +82,8 @@ const SupplierDetail = ({
   onSave,
   onDelete,
   purchaseOrders,
-  inventory
+  inventory,
+  initialEditMode = false
 }) => {
   const fields = [{
     key: 'name'
@@ -105,7 +106,24 @@ const SupplierDetail = ({
   }];
   const supplierPOs = purchaseOrders.filter(p => p.supplier === sup.name);
   const supplierItems = inventory.filter(i => i.supplier === sup.name);
-  return <EditableDetailView id={sup.supplierId || sup.id} breadcrumb="Suppliers" onBack={onBack} fields={fields} data={sup} onSave={onSave} onDelete={() => onDelete(sup.id)}>
+
+  // ── Tab state for the right-hand card ──
+  const [tab, setTab] = useState('orders');
+  useEffect(() => {
+    setTab('orders');
+  }, [sup.id, sup._id]);
+
+  const TABS = [{
+    key: 'orders',
+    label: 'Purchase History',
+    count: supplierPOs.length
+  }, {
+    key: 'items',
+    label: 'Items Supplied',
+    count: supplierItems.length
+  }];
+
+  return <EditableDetailView id={sup.supplierId || sup.id} breadcrumb="Suppliers" onBack={onBack} fields={fields} data={sup} initialEditMode={initialEditMode} onSave={onSave} onDelete={() => onDelete(sup.id)}>
       {({
       editMode,
       editData,
@@ -153,28 +171,39 @@ const SupplierDetail = ({
               </div>
             </div>
 
-            {/* ── Right main ── */}
+            {/* ── Right main — tabbed ── */}
             <div className="sup-main-card">
-              <div className="sup-section">
-                <div className="sup-section-title">Purchase History</div>
-                {supplierPOs.length === 0 ? <div className="sup-empty">No orders found</div> : supplierPOs.map(po => <div key={po.id ?? po._id} className="sup-po-row">
-                        <span className="td-brand">{po.poId ?? po.id}</span>
-                        <div className="sup-po-meta">{po.items?.length ?? 0} items · {po.orderedAt ?fmtDateDMY(new Date(po.orderedAt)) : po.orderDate ?? '—'}</div>
-                        <SBadge s={po.status} map={PO_STATUS} />
-                        <span className="td-amount">₹{(po.total ?? 0).toLocaleString()}</span>
-                      </div>)}
+
+              <div className="sup-tabs" role="tablist">
+                {TABS.map(t => <button
+                  key={t.key}
+                  role="tab"
+                  type="button"
+                  aria-selected={tab === t.key}
+                  onClick={() => setTab(t.key)}
+                  className={`sup-tab${tab === t.key ? ' sup-tab--active' : ''}`}
+                >
+                  {t.label}
+                  <span className="sup-tab-count">{t.count}</span>
+                </button>)}
               </div>
 
-              <div className="sup-section">
-                <div className="sup-section-title">Items Supplied</div>
-                {supplierItems.length === 0 ? <div className="sup-empty">No items found</div> : supplierItems.map(item => <div key={item.id ?? item._id} className="sup-item-row">
+              <div className="sup-tab-panel" role="tabpanel">
+                {tab === 'orders' && (supplierPOs.length === 0 ? <div className="sup-empty">No orders found</div> : supplierPOs.map(po => <div key={po.id ?? po._id} className="sup-po-row">
+                        <span className="td-brand">{po.poId ?? po.id}</span>
+                        <div className="sup-po-meta">{po.items?.length ?? 0} items · {po.orderedAt ? fmtDateDMY(new Date(po.orderedAt)) : po.orderDate ?? '—'}</div>
+                        <SBadge s={po.status} map={PO_STATUS} />
+                        <span className="td-amount">₹{(po.total ?? 0).toLocaleString()}</span>
+                      </div>))}
+
+                {tab === 'items' && (supplierItems.length === 0 ? <div className="sup-empty">No items found</div> : supplierItems.map(item => <div key={item.id ?? item._id} className="sup-item-row">
                         <TypeTag type={item.category} />
                         <div className="sup-item-name">{item.name}</div>
                         <span className="td-mono sup-item-cost">₹{item.cost ?? 0}</span>
                         <span className={`sup-item-stock${(item.qty ?? 0) <= (item.reorder ?? 0) ? ' sup-item-stock--low' : ''}`}>
                           {item.qty ?? 0} stock
                         </span>
-                      </div>)}
+                      </div>))}
               </div>
             </div>
 
@@ -224,6 +253,7 @@ const SuppliersPage = ({
     return () => window.removeEventListener('focus', loadSuppliers);
   }, [loadSuppliers]);
   const [open, setOpen] = useState(null);
+  const [openInEdit, setOpenInEdit] = useState(false); // Edit from the row menu
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Fallback KPI figures computed from the loaded list, used only if /stats/summary
@@ -271,6 +301,16 @@ const SuppliersPage = ({
     totalColumns: ['totalOrders', 'totalValue']
   });
 
+  // ── Open helpers ───────────────────────────────────────────────────────────
+  const openView = id => {
+    setOpenInEdit(false);
+    setOpen(id);
+  };
+  const openEdit = id => {
+    setOpenInEdit(true);
+    setOpen(id);
+  };
+
   // ── Backend-backed mutations ───────────────────────────────────────────────
   const handleSave = async updated => {
     const id = updated.id ?? updated._id;
@@ -288,6 +328,7 @@ const SuppliersPage = ({
       });
       // Stats (e.g. Active count) may have changed — refetch everything for consistency
       loadSuppliers();
+      setOpenInEdit(false);
       setOpen(null);
     } catch (err) {
       console.error('[Suppliers] update failed:', err);
@@ -297,6 +338,7 @@ const SuppliersPage = ({
     try {
       await suppliersApi.remove(id);
       setSuppliers(prev => prev.filter(s => (s.id ?? s._id) !== id));
+      setOpenInEdit(false);
       setOpen(null);
       loadSuppliers(); // refresh KPIs (Active count, etc.)
     } catch (err) {
@@ -321,12 +363,15 @@ const SuppliersPage = ({
       console.error('[Suppliers] create failed:', err);
     }
   };
-  const handleBack = () => setOpen(null);
+  const handleBack = () => {
+    setOpenInEdit(false);
+    setOpen(null);
+  };
 
   // ── Conditional render AFTER all hooks ────────────────────────────────────
   const sup = open ? suppliers.find(s => (s.id ?? s._id) === open) : null;
   if (sup) {
-    return <SupplierDetail sup={sup} onBack={handleBack} onSave={handleSave} onDelete={handleDelete} purchaseOrders={purchaseOrders} inventory={inventory} />;
+    return <SupplierDetail key={`${open}-${openInEdit ? 'edit' : 'view'}`} sup={sup} onBack={handleBack} onSave={handleSave} onDelete={handleDelete} purchaseOrders={purchaseOrders} inventory={inventory} initialEditMode={openInEdit} />;
   }
 
   // ── List view ─────────────────────────────────────────────────────────────
@@ -392,7 +437,7 @@ const SuppliersPage = ({
                 </tr>}
               {!loading && paginated.map((s, i) => {
               const id = s.id ?? s._id;
-              return <tr key={id} className={`${i % 2 !== 0 ? 'row-alt' : ''} ap-suppliers-page-7`} onClick={() => setOpen(id)}>
+              return <tr key={id} className={`${i % 2 !== 0 ? 'row-alt' : ''} ap-suppliers-page-7`} onClick={() => openView(id)}>
                     <td>
                       <div className="sup-name-cell">
                         <Avatar name={s.name} size={30} color="#0369A1" />
@@ -405,7 +450,7 @@ const SuppliersPage = ({
                     <td>{s.paymentTerms ?? '—'}</td>
                     <td><span className="td-mono sup-orders-val">{s.totalOrders ?? 0}</span></td>
                     <td><span className="td-amount">₹{(s.totalValue ?? 0).toLocaleString()}</span></td>
-                    <td>{s.lastOrder ?fmtDateDMY(new Date(s.lastOrder)) : '—'}</td>
+                    <td>{s.lastOrder ? fmtDateDMY(new Date(s.lastOrder)) : '—'}</td>
                     <td><span className="sup-rating-val">{s.rating ?? 0}★</span></td>
                     <td>
                       <span className={`sup-status-badge${s.status === 'active' ? ' sup-status-badge--active' : ''}`}>
@@ -413,7 +458,7 @@ const SuppliersPage = ({
                       </span>
                     </td>
                     <td onClick={e => e.stopPropagation()}>
-                      <ActionDropdown onView={() => setOpen(id)} onEdit={() => setOpen(id)} onDelete={() => setDeleteTarget(id)} />
+                      <ActionDropdown onView={() => openView(id)} onEdit={() => openEdit(id)} onDelete={() => setDeleteTarget(id)} />
                     </td>
                   </tr>;
             })}

@@ -12,6 +12,7 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { paymentsApi } from '../../services/api';
+import { VENDOR, NAVY, logoImg, signatureImg } from '../../components/layout/printTemplates';
 
 /* ── Bank Details (static, not backend-driven) ───────────────────────────── */
 const BANK_DETAILS = {
@@ -241,46 +242,151 @@ const PaymentsPage = ({
   });
 
   // ── Build & print a standalone receipt document ─────────────────────────
+  // const printReceipt = p => {
+  //   const w = window.open('', '_blank', 'width=440,height=640');
+  //   if (!w) return;
+  //   const rows = [['Invoice', p.invoice], ['Customer', p.customer], ['Method', p.method], ['Gateway', p.gateway || 'Manual'], ['Date', p.date], ['Ref / UTR', p.ref], ['Status', PAY_STATUS_MAP[p.status]?.label || p.status]].map(([k, v]) => `
+  //     <tr>
+  //       <td style="padding:8px 0;color:#64748B;font-size:13px;border-bottom:1px solid #E2E8F0;">${k}</td>
+  //       <td style="padding:8px 0;font-weight:700;text-align:right;font-size:13px;border-bottom:1px solid #E2E8F0;">${v}</td>
+  //     </tr>`).join('');
+  //   w.document.open();
+  //   w.document.write(`
+  //     <!DOCTYPE html>
+  //     <html>
+  //       <head>
+  //         <title>Receipt ${p.id}</title>
+  //         <meta charset="utf-8" />
+  //         <style>
+  //           * { box-sizing: border-box; }
+  //           body { font-family: -apple-system, Arial, sans-serif; padding: 32px; color:#0F172A; }
+  //           .brand { font-size: 16px; font-weight: 800; color:#EA580C; }
+  //           .id { color:#94A3B8; font-size: 12px; margin: 2px 0 18px; }
+  //           .amount-label { color:#64748B; font-size: 12px; margin-bottom: 2px; }
+  //           .amount { font-size: 28px; font-weight: 800; color:#EA580C; margin-bottom: 20px; }
+  //           table { width:100%; border-collapse: collapse; }
+  //           .footer { margin-top: 28px; font-size: 11px; color:#94A3B8; text-align:center; }
+  //         </style>
+  //       </head>
+  //       <body>
+  //         <div class="brand">❄ CoolTech AC Services</div>
+  //         <div class="id">Payment Receipt · ${p.id}</div>
+  //         <div class="amount-label">Amount Paid</div>
+  //         <div class="amount">₹${p.amount.toLocaleString()}</div>
+  //         <table>${rows}</table>
+  //         <div class="footer">This is a system-generated receipt and does not require a signature.</div>
+  //       </body>
+  //     </html>
+  //   `);
+  //   w.document.close();
+  //   w.focus();
+  //   setTimeout(() => w.print(), 300);
+  // };
+
   const printReceipt = p => {
-    const w = window.open('', '_blank', 'width=440,height=640');
-    if (!w) return;
-    const rows = [['Invoice', p.invoice], ['Customer', p.customer], ['Method', p.method], ['Gateway', p.gateway || 'Manual'], ['Date', p.date], ['Ref / UTR', p.ref], ['Status', PAY_STATUS_MAP[p.status]?.label || p.status]].map(([k, v]) => `
-      <tr>
-        <td style="padding:8px 0;color:#64748B;font-size:13px;border-bottom:1px solid #E2E8F0;">${k}</td>
-        <td style="padding:8px 0;font-weight:700;text-align:right;font-size:13px;border-bottom:1px solid #E2E8F0;">${v}</td>
-      </tr>`).join('');
-    w.document.open();
-    w.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Receipt ${p.id}</title>
-          <meta charset="utf-8" />
-          <style>
-            * { box-sizing: border-box; }
-            body { font-family: -apple-system, Arial, sans-serif; padding: 32px; color:#0F172A; }
-            .brand { font-size: 16px; font-weight: 800; color:#EA580C; }
-            .id { color:#94A3B8; font-size: 12px; margin: 2px 0 18px; }
-            .amount-label { color:#64748B; font-size: 12px; margin-bottom: 2px; }
-            .amount { font-size: 28px; font-weight: 800; color:#EA580C; margin-bottom: 20px; }
-            table { width:100%; border-collapse: collapse; }
-            .footer { margin-top: 28px; font-size: 11px; color:#94A3B8; text-align:center; }
-          </style>
-        </head>
-        <body>
-          <div class="brand">❄ CoolTech AC Services</div>
-          <div class="id">Payment Receipt · ${p.id}</div>
+  const w = window.open('', '_blank', 'width=480,height=700');
+  if (!w) return;
+  const rows = [
+    ["Invoice", p.invoice],
+    ["Method", p.method],
+    ["Gateway", p.gateway || 'Manual'],
+    ["Date", p.date],
+    ["Ref / UTR", p.ref],
+    ["Status", PAY_STATUS_MAP[p.status]?.label || p.status]
+  ].map(([k, v]) => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #E2E8F0;font-size:12px;">${k}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #E2E8F0;font-size:12px;font-weight:700;text-align:right;">${v}</td>
+    </tr>`).join('');
+
+  w.document.open();
+  w.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Receipt ${p.id}</title>
+        <meta charset="utf-8" />
+        <style>
+          * { box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; padding: 36px; color:#0F172A; }
+          .header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 2px solid ${NAVY}; padding-bottom: 14px; margin-bottom: 18px; }
+          .tagline { font-size: 11px; color:#475569; max-width: 260px; line-height: 1.4; margin-bottom: 6px; }
+          .address { font-size: 10px; color:#64748B; max-width: 260px; }
+          .logo { height: 48px; }
+          .doc-title { font-size: 18px; font-weight: 800; color: ${NAVY}; text-align: right; margin-top: 6px; }
+          .doc-id { font-size: 11px; color:#94A3B8; text-align: right; }
+          .doc-date { font-size: 11px; color:#64748B; text-align: right; margin-top: 2px; }
+          .vendor-table { width:100%; border-collapse: collapse; margin-bottom: 18px; }
+          .vendor-table th { background: ${NAVY}; color:white; font-size: 11px; padding: 8px 12px; text-align: left; }
+          .vendor-table td { font-size: 12px; padding: 6px 12px; border-bottom: 1px solid #E2E8F0; }
+          .amount-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; }
+          .amount-label { color:#64748B; font-size: 11px; margin-bottom: 2px; }
+          .amount { font-size: 26px; font-weight: 800; color:${NAVY}; }
+          table.details { width:100%; border-collapse: collapse; margin-bottom: 24px; }
+          .footer { display:flex; justify-content:space-between; align-items:flex-end; margin-top: 40px; font-size: 12px; }
+          .footer-note { color:#334155; }
+          .footer-note b { display:block; margin-bottom: 2px; }
+          .signature { height: 42px; margin-bottom: 4px; }
+          .authorized { font-size: 10px; color:#64748B; text-align:center; }
+          .disclaimer { margin-top: 24px; font-size: 10px; color:#94A3B8; text-align:center; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="tagline">Installation Maintenance &amp; Repair of Air Conditioning,<br/>Electronics Appliance, Fabrication &amp; Insulation Works.</div>
+            <div class="address">${VENDOR.address}</div>
+          </div>
+          <div>
+            <img src="${logoImg}" alt="${VENDOR.company}" class="logo" />
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom:18px;">
+          <div></div>
+          <div>
+            <div class="doc-title">PAYMENT RECEIPT</div>
+            <div class="doc-id">${p.id}</div>
+            <div class="doc-date">Date: ${p.date}</div>
+          </div>
+        </div>
+
+        <table class="vendor-table">
+          <tr><th style="width:50%;">From</th><th style="width:50%;border-left:1px solid rgba(255,255,255,0.25);">Received From</th></tr>
+          <tr>
+            <td style="vertical-align:top;"><strong>${VENDOR.company}</strong><br/>${VENDOR.phone} · ${VENDOR.email}</td>
+            <td style="vertical-align:top;border-left:1px solid #E2E8F0;"><strong>${p.customer}</strong></td>
+          </tr>
+        </table>
+
+        <div class="amount-box">
           <div class="amount-label">Amount Paid</div>
           <div class="amount">₹${p.amount.toLocaleString()}</div>
-          <table>${rows}</table>
-          <div class="footer">This is a system-generated receipt and does not require a signature.</div>
-        </body>
-      </html>
-    `);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 300);
-  };
+        </div>
+
+        <table class="details">${rows}</table>
+
+        <div class="footer">
+          <div class="footer-note">
+            <b>Thanking You,</b>
+            Mr. ${VENDOR.contact}<br/>
+            ${VENDOR.phone}<br/>
+            From: ${VENDOR.company}
+          </div>
+          <div style="text-align:center;">
+            <img src="${signatureImg}" alt="Signature" class="signature" /><br/>
+            <div class="authorized">[Authorized Signatory]</div>
+          </div>
+        </div>
+
+        <div class="disclaimer">This is a system-generated receipt and does not require a signature.</div>
+      </body>
+    </html>
+  `);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 300);
+};
 
   // ── REAL Razorpay Checkout.js flow ──────────────────────────────────────
   const handleRazorpayCheckout = async p => {
@@ -610,9 +716,13 @@ const PaymentsPage = ({
                       date: formatToday()
                     })}>Mark Paid</button>}
                             {p.status !== 'received' && <button className="btn btn-sm pay-btn-link" disabled={busyId === p._id} onClick={() => handleRazorpayCheckout(p)}>⚡ Pay Now</button>}
-                            {p.status === 'overdue' && <button className="btn btn-sm btn-danger" onClick={() => openModal?.('send_quotation', {
-                      id: p.invoice
-                    })}>Remind</button>}
+                            {p.status === 'overdue' && <button className="btn btn-sm btn-danger" onClick={() => openModal?.('send_reminder', {
+  _id: p._id,
+  invoice: p.invoice,
+  customer: p.customer,
+  amount: p.amount,
+  date: p.date
+})}>Remind</button>}
                             <button className="btn btn-sm btn-ghost" onClick={() => setReceiptModal(p)}>Receipt</button>
                             <button className="btn btn-sm btn-ghost" disabled={busyId === p._id} onClick={() => handleDelete(p)}>🗑️</button>
                           </div>

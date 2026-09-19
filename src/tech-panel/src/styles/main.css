@@ -1857,3 +1857,45 @@ body {
   background: var(--faint);
   border-radius: 99px;
 }
+
+/* ── Row action menu (portal variant) ──────────────────────────────────────
+   Rendered into document.body via createPortal, so it is NOT a descendant
+   of .tech-panel-scope anymore — scoped selectors and inherited CSS
+   variables (--border, --brand, etc., which are defined ON .tech-panel-scope
+   itself) won't reach it. These rules are intentionally unscoped and use
+   literal fallback colors so the menu is fully self-contained. Positioned
+   with inline top/left (fixed, viewport-relative) so it never sits inside
+   .lv-table-wrap and can't trigger that wrapper's overflow-x:auto from
+   forcing an overflow-y:auto scrollbar (the CSS-spec quirk where one axis
+   set to non-visible forces the other to compute as auto too). */
+.lv-menu--portal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #fff;
+  border: 1px solid #E5E9F0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  z-index: 9999;
+  min-width: 140px;
+  overflow: hidden;
+}
+
+.lv-menu--portal .lv-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 14px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+}
+.lv-menu--portal .lv-menu-item:hover {
+  background: #F8FAFC;
+}
+.lv-menu--portal .lv-menu-item--danger {
+  color: #DC2626;
+}

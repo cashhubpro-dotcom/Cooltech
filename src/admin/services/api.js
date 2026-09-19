@@ -281,7 +281,10 @@ export const suppliersApi  = { ...crud('suppliers'),
 }
 export const purchaseApi   = crud('purchase-orders');
 export const salesOrdersApi = crud('sales-orders');
-export const assetsApi     = crud('assets');
+export const assetsApi = {
+  ...crud('assets'),
+  addServiceLog: (id, body) => req('PUT', `/assets/${id}/service-log`, body),
+};
 export const contractsApi = {
   ...crud('contracts'),
   sign: (id) => req('PUT', `/contracts/${id}/sign`),
@@ -555,12 +558,28 @@ export const whatsappApi = {
   stats:    ()     => req('GET',  '/whatsapp/stats/overview'),
 };
 
+// export const reportsApi = {
+//   overview: (params = {}) => {
+//     const qs = new URLSearchParams(params).toString();
+//     return req('GET', `/reports/overview${qs ? '?' + qs : ''}`);
+//   },
+//   monthly: (year) => req('GET', `/reports/monthly${year ? `?year=${year}` : ''}`),
+// };
+
 export const reportsApi = {
   overview: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return req('GET', `/reports/overview${qs ? '?' + qs : ''}`);
   },
   monthly: (year) => req('GET', `/reports/monthly${year ? `?year=${year}` : ''}`),
+  summary: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return req('GET', `/reports/summary${qs ? '?' + qs : ''}`);
+  },
+  data: (type, params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return req('GET', `/reports/data/${type}${qs ? '?' + qs : ''}`);
+  },
 };
 
 export const deletedItemsApi = {

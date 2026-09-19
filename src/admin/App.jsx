@@ -623,7 +623,8 @@ function AppShell() {
       {/* ── Modals ──────────────────────────────────────────────────────── */}
       <RecordPaymentModal    open={modal?.type === 'record_payment'}    onClose={closeModal} onSave={() => showToast('Payment recorded!')}
         paymentMethods={activePaymentMethods} onAddPaymentMethod={addPaymentMethod} />
-      <SendRemindersModal    open={modal?.type === 'send_reminder_all'} onClose={closeModal} onSave={() => showToast('Reminders sent!')} />
+      <SendRemindersModal open={modal?.type === 'send_reminder_all'} onClose={closeModal} onSave={() => showToast('Reminders sent!')} />
+<SendRemindersModal open={modal?.type === 'send_reminder'} onClose={closeModal} onSave={() => showToast('Reminder sent!')} payment={modal?.data} />
       <NewPriceItemModal
   open={modal?.type === 'new_price_item'}
   onClose={closeModal}

@@ -1069,7 +1069,10 @@ export const AppearanceTab = () => {
           {BRAND_COLORS.map(({
           hex,
           name
-        }) => <div key={hex} onClick={() => setBrandColor(hex)} style={{
+        }) => <div key={hex} onClick={() => {
+          setBrandColor(hex);
+          setCtxColor(hex); // live preview — repaints the app before Save
+        }} style={{
           border: `2px solid ${brandColor === hex ? hex : COLORS.border}`,
           background: brandColor === hex ? `${hex}10` : COLORS.bg
         }} className="ap-settings-page-107">

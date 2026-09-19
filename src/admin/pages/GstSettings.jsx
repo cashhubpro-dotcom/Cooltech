@@ -60,6 +60,9 @@ export default function GstSettings() {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newDraft, setNewDraft] = useState(null);
   const [highlightHistory, setHighlightHistory] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showNotifModal, setShowNotifModal] = useState(false);
   const historyRef = useRef(null);
   const tableCardRef = useRef(null);
   async function loadData() {
@@ -885,7 +888,7 @@ export default function GstSettings() {
           </div>
           <div className="gst-banner-right">
             <span className="gst-pill">Not Reviewed</span>
-            <a className="gst-link" href="#">View →</a>
+            <button className="gst-link" onClick={handleViewHistory} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>View →</button>
           </div>
         </div>
 
@@ -897,7 +900,39 @@ export default function GstSettings() {
                 <h3>Service Tax Rates</h3>
                 <p>Click the pencil to edit — changes are logged automatically.</p>
               </div>
-              <span className="gst-dropdown">All Categories <ChevronDown size={13} /></span>
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="gst-dropdown"
+                  onClick={() => setShowCategoryDropdown(v => !v)}
+                  style={{ cursor: 'pointer', border: '1px solid var(--card-border)' }}
+                >
+                  {categoryFilter === 'all' ? 'All Categories' : categories.find(c => c._id === categoryFilter)?.name || 'All Categories'}
+                  <ChevronDown size={13} />
+                </button>
+                {showCategoryDropdown && (
+                  <div style={{
+                    position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'white',
+                    border: '1px solid var(--card-border)', borderRadius: 8, boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
+                    zIndex: 10, minWidth: 180, overflow: 'hidden'
+                  }}>
+                    <div
+                      onClick={() => { setCategoryFilter('all'); setShowCategoryDropdown(false); }}
+                      style={{ padding: '8px 14px', fontSize: 13, cursor: 'pointer', background: categoryFilter === 'all' ? '#F5F5F5' : 'white' }}
+                    >
+                      All Categories
+                    </div>
+                    {categories.map(cat => (
+                      <div
+                        key={cat._id}
+                        onClick={() => { setCategoryFilter(cat._id); setShowCategoryDropdown(false); }}
+                        style={{ padding: '8px 14px', fontSize: 13, cursor: 'pointer', background: categoryFilter === cat._id ? '#F5F5F5' : 'white' }}
+                      >
+                        {cat.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <table className="gst-table">
               <thead>
@@ -980,7 +1015,7 @@ export default function GstSettings() {
                       </div>
                     </td>
                   </tr>}
-                {categories.map(cat => editingId === cat._id ? <tr className="gst-edit-row" key={cat._id}>
+                {categories.filter(c => categoryFilter === 'all' || c._id === categoryFilter).map(cat => editingId === cat._id ? <tr className="gst-edit-row" key={cat._id}>
                       <td colSpan={6}>
                         {formError && <div className="gst-form-error">
                             <AlertCircle size={13} /> {formError}
@@ -1063,7 +1098,7 @@ export default function GstSettings() {
                 <h3>Recent Notifications</h3>
                 <p>CBIC circulars applied to your rates</p>
               </div>
-              <a className="gst-viewall" href="#">View All →</a>
+              <button className="gst-viewall" onClick={() => setShowNotifModal(true)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>View All →</button>
             </div>
             <div className="gst-notif-list">
               {notificationsSeed.map(n => <div className="gst-notif-item" key={n.id}>
@@ -1079,6 +1114,56 @@ export default function GstSettings() {
             </div>
           </div>
         </div>
+
+        {showNotifModal && (
+          <div
+            onClick={() => setShowNotifModal(false)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'white', borderRadius: 14, width: 480, maxWidth: '90vw',
+                maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden'
+              }}
+            >
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '18px 20px', borderBottom: '1px solid var(--card-border)'
+              }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>All CBIC Notifications</h3>
+                  <p style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--text-muted)' }}>
+                    {notificationsSeed.length} circulars on record
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowNotifModal(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1, color: 'var(--text-muted)' }}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="gst-notif-list" style={{ padding: '8px 12px', overflowY: 'auto' }}>
+                {notificationsSeed.map(n => (
+                  <div className="gst-notif-item" key={n.id}>
+                    <div className="gst-notif-avatar">{n.code}</div>
+                    <div className="gst-notif-main">
+                      <div className="name">{n.label}</div>
+                      <div className="zone">{n.desc}</div>
+                    </div>
+                    <span className={`gst-status-pill ${n.status === "Applied" ? "gst-status-applied" : "gst-status-pending"}`}>
+                      {n.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* row 2: donuts + top categories */}
         <div className="gst-grid-row2">

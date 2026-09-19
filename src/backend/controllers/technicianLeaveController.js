@@ -11,6 +11,9 @@ const calcDays = (from, to) => {
 
 // Shape a Leave doc the same way the technician frontend expects
 // (mirrors admin's getLeaves mapping so both panels stay consistent).
+// approvedBy must be populated (see queries below) before this runs —
+// it reads `.name` off the populated doc rather than the raw ObjectId,
+// with a string fallback for any legacy record that saved a plain name.
 const toRow = (l) => ({
   id:           l._id.toString(),
   type:         l.type,
@@ -19,7 +22,7 @@ const toRow = (l) => ({
   days:         l.days || 0,
   reason:       l.reason || '',
   status:       l.status,
-  approvedBy:   l.approvedBy || '',
+  approvedBy:   l.approvedBy?.name || (typeof l.approvedBy === 'string' ? l.approvedBy : ''),
   approvalNote: l.approvalNote || '',
   appliedOn:    l.createdAt ? new Date(l.createdAt).toISOString().slice(0, 10) : '',
 });
@@ -59,14 +62,16 @@ export const getMyLeaves = async (req, res) => {
   const leaves = await Leave.find(q)
     .sort({ createdAt: -1 })
     .skip((+page - 1) * +limit)
-    .limit(+limit);
+    .limit(+limit)
+    .populate('approvedBy', 'name');
 
   ok(res, leaves.map(toRow));
 };
 
 // GET /api/technician/leaves/:id
 export const getMyLeaveById = async (req, res) => {
-  const leave = await Leave.findOne({ _id: req.params.id, technician: req.technician._id });
+  const leave = await Leave.findOne({ _id: req.params.id, technician: req.technician._id })
+    .populate('approvedBy', 'name');
   if (!leave) return err(res, 'Leave request not found', 404);
   ok(res, toRow(leave));
 };

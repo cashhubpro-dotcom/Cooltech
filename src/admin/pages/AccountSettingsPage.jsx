@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useCompany } from "../context/CompanyContext";
 import { COLORS, FONTS } from "../constants/tokens";
 import { Lock, Bell, Shield, Smartphone, Eye, EyeOff, Monitor, Moon, Sun, Globe, CheckCircle, AlertTriangle, Key, Trash2, LogOut, Save, ToggleLeft, ToggleRight, Loader } from "lucide-react";
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -211,8 +212,11 @@ const AccountSettingsPage = () => {
   };
 
   // ── Appearance tab ────────────────────────────────────────────────────────
+  // Theme lives in CompanyContext, not local state — that's what lets
+  // clicking a swatch repaint the whole app immediately instead of only
+  // after "Save Preferences" is clicked.
+  const { theme, setTheme } = useCompany();
   const [prefs, setPrefs] = useState({
-    theme: "light",
     language: "en-IN",
     timezone: "Asia/Kolkata",
     currency: "INR"
@@ -225,7 +229,10 @@ const AccountSettingsPage = () => {
     try {
       const res = await authFetch("/account/preferences", {
         method: "PUT",
-        body: JSON.stringify(prefs)
+        body: JSON.stringify({
+          ...prefs,
+          theme
+        })
       });
       const data = await res.json();
       if (!res.ok) return setAppToast({
@@ -329,7 +336,11 @@ const AccountSettingsPage = () => {
       try {
         const [nRes, pRes, sRes] = await Promise.all([authFetch("/account/notifications"), authFetch("/account/preferences"), authFetch("/account/security")]);
         if (nRes.ok) setNotifs(await nRes.json());
-        if (pRes.ok) setPrefs(await pRes.json());
+        if (pRes.ok) {
+          const { theme: fetchedTheme, ...rest } = await pRes.json() || {};
+          setPrefs(p => ({ ...p, ...rest }));
+          if (fetchedTheme) setTheme(fetchedTheme);
+        }
         if (sRes.ok) {
           const sec = await sRes.json();
           setTwoFA(sec.twoFactorEnabled ?? false);
@@ -463,17 +474,14 @@ const AccountSettingsPage = () => {
             icon: Monitor,
             bg: "linear-gradient(135deg,#fff 50%,#1A1A2E 50%)",
             border: "#CBD5E1"
-          }].map(t => <button key={t.id} onClick={() => setPrefs(p => ({
-            ...p,
-            theme: t.id
-          }))} style={{
-            border: prefs.theme === t.id ? `2px solid ${COLORS.brand}` : `1.5px solid ${t.border}`,
-            background: prefs.theme === t.id ? `${COLORS.brand}08` : t.bg,
-            boxShadow: prefs.theme === t.id ? "0 0 0 3px var(--xea580c18)" : "none"
+          }].map(t => <button key={t.id} onClick={() => setTheme(t.id)} style={{
+            border: theme === t.id ? `2px solid ${COLORS.brand}` : `1.5px solid ${t.border}`,
+            background: theme === t.id ? `${COLORS.brand}08` : t.bg,
+            boxShadow: theme === t.id ? "0 0 0 3px var(--xea580c18)" : "none"
           }} className="ap-account-settings-page-38">
-                  <t.icon size={20} color={prefs.theme === t.id ? COLORS.brand : COLORS.muted} />
+                  <t.icon size={20} color={theme === t.id ? COLORS.brand : COLORS.muted} />
                   <span style={{
-              color: prefs.theme === t.id ? "var(--brand)" : "var(--text-muted)"
+              color: theme === t.id ? "var(--brand)" : "var(--text-muted)"
             }} className="ap-account-settings-page-39">{t.label}</span>
                 </button>)}
             </div>

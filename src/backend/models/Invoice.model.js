@@ -9,7 +9,29 @@ const ItemSchema = new mongoose.Schema(
     name: { type: String, default: "" },
     qty:  { type: Number, default: 1 },
     rate: { type: Number, default: 0 },
-    gst:  { type: Number, default: 18 },
+    // Default changed from 18 → 0: line items no longer carry any assumed
+    // tax at all. GST now only ever comes from an Additional Charge
+    // explicitly labeled "GST" (see ChargeSchema below) — never a silent
+    // per-item default.
+    gst:  { type: Number, default: 0 },
+    // Reference to the GstCategory active when this line was billed — kept
+    // for audit/history (so you can see which tax category applied), even
+    // if that category's rate changes later. Not required: legacy invoices
+    // created before this field existed simply have it as null.
+    gstCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: "GstCategory", default: null },
+  },
+  { _id: false }
+);
+
+// Additional Charges (delivery, installation labour, etc.) — separate from
+// line items because they're often taxed differently or not at all. Selected
+// on the frontend via a per-charge GST dropdown (defaults to no GST).
+const ChargeSchema = new mongoose.Schema(
+  {
+    label:  { type: String, default: "" },
+    amount: { type: Number, default: 0 },
+    gst:    { type: Number, default: 0 },
+    gstCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: "GstCategory", default: null },
   },
   { _id: false }
 );
@@ -33,6 +55,13 @@ const InvoiceSchema = new mongoose.Schema(
 
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', index: true, default: null },
     customer:  { type: String, default: "", required: true, trim: true },
+    // Billing contact snapshot from CreateInvoicePage — sent by the frontend
+    // on every save but silently dropped before, since none of these were
+    // declared on the schema (Mongoose strict mode strips unknown fields).
+    billToAddress: { type: String, default: "" },
+    billToContact: { type: String, default: "" },
+    billToPhone:   { type: String, default: "" },
+    billToEmail:   { type: String, default: "" },
     subject:   { type: String, default: "",    trim: true },
     date:      { type: String, default: "" },   // "YYYY-MM-DD"
     dueDate:   { type: String, default: "" },
@@ -41,10 +70,12 @@ const InvoiceSchema = new mongoose.Schema(
     notes:     { type: String, default: "" },
     terms:     { type: String, default: "" },
     items:     { type: [ItemSchema], default: [] },
+    additionalCharges: { type: [ChargeSchema], default: [] },
 
     // Computed totals — stored for fast list queries
     subtotal:  { type: Number, default: 0 },
-    gstAmount: { type: Number, default: 0 },
+    extraCharges: { type: Number, default: 0 }, // sum of additionalCharges' base amounts (pre-tax)
+    gstAmount: { type: Number, default: 0 },    // tax from items AND additionalCharges combined
     total:     { type: Number, default: 0 },
     isDeleted:  { type: Boolean, default: false },
 deletedAt:  { type: Date,    default: null  },
@@ -86,25 +117,34 @@ InvoiceSchema.pre("validate", async function (next) {
 
 // Auto-compute totals before every save
 InvoiceSchema.pre("save", function (next) {
-  const sub = this.items.reduce((s, it) => s + it.qty * it.rate, 0);
-  const gst = this.items.reduce((s, it) => s + it.qty * it.rate * (it.gst / 100), 0);
-  this.subtotal  = parseFloat(sub.toFixed(2));
-  this.gstAmount = parseFloat(gst.toFixed(2));
-  this.total     = parseFloat((sub + gst).toFixed(2));
+  const sub      = this.items.reduce((s, it) => s + it.qty * it.rate, 0);
+  const itemsGst = this.items.reduce((s, it) => s + it.qty * it.rate * (it.gst / 100), 0);
+  const charges  = (this.additionalCharges || []).reduce((s, c) => s + (c.amount || 0), 0);
+  const chargesGst = (this.additionalCharges || []).reduce((s, c) => s + (c.amount || 0) * ((c.gst || 0) / 100), 0);
+  this.subtotal     = parseFloat(sub.toFixed(2));
+  this.extraCharges = parseFloat(charges.toFixed(2));
+  this.gstAmount     = parseFloat((itemsGst + chargesGst).toFixed(2));
+  this.total         = parseFloat((sub + charges + itemsGst + chargesGst).toFixed(2));
   next();
 });
 
 // Also recompute on findOneAndUpdate
 InvoiceSchema.pre("findOneAndUpdate", async function (next) {
   const update = this.getUpdate();
-  const items  = update?.items || update?.$set?.items;
-  if (items) {
-    const sub = items.reduce((s, it) => s + it.qty * it.rate, 0);
-    const gst = items.reduce((s, it) => s + it.qty * it.rate * (it.gst / 100), 0);
+  const items   = update?.items || update?.$set?.items;
+  const charges = update?.additionalCharges || update?.$set?.additionalCharges;
+  if (items || charges) {
+    const itemList    = items || [];
+    const chargeList  = charges || [];
+    const sub         = itemList.reduce((s, it) => s + it.qty * it.rate, 0);
+    const itemsGst    = itemList.reduce((s, it) => s + it.qty * it.rate * (it.gst / 100), 0);
+    const chargesBase = chargeList.reduce((s, c) => s + (c.amount || 0), 0);
+    const chargesGst  = chargeList.reduce((s, c) => s + (c.amount || 0) * ((c.gst || 0) / 100), 0);
     this.set({
-      subtotal:  parseFloat(sub.toFixed(2)),
-      gstAmount: parseFloat(gst.toFixed(2)),
-      total:     parseFloat((sub + gst).toFixed(2)),
+      subtotal:     parseFloat(sub.toFixed(2)),
+      extraCharges: parseFloat(chargesBase.toFixed(2)),
+      gstAmount:    parseFloat((itemsGst + chargesGst).toFixed(2)),
+      total:        parseFloat((sub + chargesBase + itemsGst + chargesGst).toFixed(2)),
     });
   }
 

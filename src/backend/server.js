@@ -20,6 +20,7 @@ import technicianAmcRoutes from './routes/technicianAmc.routes.js';
 import technicianAttendanceRoutes from './routes/technicianAttendanceRoutes.js';
 import technicianExpenseRoutes from './routes/technicianExpense.route.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
+import reportRoutes from './routes/reports.routes.js';
 import apiRoutes from './routes/api.js';
 import stripMongoId from './middleware/stripMongoId.middleware.js';
 import leaveRoutes from './routes/leaveRoutes.js';
@@ -125,6 +126,7 @@ app.use('/api/technician/expenses', technicianExpenseRoutes);
 
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/sales-orders', salesOrderRoutes);
+app.use('/api/reports', reportRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/leaves', protect, adminOnly, leaveRoutes);
 app.use('/api/timelogs', timelogsRouter);

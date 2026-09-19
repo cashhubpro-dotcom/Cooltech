@@ -5,8 +5,12 @@ import { Thead } from '../../components/ui/Cards';
 import TableSearchBar from '../../components/ui/TableSearchBar';
 import FilterSelect from '../../components/ui/FilterSelect';
 import Pagination from '../../components/ui/Pagination';
+import ActionDropdown from '../../components/ui/ActionDropdown';
+import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
+import EditableDetailView from '../../components/ui/EditableDetailView';
 import { partRequestsApi } from '../../services/api';
 import { fmtDateDMY } from '../../../shared/formatDate';
+
 const STATUS_MAP = {
   pending: {
     label: 'Pending',
@@ -27,10 +31,11 @@ const STATUS_MAP = {
     dot: "var(--danger)"
   }
 };
+
 const fmtDate = val => {
   if (!val) return '—';
   const d = new Date(val);
-  return isNaN(d) ? String(val) :fmtDateDMY(d);
+  return isNaN(d) ? String(val) : fmtDateDMY(d);
 };
 
 // ── normalizeRequest — guarantees every display field is defined, resolves
@@ -54,6 +59,14 @@ const normalizeRequest = (r, idx) => {
     rejectionReason: r.rejectionReason || ''
   };
 };
+
+// ── API helpers — tolerate remove/delete/destroy and update/patch naming ─────
+const callApi = (names, ...args) => {
+  const key = names.find(n => typeof partRequestsApi[n] === 'function');
+  if (!key) return Promise.reject(new Error(`partRequestsApi.${names[0]}() is not available.`));
+  return partRequestsApi[key](...args);
+};
+
 const PartsRequestsPage = () => {
   const [requests, setRequests] = useState([]);
   const [stats, setStats] = useState({
@@ -69,6 +82,12 @@ const PartsRequestsPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // ── row actions state ──
+  const [selected, setSelected] = useState(null);      // request open in detail view
+  const [detailEdit, setDetailEdit] = useState(false); // open detail straight in edit mode
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
   const loadAll = async () => {
     setLoading(true);
     setError('');
@@ -76,22 +95,27 @@ const PartsRequestsPage = () => {
       const [listRes, statsRes] = await Promise.all([partRequestsApi.list({
         limit: 500
       }), partRequestsApi.stats()]);
-      setRequests((listRes.data || []).map(normalizeRequest));
+      const rows = (listRes.data || []).map(normalizeRequest);
+      setRequests(rows);
       setStats(statsRes.data || {
         pending: 0,
         approved: 0,
         rejected: 0,
         urgent: 0
       });
+      // keep the open detail view in sync after an approve/reject/save
+      setSelected(prev => prev ? rows.find(x => x._id === prev._id) || null : null);
     } catch (err) {
       setError(err.message || 'Failed to load parts requests.');
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     loadAll();
   }, []);
+
   const filtered = useMemo(() => {
     return requests.filter(r => {
       if (statusFilter && r.status !== statusFilter) return false;
@@ -102,13 +126,16 @@ const PartsRequestsPage = () => {
       return true;
     });
   }, [requests, q, statusFilter]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const from = filtered.length === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, filtered.length);
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
   useEffect(() => {
     setPage(1);
   }, [q, statusFilter]);
+
   const handleApprove = async r => {
     setBusyId(r._id);
     try {
@@ -120,6 +147,7 @@ const PartsRequestsPage = () => {
       setBusyId(null);
     }
   };
+
   const handleReject = async r => {
     const reason = window.prompt(`Reason for rejecting ${r.id} (optional):`, '');
     if (reason === null) return; // cancelled
@@ -133,6 +161,100 @@ const PartsRequestsPage = () => {
       setBusyId(null);
     }
   };
+
+  const handleDelete = async () => {
+    const r = deleteTarget;
+    if (!r) return;
+    setBusyId(r._id);
+    try {
+      await callApi(['remove', 'delete', 'destroy'], r._id);
+      setDeleteTarget(null);
+      if (selected && selected._id === r._id) setSelected(null);
+      await loadAll();
+    } catch (err) {
+      alert(err.message || 'Failed to delete request.');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleSaveDetail = async updated => {
+    try {
+      await callApi(['update', 'patch', 'edit'], updated._id, {
+        qty: Number(updated.qty),
+        linkedJob: updated.linkedJob,
+        notes: updated.notes
+      });
+      await loadAll();
+    } catch (err) {
+      alert(err.message || 'Failed to save changes.');
+    }
+  };
+
+  const openView = r => { setDetailEdit(false); setSelected(r); };
+  const openEdit = r => { setDetailEdit(true); setSelected(r); };
+
+  // ── Detail view ────────────────────────────────────────────────────────────
+  if (selected) {
+    const detailFields = [
+      { key: 'partName', label: 'Part', hero: true, type: 'readonly' },
+      { key: 'status', label: 'Status', type: 'badge', badgeMap: STATUS_MAP },
+      { key: 'techName', label: 'Technician', type: 'readonly',
+        render: (_v, d) => <span>{d.techName}{d.techId ? ` · ${d.techId}` : ''}</span> },
+      { key: 'qty', label: 'Quantity', type: 'number',
+        render: (_v, d) => <span>{d.qty} {d.unit}</span> },
+      { key: 'linkedJob', label: 'Linked job' },
+      { key: 'urgent', label: 'Urgent', type: 'readonly',
+        render: v => <span>{v ? '🚨 Yes' : 'No'}</span> },
+      { key: 'date', label: 'Requested on', type: 'readonly' },
+      { key: 'notes', label: 'Notes', type: 'textarea', span: 2 },
+      ...(selected.status === 'rejected' && selected.rejectionReason
+        ? [{ key: 'rejectionReason', label: 'Reason for rejection', type: 'readonly', span: 2 }]
+        : [])
+    ];
+
+    return (
+      <>
+        <EditableDetailView
+          id={selected.id}
+          breadcrumb="Parts Requests"
+          onBack={() => setSelected(null)}
+          fields={detailFields}
+          data={selected}
+          initialEditMode={detailEdit}
+          onSave={handleSaveDetail}
+          onDelete={() => setDeleteTarget(selected)}
+          actions={selected.status === 'pending' ? (
+            <div className="ap-parts-requests-page-23">
+              <button
+                disabled={busyId === selected._id}
+                onClick={() => handleApprove(selected)}
+                className="ap-parts-requests-page-24"
+              >
+                Approve
+              </button>
+              <button
+                disabled={busyId === selected._id}
+                onClick={() => handleReject(selected)}
+                className="ap-parts-requests-page-25"
+              >
+                Reject
+              </button>
+            </div>
+          ) : null}
+        />
+
+        <DeleteConfirmModal
+          isOpen={Boolean(deleteTarget)}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          message={`Request ${deleteTarget?.id || ''} will be permanently removed and cannot be recovered.`}
+        />
+      </>
+    );
+  }
+
+  // ── List view ──────────────────────────────────────────────────────────────
   return <div className="pr-page">
       <div className="sec-hdr">
         <div>
@@ -212,19 +334,31 @@ const PartsRequestsPage = () => {
                   <td className="ap-parts-requests-page-17">
                     {r.urgent ? <span className="ap-parts-requests-page-18">🚨 Yes</span> : <span className="ap-parts-requests-page-19">No</span>}
                   </td>
-                  <td className="ap-parts-requests-page-20"><SBadge s={r.status} map={STATUS_MAP} /></td>
+                  <td className="ap-parts-requests-page-20" title={r.status === 'rejected' && r.rejectionReason ? r.rejectionReason : undefined}>
+                    <SBadge s={r.status} map={STATUS_MAP} />
+                  </td>
                   <td className="ap-parts-requests-page-21">{r.date}</td>
+
+                  {/* ── Action column ── */}
                   <td className="ap-parts-requests-page-22">
-                    {r.status === 'pending' ? <div className="ap-parts-requests-page-23">
-                        <button disabled={busyId === r._id} onClick={() => handleApprove(r)} className="ap-parts-requests-page-24">
-                          Approve
-                        </button>
-                        <button disabled={busyId === r._id} onClick={() => handleReject(r)} className="ap-parts-requests-page-25">
-                          Reject
-                        </button>
-                      </div> : <span className="ap-parts-requests-page-26">
-                        {r.status === 'rejected' && r.rejectionReason ? r.rejectionReason : '—'}
-                      </span>}
+                    <ActionDropdown
+                      onView={() => openView(r)}
+                      onEdit={() => openEdit(r)}
+                      onDelete={() => setDeleteTarget(r)}
+                      extraItems={r.status === 'pending' ? [
+                        {
+                          label: 'Approve',
+                          icon: '✅',
+                          onClick: () => handleApprove(r)
+                        },
+                        {
+                          label: 'Reject',
+                          icon: '❌',
+                          onClick: () => handleReject(r),
+                          danger: true
+                        }
+                      ] : []}
+                    />
                   </td>
                 </tr>)}
             </tbody>
@@ -233,6 +367,15 @@ const PartsRequestsPage = () => {
 
         {filtered.length > 0 && <Pagination page={page} totalPages={totalPages} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} from={from} to={to} total={filtered.length} />}
       </div>
+
+      {/* Delete confirm */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        message={`Request ${deleteTarget?.id || ''} will be permanently removed and cannot be recovered.`}
+      />
     </div>;
 };
+
 export default PartsRequestsPage;

@@ -215,6 +215,21 @@ const ViewAssetModal = ({
           <div className="ap-assets-page-12">Notes</div>
           <div className="ap-assets-page-13">{asset.notes}</div>
         </div>}
+      {asset.serviceHistory?.length > 0 && <div className="ap-assets-page-11">
+          <div className="ap-assets-page-12">Service History</div>
+          <div className="service-history-list">
+            {[...asset.serviceHistory].reverse().map(h => <div key={h._id} className="service-history-row">
+                <div className="service-history-row-top">
+                  <span className="td-bold">{h.serviceType}</span>
+                  <span className="td-mono">{fmtDate(h.date)}</span>
+                </div>
+                <div className="service-history-row-meta">
+                  {h.performedBy || 'Unspecified'}{h.cost ? ` · ₹${Number(h.cost).toLocaleString()}` : ''}
+                </div>
+                {h.notes && <div className="service-history-row-notes">{h.notes}</div>}
+              </div>)}
+          </div>
+        </div>}
       <div className="ap-assets-page-14">
         <button onClick={onClose} className="ap-assets-page-15">
           Close
@@ -252,6 +267,132 @@ const ConfirmDeleteModal = ({
     </Modal>;
 };
 
+// ─── LogServiceModal — equipment service / maintenance entry ──────────────────
+// Equipment isn't fuelled, so the Log button records a service entry instead of
+// a fuel entry. Falls back to a plain asset update when the API has no
+// dedicated service-log endpoint.
+const SERVICE_TYPES = ['Maintenance', 'Calibration', 'Repair', 'Inspection'];
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+const LogServiceModal = ({
+  asset,
+  onClose,
+  onSaved
+}) => {
+  const [form, setForm] = useState({
+    date: todayISO(),
+    serviceType: 'Maintenance',
+    performedBy: '',
+    cost: '',
+    nextServiceDate: '',
+    notes: ''
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    if (asset) {
+      setForm({
+        date: todayISO(),
+        serviceType: 'Maintenance',
+        performedBy: asset.techName || '',
+        cost: '',
+        nextServiceDate: '',
+        notes: ''
+      });
+      setErr('');
+    }
+  }, [asset]);
+
+  if (!asset) return null;
+
+  const set = key => e => setForm(p => ({
+    ...p,
+    [key]: e.target.value
+  }));
+
+  const submit = async () => {
+    if (!form.date) {
+      setErr('Pick the service date.');
+      return;
+    }
+    setSaving(true);
+    setErr('');
+    const payload = {
+      date: form.date,
+      serviceType: form.serviceType,
+      performedBy: form.performedBy.trim(),
+      cost: form.cost === '' ? 0 : Number(form.cost),
+      nextServiceDate: form.nextServiceDate || null,
+      notes: form.notes.trim()
+    };
+    try {
+      await assetsApi.addServiceLog(asset._id, payload);
+      onSaved?.();
+      onClose();
+    } catch (e) {
+      setErr(e.message || 'Could not save the service entry.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return <Modal open={!!asset} onClose={onClose} title={`🔧 Log Service Entry`} width={560}>
+      <div className="form-grid">
+        <div className="form-row form-row--full">
+          <label className="form-label">Equipment</label>
+          <input className="form-input" value={asset.name} readOnly disabled />
+        </div>
+
+        <div className="form-row">
+          <label className="form-label">Date *</label>
+          <input className="form-input" type="date" value={form.date} onChange={set('date')} />
+        </div>
+
+        <div className="form-row">
+          <label className="form-label">Service type</label>
+          <select className="form-select" value={form.serviceType} onChange={set('serviceType')}>
+            {SERVICE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+
+        <div className="form-row">
+          <label className="form-label">Performed by</label>
+          <input className="form-input" value={form.performedBy} onChange={set('performedBy')} placeholder="Technician or vendor" />
+        </div>
+
+        <div className="form-row">
+          <label className="form-label">Cost (₹)</label>
+          <input className="form-input" type="number" min="0" value={form.cost} onChange={set('cost')} placeholder="0" />
+        </div>
+
+        <div className="form-row">
+          <label className="form-label">Next service due</label>
+          <input className="form-input" type="date" value={form.nextServiceDate} onChange={set('nextServiceDate')} />
+        </div>
+
+        <div className="form-row form-row--full">
+          <label className="form-label">Notes</label>
+          <textarea className="form-input" rows={3} value={form.notes} onChange={set('notes')} placeholder="Parts replaced, readings, observations…" />
+        </div>
+      </div>
+
+      {err && <div className="ap-assets-page-17" style={{
+      color: 'var(--danger-text)'
+    }}>{err}</div>}
+
+      <div className="ap-assets-page-18">
+        <button onClick={onClose} className="ap-assets-page-19">
+          Cancel
+        </button>
+        <button onClick={submit} disabled={saving} className="btn btn-primary">
+          {saving ? 'Saving…' : 'Log Entry'}
+        </button>
+      </div>
+    </Modal>;
+};
+
 // ─── AssetsPage ───────────────────────────────────────────────────────────────
 const AssetsPage = ({
   openModal
@@ -260,6 +401,7 @@ const AssetsPage = ({
   const [viewAsset, setViewAsset] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [logTarget, setLogTarget] = useState(null); // equipment service log
   const loadAssets = () => {
     assetsApi.list({
       limit: 200
@@ -455,9 +597,7 @@ const AssetsPage = ({
                   </td>
                   <td className="ap-assets-page-66">
                     <div className="ap-assets-page-67">
-                      <button onClick={() => openModal("log_fuel", {
-                    name: e.name
-                  })} className="ap-assets-page-68">
+                      <button onClick={() => setLogTarget(e)} title="Log a service entry" className="ap-assets-page-68">
                         Log
                       </button>
                       <RowMenu items={[{
@@ -489,6 +629,7 @@ const AssetsPage = ({
       </div>
 
       <ViewAssetModal asset={viewAsset} onClose={() => setViewAsset(null)} />
+      <LogServiceModal asset={logTarget} onClose={() => setLogTarget(null)} onSaved={loadAssets} />
       <ConfirmDeleteModal asset={deleteTarget} deleting={deleting} onCancel={() => setDeleteTarget(null)} onConfirm={confirmDelete} />
 
     </div>;

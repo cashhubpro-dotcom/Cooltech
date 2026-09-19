@@ -88,6 +88,31 @@ export const clientProfileApi = {
   changePassword:   (payload) => req('/client-portal/me/profile/password', { method: 'PATCH', body: payload, panel: 'portal' }),
   getNotifPrefs:    ()        => req('/client-portal/me/profile/notification-prefs', { panel: 'portal' }),
   updateNotifPrefs: (payload) => req('/client-portal/me/profile/notification-prefs', { method: 'PATCH', body: payload, panel: 'portal' }),
+  uploadAvatar: async (file) => {
+  const form = new FormData();
+  form.append('avatar', file);
+  const res = await fetch(`${BASE}/client-portal/me/avatar`, {   // adjust path/BASE to match this file's convention
+    method: 'POST',
+    headers: localStorage.getItem('client_token')                // adjust token key to whatever this file actually uses
+      ? { Authorization: `Bearer ${localStorage.getItem('client_token')}` }
+      : {},
+    body: form,
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Upload failed');
+  return json;   // expected shape: { data: { avatarUrl } } or { avatarUrl }
+},
+removeAvatar: async () => {
+  const res = await fetch(`${BASE}/client-portal/me/avatar`, {
+    method: 'DELETE',
+    headers: localStorage.getItem('client_token')
+      ? { Authorization: `Bearer ${localStorage.getItem('client_token')}` }
+      : {},
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Remove failed');
+  return json;
+},
 };
 
 export const clientDashboardApi = {

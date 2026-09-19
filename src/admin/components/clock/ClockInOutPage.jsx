@@ -796,7 +796,7 @@ const ClockInOutPage = ({
         </div>
 
         {/* ── Daily Worked Hours chart ── */}
-      
+        
         {/* ── Charts row: Daily Worked Hours + Late Arrivals Trend ── */}
 <div className="ap-clock-in-out-page-200">
   <div className="ap-clock-in-out-page-145">

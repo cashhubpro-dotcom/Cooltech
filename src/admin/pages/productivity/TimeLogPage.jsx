@@ -10,6 +10,9 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
+import ActionDropdown from '../../components/ui/ActionDropdown';
+import EditableDetailView from '../../components/ui/EditableDetailView';
+import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
 
 // ─── Column config for export ─────────────────────────────────────────────────
 const TIMELOG_COLUMNS = [{
@@ -96,6 +99,20 @@ const TIMELOG_COLUMNS = [{
   }
 }];
 
+// ─── Field config for detail/edit view ────────────────────────────────────────
+const TIMELOG_FIELDS = [
+  { key: 'tech', label: 'Technician', large: true },
+  { key: 'job', label: 'Job / Activity' },
+  { key: 'type', label: 'Type', type: 'select', options: ['Service', 'Repair', 'Installation', 'AMC Visit', 'Training', 'Other'] },
+  { key: 'customer', label: 'Customer' },
+  { key: 'date', label: 'Date', type: 'date' },
+  { key: 'start', label: 'Start Time', type: 'time' },
+  { key: 'end', label: 'End Time', type: 'time' },
+  { key: 'hrs', label: 'Hours', type: 'number' },
+  { key: 'billable', label: 'Billable', type: 'select', options: [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] },
+  { key: 'notes', label: 'Notes', type: 'textarea', span: 2 },
+];
+
 // ─── TimeLogPage ──────────────────────────────────────────────────────────────
 const TimeLogPage = ({
   openModal
@@ -107,6 +124,34 @@ const TimeLogPage = ({
     techsApi.list().then(res => setTechnicians(res?.data || [])) // ← always use res.data
     .catch(() => setTechnicians([]));
   }, []);
+
+  // ── Detail view / delete state ────────────────────────────────────────────
+  const [selectedLog, setSelectedLog] = useState(null); // { log, editMode } | null
+  const [deleteTarget, setDeleteTarget] = useState(null); // row object | null
+
+  const openDetail = (log, editMode = false) => setSelectedLog({ log, editMode });
+
+  const handleSaveLog = async updated => {
+    const id = updated._id || updated.id;
+    const payload = { ...updated, billable: updated.billable === 'true' || updated.billable === true, hrs: Number(updated.hrs) };
+    const saved = await timelogsApi.update(id, payload);
+    setTimeLogs(prev => prev.map(t => (t._id || t.id) === id ? saved : t));
+    setSelectedLog(null);
+  };
+
+  const handleDeleteFromDetail = async () => {
+    const id = selectedLog.log._id || selectedLog.log.id;
+    await timelogsApi.remove(id);
+    setTimeLogs(prev => prev.filter(t => (t._id || t.id) !== id));
+    setSelectedLog(null);
+  };
+
+  const confirmRowDelete = async () => {
+    const id = deleteTarget._id || deleteTarget.id;
+    setDeleteTarget(null);
+    await timelogsApi.remove(id);
+    setTimeLogs(prev => prev.filter(t => (t._id || t.id) !== id));
+  };
 
   // ── Search + filters ──────────────────────────────────────────────────────
   const {
@@ -154,6 +199,23 @@ const TimeLogPage = ({
   const billHrs = filtered.filter(t => t.billable).reduce((a, t) => a + t.hrs, 0);
   const avgHrs = filtered.length ? totalHrs / filtered.length : 0;
   const techNames = (technicians || []).map(t => t.name);
+
+  // ── Detail view (View/Edit a single time log) ─────────────────────────────
+  if (selectedLog) {
+    const { log, editMode } = selectedLog;
+    const formattedLog = { ...log, billable: log.billable ? 'true' : 'false' };
+    return <EditableDetailView
+      id={log.id || log._id}
+      breadcrumb="Time Tracker"
+      onBack={() => setSelectedLog(null)}
+      fields={TIMELOG_FIELDS}
+      data={formattedLog}
+      initialEditMode={editMode}
+      onSave={handleSaveLog}
+      onDelete={handleDeleteFromDetail}
+    />;
+  }
+
   return <div className="fu ap-time-log-page-1">
 
       {/* Header */}
@@ -194,9 +256,9 @@ const TimeLogPage = ({
         {/* Table */}
         <div className="ap-time-log-page-10">
           <table className="ap-time-log-page-11">
-            <Thead cols={["ID", "Technician", "Job / Activity", "Customer", "Date", "Start", "End", "Hours", "Billable", "Notes"]} />
+            <Thead cols={["ID", "Technician", "Job / Activity", "Customer", "Date", "Start", "End", "Hours", "Billable", "Notes", "Actions"]} />
             <tbody>
-              {paginated.length === 0 && <tr><td colSpan={10} className="ap-time-log-page-12">No time logs found.</td></tr>}
+              {paginated.length === 0 && <tr><td colSpan={11} className="ap-time-log-page-12">No time logs found.</td></tr>}
               {paginated.map((t, i) => <tr key={t.id} className="row ap-time-log-page-13" style={{
               background: i % 2 === 0 ? "var(--white)" : "var(--bg)"
             }}>
@@ -228,6 +290,13 @@ const TimeLogPage = ({
                     </span>
                   </td>
                   <td className="ap-time-log-page-30">{t.notes}</td>
+                  <td>
+                    <ActionDropdown
+                      onView={() => openDetail(t, false)}
+                      onEdit={() => openDetail(t, true)}
+                      onDelete={() => setDeleteTarget(t)}
+                    />
+                  </td>
                 </tr>)}
             </tbody>
           </table>
@@ -262,6 +331,16 @@ const TimeLogPage = ({
         })}
         </div>
       </div>
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onConfirm={confirmRowDelete}
+        onCancel={() => setDeleteTarget(null)}
+        title="Delete this time log?"
+        message={deleteTarget ? `Entry ${deleteTarget.id} (${deleteTarget.hrs.toFixed(1)}h) will be permanently removed.` : ''}
+        confirmText="Yes, Delete It!"
+        cancelText="Cancel"
+      />
     </div>;
 };
 export default TimeLogPage;

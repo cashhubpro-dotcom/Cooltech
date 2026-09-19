@@ -143,6 +143,31 @@ export const technicianProfileApi = {
   get:         ()        => req('/technician-portal/me/profile', { panel: 'tech' }),
   update:      (payload) => req('/technician-portal/me/profile', { method: 'PUT', body: payload, panel: 'tech' }),
   performance: ()        => req('/technician-portal/me/performance-summary', { panel: 'tech' }),
+  uploadAvatar: async (file) => {
+  const form = new FormData();
+  form.append('avatar', file);
+  const res = await fetch(`${BASE}/technician-portal/me/avatar`, {   // adjust path/BASE to match this file's convention
+    method: 'POST',
+    headers: localStorage.getItem('technician_token')                // adjust token key to whatever this file actually uses
+      ? { Authorization: `Bearer ${localStorage.getItem('technician_token')}` }
+      : {},
+    body: form,
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Upload failed');
+  return json;   // expected shape: { data: { avatarUrl } } or { avatarUrl }
+},
+removeAvatar: async () => {
+  const res = await fetch(`${BASE}/technician-portal/me/avatar`, {
+    method: 'DELETE',
+    headers: localStorage.getItem('technician_token')
+      ? { Authorization: `Bearer ${localStorage.getItem('technician_token')}` }
+      : {},
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Remove failed');
+  return json;
+},
 };
 
 export const authApi = {

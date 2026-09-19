@@ -104,7 +104,11 @@ router.get("/:id", asyncWrap(async (req, res) => {
 
 // ─── POST /api/invoices ───────────────────────────────────────────────────────
 router.post("/", asyncWrap(async (req, res) => {
-  const { invoiceNo, customer, subject, date, dueDate, status, paid, notes, terms, items } = req.body;
+  const {
+    invoiceNo, customer, subject, date, dueDate, status, paid, notes, terms,
+    items, additionalCharges,
+    billToAddress, billToContact, billToPhone, billToEmail,
+  } = req.body;
 
   if (status !== "draft" && !customer) {
     return res.status(400).json({ success: false, message: "Customer name is required" });
@@ -124,6 +128,11 @@ router.post("/", asyncWrap(async (req, res) => {
     notes:     notes     || "",
     terms:     terms     || "",
     items:     items     || [],
+    additionalCharges: additionalCharges || [],
+    billToAddress: billToAddress || "",
+    billToContact: billToContact || "",
+    billToPhone:   billToPhone   || "",
+    billToEmail:   billToEmail   || "",
   });
 
   await doc.save();
@@ -132,15 +141,22 @@ router.post("/", asyncWrap(async (req, res) => {
 
 // ─── PUT /api/invoices/:id ────────────────────────────────────────────────────
 router.put("/:id", asyncWrap(async (req, res) => {
-  const { invoiceNo, customer, subject, date, dueDate, status, paid, notes, terms, items } = req.body;
+  const {
+    invoiceNo, customer, subject, date, dueDate, status, paid, notes, terms,
+    items, additionalCharges,
+    billToAddress, billToContact, billToPhone, billToEmail,
+  } = req.body;
 
   if (status !== "draft" && customer === "") {
     return res.status(400).json({ success: false, message: "Customer name is required" });
   }
 
-  const itms   = items || [];
-  const sub    = itms.reduce((s, it) => s + it.qty * it.rate, 0);
-  const gstAmt = itms.reduce((s, it) => s + it.qty * it.rate * (it.gst / 100), 0);
+  const itms    = items || [];
+  const charges = additionalCharges || [];
+  const sub         = itms.reduce((s, it) => s + it.qty * it.rate, 0);
+  const itemsGst    = itms.reduce((s, it) => s + it.qty * it.rate * (it.gst / 100), 0);
+  const chargesBase = charges.reduce((s, c) => s + (c.amount || 0), 0);
+  const chargesGst  = charges.reduce((s, c) => s + (c.amount || 0) * ((c.gst || 0) / 100), 0);
 
   const customerId = await resolveCustomerId(req.body);
 
@@ -149,10 +165,13 @@ router.put("/:id", asyncWrap(async (req, res) => {
     {
       $set: {
         invoiceNo, customer, customerId, subject, date, dueDate, status, paid, notes, terms,
-        items:     itms,
-        subtotal:  parseFloat(sub.toFixed(2)),
-        gstAmount: parseFloat(gstAmt.toFixed(2)),
-        total:     parseFloat((sub + gstAmt).toFixed(2)),
+        billToAddress, billToContact, billToPhone, billToEmail,
+        items:        itms,
+        additionalCharges: charges,
+        subtotal:     parseFloat(sub.toFixed(2)),
+        extraCharges: parseFloat(chargesBase.toFixed(2)),
+        gstAmount:    parseFloat((itemsGst + chargesGst).toFixed(2)),
+        total:        parseFloat((sub + chargesBase + itemsGst + chargesGst).toFixed(2)),
       },
     },
     { new: true, runValidators: true }

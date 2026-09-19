@@ -1239,6 +1239,23 @@ router.use('/suppliers', createCRUD(Supplier, {
 }));
 
 // ── Assets ────────────────────────────────────────────────────────────────────
+router.put('/assets/:id/service-log', async (req, res) => {
+  try {
+    const { date, serviceType, performedBy, cost, notes, nextServiceDate } = req.body;
+    const asset = await Asset.findById(req.params.id);
+    if (!asset) return res.status(404).json({ message: 'Asset not found' });
+
+    asset.serviceHistory.push({ date, serviceType, performedBy, cost, notes });
+    asset.lastServiceDate = date;
+    if (nextServiceDate) asset.nextServiceDate = nextServiceDate;
+
+    await asset.save();
+    res.json(asset);
+  } catch (err) {
+    res.status(400).json({ message: err.message || 'Failed to log service entry' });
+  }
+});
+
 router.use('/assets', createCRUD(Asset, {
   searchFields: ['assetId', 'name', 'regNo', 'serial', 'techName', 'subType'],
   filterFields: ['status', 'assetType'],
@@ -1277,15 +1294,27 @@ contractRouter.post('/:id/clone', async (req, res) => {
       ...rest
     } = original;
 
+    // const clone = await Contract.create({
+    //   ...rest,
+    //   title: `${original.title} (Copy)`,
+    //   signed: false,
+    //   signedDate: null,
+    //   signatories: [],
+    //   status: 'draft',
+    //   auditLog: [{ action: 'Cloned', detail: `Cloned from ${contractId}`, by: req.user?.name || 'Admin' }],
+    // });
+
     const clone = await Contract.create({
-      ...rest,
-      title: `${original.title} (Copy)`,
-      signed: false,
-      signedDate: null,
-      signatories: [],
-      status: 'draft',
-      auditLog: [{ action: 'Cloned', detail: `Cloned from ${contractId}`, by: req.user?.name || 'Admin' }],
-    });
+  ...rest,
+  customer: original.customer || original.contact || 'Unknown Customer',
+  title: `${original.title} (Copy)`,
+  signed: false,
+  signedDate: null,
+  signatories: [],
+  status: 'draft',
+  auditLog: [{ action: 'Cloned', detail: `Cloned from ${contractId}`, by: req.user?.name || 'Admin' }],
+});
+
     res.status(201).json(clone);
   } catch (err) {
     res.status(500).json({ message: err.message });

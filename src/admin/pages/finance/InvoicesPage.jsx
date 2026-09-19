@@ -170,7 +170,11 @@ const iS = (extra = {}) => ({
 const normaliseInvoice = inv => {
   /* ── totals ───────────────────────────────────────────── */
   const amount = inv.amount ?? inv.subtotal ?? 0;
-  const tax = inv.tax ?? inv.gst ?? Math.round(amount * 0.18);
+  // inv.gstAmount is the real, always-persisted field (set by the backend's
+  // pre-save hook from actual per-item/per-charge GST rates). inv.tax/inv.gst
+  // never existed on the schema and were always undefined — which is why
+  // this used to silently fall back to guessing 18% on every invoice.
+  const tax = inv.gstAmount ?? inv.tax ?? inv.gst ?? 0;
   const total = inv.total ?? inv.grandTotal ?? amount + tax;
 
   /* ── customer ─────────────────────────────────────────── */
@@ -308,7 +312,10 @@ const InvoiceTemplate = ({
   // Use saved totals when available; recalculate from rows only as fallback
   const subtotalFromRows = rows.reduce((s, r) => s + (parseFloat(r.qty) || 0) * (parseFloat(r.rate) || 0), 0);
   const subtotal = invoice.amount > 0 ? invoice.amount : subtotalFromRows;
-  const gst = invoice.tax > 0 ? invoice.tax : Math.round(subtotal * 0.18);
+  // Trust the real stored tax figure directly — including a legitimate 0
+  // (e.g. every line item is genuinely 0% GST). The old `> 0` check treated
+  // a real zero the same as "missing" and forced a fake 18% guess either way.
+  const gst = invoice.tax ?? 0;
   const grandTotal = invoice.total > 0 ? invoice.total : subtotal + gst;
 
   /* ── Additional charges ─────────────────────────────── */
@@ -557,9 +564,13 @@ const InvoiceTemplate = ({
                       </tr>
                     </>}
 
-                  {/* GST */}
+                  {/* GST — label shows the real blended rate computed from
+                      actual stored amounts, never a hardcoded guess. Mixed
+                      rates across items/charges will show as one weighted %. */}
                   <tr className="ap-invoices-page-56">
-                    <td className="ap-invoices-page-57">GST (18%)</td>
+                    <td className="ap-invoices-page-57">
+                      GST{subtotal > 0 ? ` (${Math.round((gst / subtotal) * 1000) / 10}%)` : ''}
+                    </td>
                     <td className="ap-invoices-page-58">
                       ₹{gst.toLocaleString()}
                     </td>
@@ -1046,7 +1057,7 @@ const InvoiceDetail = ({
 
               <div className="ap-invoices-page-105">
                 <div className="ap-invoices-page-106">Summary</div>
-                {[['Subtotal', `₹${invoice.amount?.toLocaleString()}`], ['GST @ 18%', `₹${invoice.tax?.toLocaleString()}`]].map(([k, v]) => <div key={k} className="ap-invoices-page-107">
+                {[['Subtotal', `₹${invoice.amount?.toLocaleString()}`], [invoice.amount > 0 ? `GST (${Math.round((invoice.tax / invoice.amount) * 1000) / 10}%)` : 'GST', `₹${invoice.tax?.toLocaleString()}`]].map(([k, v]) => <div key={k} className="ap-invoices-page-107">
                     <span>{k}</span>
                     <span className="ap-invoices-page-108">{v}</span>
                   </div>)}

@@ -89,54 +89,145 @@ const CheckRow = ({
 // ─── SendRemindersModal ───────────────────────────────────────────────────────
 // Sends payment reminders for all overdue/pending invoices.
 // API: PATCH /invoices/:id with { reminderSent: true } for each overdue invoice.
+// export const SendRemindersModal = ({
+//   open,
+//   onClose,
+//   onSave
+// }) => {
+//   const overdueInvoices = invoices.filter(i => i.status !== 'paid');
+//   const [sendVia, setSendVia] = useState('WhatsApp + SMS');
+//   const [template, setTemplate] = useState('Dear {customer}, your invoice {invoice} of ₹{amount} is due on {date}. Please arrange payment. Thank you. – CoolTech AC Services');
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState('');
+//   const handleSend = async () => {
+//     setError('');
+//     setLoading(true);
+//     try {
+//       // Use _id (MongoDB) falling back to id (mock data) — never send the id in the body
+//       await Promise.all(overdueInvoices.map(inv => {
+//         const invoiceId = inv._id ?? inv.id;
+//         return invoicesApi.update(invoiceId, {
+//           reminderSent: true,
+//           reminderChannel: sendVia,
+//           reminderTemplate: template
+//         });
+//       }));
+//       onSave?.({
+//         sent: overdueInvoices.length
+//       });
+//       onClose?.();
+//     } catch (err) {
+//       setError(err.message || 'Failed to send reminders. Please try again.');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+//   if (!open) return null;
+//   return <Modal open={open} onClose={onClose} title="📤 Send Payment Reminders" width={480} footer={<>
+//         <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
+//         <FBtn onClick={handleSend} disabled={loading || overdueInvoices.length === 0}>
+//           {loading ? 'Sending…' : 'Send All Reminders'}
+//         </FBtn>
+//       </>}>
+//       <ErrorBanner message={error} />
+//       <div className="ap-hr-modals-10">
+//         <div className="ap-hr-modals-11">Overdue & Pending Invoices</div>
+//         {overdueInvoices.map(inv => <div key={inv.id} className="ap-hr-modals-12">
+//             <span>{inv.id} – {inv.customer}</span>
+//             <span className="ap-hr-modals-13">₹{inv.total?.toLocaleString()}</span>
+//           </div>)}
+//       </div>
+//       <FRow label="Send Via">
+//         <FSelect value={sendVia} onChange={e => setSendVia(e.target.value)}>
+//           {['WhatsApp + SMS', 'WhatsApp Only', 'SMS Only', 'Email'].map(v => <option key={v}>{v}</option>)}
+//         </FSelect>
+//       </FRow>
+//       <FRow label="Message Template">
+//         <textarea value={template} onChange={e => setTemplate(e.target.value)} rows={3} className="ap-hr-modals-14" />
+//       </FRow>
+//       <div className="ap-hr-modals-15">
+//         📤 {overdueInvoices.length} reminder{overdueInvoices.length !== 1 ? 's' : ''} will be sent automatically
+//       </div>
+//     </Modal>;
+// };
+
+// ─── SendRemindersModal ───────────────────────────────────────────────────────
+// Sends payment reminders for all overdue/pending invoices, or a single one
+// when a `payment` object is passed in.
+// API: PATCH /invoices/:id with { reminderSent: true }
 export const SendRemindersModal = ({
   open,
   onClose,
-  onSave
+  onSave,
+  payment = null   // ← NEW: when provided, operates in single-reminder mode
 }) => {
-  const overdueInvoices = invoices.filter(i => i.status !== 'paid');
+  const isSingle = !!payment;
+  const overdueInvoices = isSingle ? [] : invoices.filter(i => i.status !== 'paid');
   const [sendVia, setSendVia] = useState('WhatsApp + SMS');
-  const [template, setTemplate] = useState('Dear {customer}, your invoice {invoice} of ₹{amount} is due on {date}. Please arrange payment. Thank you. – CoolTech AC Services');
+  const [template, setTemplate] = useState(
+    isSingle
+      ? `Dear ${payment.customer}, your invoice ${payment.invoice} of ₹${Number(payment.amount || 0).toLocaleString()} is overdue. Please arrange payment at the earliest. Thank you. – Alisha Engineering`
+      : 'Dear {customer}, your invoice {invoice} of ₹{amount} is due on {date}. Please arrange payment. Thank you. – Alisha Engineering'
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
   const handleSend = async () => {
     setError('');
     setLoading(true);
     try {
-      // Use _id (MongoDB) falling back to id (mock data) — never send the id in the body
-      await Promise.all(overdueInvoices.map(inv => {
-        const invoiceId = inv._id ?? inv.id;
-        return invoicesApi.update(invoiceId, {
+      if (isSingle) {
+        const invoiceId = payment._id ?? payment.id ?? payment.invoice;
+        await invoicesApi.update(invoiceId, {
           reminderSent: true,
           reminderChannel: sendVia,
           reminderTemplate: template
         });
-      }));
-      onSave?.({
-        sent: overdueInvoices.length
-      });
+        onSave?.({ sent: 1 });
+      } else {
+        await Promise.all(overdueInvoices.map(inv => {
+          const invoiceId = inv._id ?? inv.id;
+          return invoicesApi.update(invoiceId, {
+            reminderSent: true,
+            reminderChannel: sendVia,
+            reminderTemplate: template
+          });
+        }));
+        onSave?.({ sent: overdueInvoices.length });
+      }
       onClose?.();
     } catch (err) {
-      setError(err.message || 'Failed to send reminders. Please try again.');
+      setError(err.message || 'Failed to send reminder. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
   if (!open) return null;
-  return <Modal open={open} onClose={onClose} title="📤 Send Payment Reminders" width={480} footer={<>
+  return <Modal open={open} onClose={onClose} title={isSingle ? `📤 Remind ${payment.customer}` : "📤 Send Payment Reminders"} width={480} footer={<>
         <FBtn secondary onClick={onClose} disabled={loading}>Cancel</FBtn>
-        <FBtn onClick={handleSend} disabled={loading || overdueInvoices.length === 0}>
-          {loading ? 'Sending…' : 'Send All Reminders'}
+        <FBtn onClick={handleSend} disabled={loading || (!isSingle && overdueInvoices.length === 0)}>
+          {loading ? 'Sending…' : isSingle ? 'Send Reminder' : 'Send All Reminders'}
         </FBtn>
       </>}>
       <ErrorBanner message={error} />
-      <div className="ap-hr-modals-10">
-        <div className="ap-hr-modals-11">Overdue & Pending Invoices</div>
-        {overdueInvoices.map(inv => <div key={inv.id} className="ap-hr-modals-12">
-            <span>{inv.id} – {inv.customer}</span>
-            <span className="ap-hr-modals-13">₹{inv.total?.toLocaleString()}</span>
-          </div>)}
-      </div>
+      {isSingle ? (
+        <div className="ap-hr-modals-10">
+          <div className="ap-hr-modals-11">Overdue Invoice</div>
+          <div className="ap-hr-modals-12">
+            <span>{payment.invoice} – {payment.customer}</span>
+            <span className="ap-hr-modals-13">₹{Number(payment.amount || 0).toLocaleString()}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="ap-hr-modals-10">
+          <div className="ap-hr-modals-11">Overdue & Pending Invoices</div>
+          {overdueInvoices.map(inv => <div key={inv.id} className="ap-hr-modals-12">
+              <span>{inv.id} – {inv.customer}</span>
+              <span className="ap-hr-modals-13">₹{inv.total?.toLocaleString()}</span>
+            </div>)}
+        </div>
+      )}
       <FRow label="Send Via">
         <FSelect value={sendVia} onChange={e => setSendVia(e.target.value)}>
           {['WhatsApp + SMS', 'WhatsApp Only', 'SMS Only', 'Email'].map(v => <option key={v}>{v}</option>)}
@@ -145,9 +236,9 @@ export const SendRemindersModal = ({
       <FRow label="Message Template">
         <textarea value={template} onChange={e => setTemplate(e.target.value)} rows={3} className="ap-hr-modals-14" />
       </FRow>
-      <div className="ap-hr-modals-15">
+      {!isSingle && <div className="ap-hr-modals-15">
         📤 {overdueInvoices.length} reminder{overdueInvoices.length !== 1 ? 's' : ''} will be sent automatically
-      </div>
+      </div>}
     </Modal>;
 };
 

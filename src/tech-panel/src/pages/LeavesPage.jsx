@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { COLORS } from '../constants/token';
 import { LEAVE_STATUS } from '../constants/statusMaps';
 import { SBadge, Modal, Toast, ProgressBar } from '../components/ui/Components';
@@ -74,27 +75,63 @@ const ActionMenu = ({
   onWithdraw
 }) => {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const wrapRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const placeMenu = () => {
+    const btn = wrapRef.current?.querySelector('.lv-menu-btn');
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const menuWidth = menuRef.current?.offsetWidth || 140;
+    setCoords({
+      top: r.bottom + 4,
+      left: Math.max(8, r.right - menuWidth)
+    });
+  };
+
+  // Position right before paint so the menu never flashes in the wrong spot,
+  // and recompute on scroll/resize since it's now fixed-positioned relative
+  // to the viewport rather than the table wrapper.
+  useLayoutEffect(() => {
+    if (!open) return;
+    placeMenu();
+    const onScrollOrResize = () => placeMenu();
+    window.addEventListener('scroll', onScrollOrResize, true);
+    window.addEventListener('resize', onScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize, true);
+      window.removeEventListener('resize', onScrollOrResize);
+    };
+  }, [open]);
+
   useEffect(() => {
     const h = e => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (wrapRef.current && wrapRef.current.contains(e.target)) return;
+      if (menuRef.current && menuRef.current.contains(e.target)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, []);
+
   const item = (label, cb, danger) => <button key={label} className={`lv-menu-item${danger ? ' lv-menu-item--danger' : ''}`} onClick={() => {
     cb();
     setOpen(false);
   }}>
       {label}
     </button>;
-  return <div ref={ref} className="lv-menu-wrap">
+
+  return <div ref={wrapRef} className="lv-menu-wrap">
       <button className="lv-menu-btn" onClick={() => setOpen(o => !o)} aria-label="Row actions">⋯</button>
-      {open && <div className="lv-menu">
+      {open && createPortal(<div ref={menuRef} className="lv-menu lv-menu--portal" style={{
+        top: coords.top,
+        left: coords.left
+      }}>
           {item('👁  View', () => onView(leave))}
           {isPending(leave.status) && item('✏️  Edit', () => onEdit(leave))}
           {isPending(leave.status) && item('🗑  Withdraw', () => onWithdraw(leave), true)}
-        </div>}
+        </div>, document.body)}
     </div>;
 };
 

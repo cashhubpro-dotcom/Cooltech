@@ -96,14 +96,26 @@ const ComplaintsPage = ({ openModal }) => {
         <KCard label="Avg Resolution" value="2.3 days" sub="response time" icon="⏱" iconBg="#EFF6FF" color="#0369A1" />
       </div>
 
-      <div className="ap-complaints-page-3">
+      {/* <div className="ap-complaints-page-3">
         {[['all', 'All', complaints.length], ['open', 'Open', openC], ['in_progress', 'In Progress', inProgC],
           ['resolved', 'Resolved', resolvedC], ['closed', 'Closed', closedC]].map(([k, l, c]) => (
           <button key={k} onClick={() => setFilter(k)} className="ap-complaints-page-4">
             {l}<span className="ap-complaints-page-5">{c}</span>
           </button>
         ))}
-      </div>
+      </div> */}
+
+      <div className="ap-complaints-page-3">
+  {[['all', 'All', complaints.length], ['open', 'Open', openC], ['in_progress', 'In Progress', inProgC],
+    ['resolved', 'Resolved', resolvedC], ['closed', 'Closed', closedC]].map(([k, l, c]) => {
+    const isActive = filter === k;
+    return (
+      <button key={k} onClick={() => setFilter(k)} className={`ap-complaints-page-4${isActive ? ' ap-complaints-page-4--active' : ''}`}>
+        {l}<span className={`ap-complaints-page-5${isActive ? ' ap-complaints-page-5--active' : ''}`}>{c}</span>
+      </button>
+    );
+  })}
+</div>
 
       <div className="ap-complaints-page-6">
         {shown.length === 0 && <div className="ap-complaints-page-7">No complaints match this filter.</div>}

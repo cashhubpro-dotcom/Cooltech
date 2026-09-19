@@ -280,10 +280,15 @@ const LetterDocView = ({
           }, {
             l: 'TOTAL',
             w: '22%'
-          }].map(c => <th key={c.l} style={{
-            width: c.w
-          }} className="cp-quotations-page-33">{c.l}</th>)}
-          </tr>
+           }].map(c => <th key={c.l} style={cell({
+          width: c.w,
+            background: NAVY,
+            color: 'white',
+            fontWeight: 700,
+           textAlign: 'center',
+           fontSize: 11,
+            padding: 6
+          })}>{c.l}</th>)}</tr>
         </thead>
         <tbody>
           {quot.items.map((item, i) => <tr key={i}>
@@ -551,7 +556,7 @@ const ClientQuotationsPage = () => {
         <style>{CSS}</style>
         <div className="fade-up cp-quotations-page-86">
           <div className="quot-top-bar">
-            <button onClick={() => setOpenId(null)} className="back-btn"><ArrowLeft size={15} /> Back</button>
+            <button onClick={() => setOpenId(null)} className="back-btn"><ArrowLeft size={15} /></button>
             <span className="cp-quotations-page-87">Quotations <ChevronRight size={12} className="cp-quotations-page-88" /></span>
             <span className="cp-quotations-page-89">{quot.id}</span>
             {/* <div className="quot-top-actions">

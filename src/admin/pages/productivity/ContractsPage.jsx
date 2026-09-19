@@ -232,6 +232,33 @@ const AddClauseModal = ({ onClose, onSubmit, saving }) => {
   );
 };
 
+const CloneConfirmModal = ({ onClose, onConfirm, saving }) => (
+  <ModalShell title="Clone Contract" onClose={onClose}>
+    <div style={{ fontSize: 13, color: COLORS.body, marginBottom: 18 }}>
+      Create a copy of this contract as a new draft?
+    </div>
+    <div style={{ display: 'flex', gap: 10 }}>
+      <button
+        onClick={onClose}
+        disabled={saving}
+        style={{ flex: 1, padding: 11, borderRadius: 9, border: `1px solid ${COLORS.border}`,
+          background: 'white', color: COLORS.body, fontWeight: 600, cursor: 'pointer' }}
+      >
+        Cancel
+      </button>
+      <button
+        onClick={onConfirm}
+        disabled={saving}
+        style={{ flex: 1, padding: 11, borderRadius: 9, border: 'none', color: 'white', fontWeight: 700,
+          background: `linear-gradient(135deg,${COLORS.brand},${COLORS.brandD})`, opacity: saving ? 0.6 : 1,
+          cursor: saving ? 'not-allowed' : 'pointer' }}
+      >
+        {saving ? 'Cloning…' : 'Clone'}
+      </button>
+    </div>
+  </ModalShell>
+);
+
 const AuditTrailModal = ({ onClose, entries, loading }) => (
   <ModalShell title="Audit Trail" onClose={onClose} width={480}>
     {loading ? (
@@ -261,10 +288,11 @@ const ContractDetail = ({
   onSave,
   onDelete,
   openModal,
-  initialEditMode
+  initialEditMode,
+  onRefresh
 }) => {
   const [showPDF, setShowPDF] = useState(false);
-  const [localModal, setLocalModal] = useState(null); // 'signature' | 'schedule' | 'clause' | 'audit'
+  const [localModal, setLocalModal] = useState(null); // 'signature' | 'schedule' | 'clause' | 'clone' | 'audit'
 const [acting, setActing] = useState(false);
 const [inlineMsg, setInlineMsg] = useState(null);
 const [auditEntries, setAuditEntries] = useState([]);
@@ -295,10 +323,10 @@ const handleScheduleVisit = (payload) =>
 const handleAddClause = (text) =>
   runAction(() => contractsApi.addClause(contract.id, text), 'Clause added!');
 
-const handleClone = () => {
-  if (!window.confirm('Create a copy of this contract as a new draft?')) return;
+const handleClone = () => setLocalModal('clone');
+
+const confirmClone = () =>
   runAction(() => contractsApi.clone(contract.id), 'Contract cloned!');
-};
 
 const handleMarkSigned = (idx) =>
   runAction(() => contractsApi.markSignatorySigned(contract.id, idx), 'Marked as signed!');
@@ -760,6 +788,7 @@ const openAudit = async () => {
 {localModal === 'signature' && <SendSignatureModal onClose={() => setLocalModal(null)} onSubmit={handleSendSignature} saving={acting} />}
 {localModal === 'schedule'  && <ScheduleVisitModal  onClose={() => setLocalModal(null)} onSubmit={handleScheduleVisit} saving={acting} />}
 {localModal === 'clause'    && <AddClauseModal      onClose={() => setLocalModal(null)} onSubmit={handleAddClause} saving={acting} />}
+  {localModal === 'clone'     && <CloneConfirmModal   onClose={() => setLocalModal(null)} onConfirm={confirmClone} saving={acting} />}
 {localModal === 'audit'     && <AuditTrailModal      onClose={() => setLocalModal(null)} entries={auditEntries} loading={auditLoading} />}
 
             </div>;

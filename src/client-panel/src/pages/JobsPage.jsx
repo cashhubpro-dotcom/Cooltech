@@ -4,6 +4,10 @@ import { clientJobsApi, clientTicketsApi } from '../services/clientPortalApi';
 import { fmtDateDMY } from '../../../shared/formatDate';
 // ↑ adjust this relative path to wherever clientPortalApi.js actually lives
 //   in your client app's folder structure (e.g. './services/clientPortalApi').
+import logoImg from '../assets/logo.png';
+import signatureImg from '../assets/signature.png';
+// ↑ same brand assets QuotationsPage.jsx uses, so Print Details matches
+//   the quotation letterhead exactly.
 
 /* ────────────────────────────────────────────────────────────────────────
    DESIGN TOKENS — mirrors the admin panel's palette so both surfaces feel
@@ -256,6 +260,16 @@ const TIMELINE_STEPS = [{
   label: 'Invoice Generated'
 }];
 const JOB_TYPES = ['Service', 'Repair', 'Installation', 'AMC Visit'];
+
+/* ── Same values QuotationsPage.jsx uses, so the printed job document shares
+   an identical letterhead with quotations. ─────────────────────────────── */
+const VENDOR = {
+  company: 'Alisha Engineering',
+  address: 'L.I.G-II -164 G.I.D.C HOUSING BOARD NEAR CHHOTALAL CHAR RASTA BESIDE SWAMINARAYAN MANDIR ODAHAV AHMEDABAD-382415',
+  contact: 'Vakil Yadav',
+  phone: '9724763909',
+  email: 'alishaengineering@gmail.com'
+};
 
 /* ── Maps a raw Job document (as returned by /client-portal/me/jobs) to the
    shape this UI works with. Field names here match your actual Mongoose
@@ -952,30 +966,108 @@ export default function JobsPage() {
     }));
   };
   const handlePrint = () => {
+    const NAVY = '#1a2e5c';
+    const esc = s => String(s ?? '—').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    const money = n => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+
+    // Same cost model the Cost Summary sidebar uses.
+    const labourAmt = job.parts.length ? 1200 : 0;
+    const serviceChargeAmt = job.parts.length ? 500 : 0;
+    const lines = job.parts.length
+      ? [...job.parts.map(p => ({ desc: p.name, qty: p.qty, rate: p.rate })),
+         { desc: 'Labour Charges', qty: 1, rate: labourAmt },
+         { desc: 'Service Charge', qty: 1, rate: serviceChargeAmt }]
+      : [{ desc: [job.ac, job.issue].filter(Boolean).join(' — ') || `${job.type} visit`, qty: 1, rate: job.amount }];
+    const subtotal = lines.reduce((s, l) => s + l.qty * l.rate, 0);
+    const total = job.amount || subtotal;
+    const gstAmt = Math.max(0, total - subtotal);
+
+    const rows = lines.map((l, i) => `
+      <tr>
+        <td class="c mono">${i + 1}</td>
+        <td>${esc(l.desc)}</td>
+        <td class="c mono">${l.qty}</td>
+        <td class="r mono">${money(l.rate)}</td>
+        <td class="r mono b">${money(l.qty * l.rate)}</td>
+      </tr>`).join('');
+
     const win = window.open('', '_blank');
     win.document.write(`
-      <html><head><title>${job.id} — Job Details</title>
-      <style>
-        body{ font-family:sans-serif; padding:32px; color:#0F172A; }
-        h2{ font-size:18px; margin-bottom:2px; } p{ font-size:12px; color:#64748B; margin:0 0 20px; }
-        table{ border-collapse:collapse; width:100%; font-size:13px; }
-        td{ padding:8px 0; border-bottom:1px solid #E2E8F0; } td:first-child{ color:#64748B; width:160px; }
-      </style></head><body>
-      <h2>CoolTech AC Services — ${job.id}</h2>
-      <p>${job.type} · ${STATUS_MAP[job.status]?.label ?? job.status}</p>
-      <table>
-        <tr><td>AC Unit</td><td>${job.ac}</td></tr>
-        <tr><td>Issue</td><td>${job.issue}</td></tr>
-        <tr><td>Scheduled</td><td>${job.date}${job.time ? ', ' + job.time : ''}</td></tr>
-        <tr><td>Technician</td><td>${job.tech}</td></tr>
-        <tr><td>Address</td><td>${job.address}</td></tr>
-        <tr><td>Amount</td><td>₹${job.amount.toLocaleString()}</td></tr>
-      </table>
-      </body></html>
-    `);
+<html><head><title>${esc(job.id)} — Service Document</title><style>
+  @page { margin: 14mm; }
+  body { font-family:'Inter',-apple-system,'Segoe UI',sans-serif; color:#111; background:#fff; margin:0; }
+  .head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:0 0 8px; }
+  .tag { font-size:11px; font-weight:700; color:${NAVY}; line-height:1.5; }
+  .vaddr { font-size:10px; color:#444; margin-top:4px; max-width:420px; line-height:1.5; }
+  .head img { height:56px; object-fit:contain; }
+  .meta { font-size:11px; margin:6px 0 4px; }
+  .subj { display:block; text-align:center; font-weight:700; font-size:13px;
+          text-decoration:underline; text-underline-offset:3px; margin:10px 0 12px; }
+  table { width:100%; border-collapse:collapse; }
+  table + table { margin-top:12px; }
+  td, th { border:1px solid ${NAVY}; padding:5px 8px; font-size:12px; vertical-align:top; }
+  th { background:${NAVY}; color:#fff; font-weight:700; text-align:center; font-size:11px; padding:6px;
+       -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  td.hd { background:${NAVY}; color:#fff; font-weight:700; text-align:center;
+          -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  td.c { text-align:center; } td.r { text-align:right; } td.b { font-weight:700; }
+  .mono { font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; }
+  .blank { border:1px solid ${NAVY}; }
+  .notes { margin-top:12px; font-size:11px; line-height:1.6; }
+  .notes .lbl { font-weight:700; font-size:10px; letter-spacing:.4px; color:${NAVY}; margin-bottom:3px; }
+  .foot { margin-top:26px; font-size:12px; line-height:1.7; }
+  .foot .name { font-weight:700; }
+  .foot img { height:52px; margin-top:6px; object-fit:contain; }
+  .sig { font-size:11px; color:#444; }
+</style></head>
+<body onload="window.print()">
+  <div class="head">
+    <div>
+      <div class="tag">Installation Maintenance &amp; Repair of Air Conditioning,<br/>Electronics Appliance, Fabrication &amp; Insulation Works.</div>
+      <div class="vaddr">${esc(VENDOR.address)}</div>
+    </div>
+    <img src="${logoImg}" alt="${esc(VENDOR.company)}"/>
+  </div>
+
+  <div class="meta"><strong>Date:</strong> ${esc(job.date)}</div>
+  <span class="subj">SUBJECT: SERVICE DETAILS — ${esc(job.id)}</span>
+
+  <table>
+    <tr><td class="hd" style="width:50%">Vendor Details:</td><td class="hd">Job Details:</td></tr>
+    <tr><td><b>Company Name: </b>${esc(VENDOR.company)}</td><td><b>Job ID: </b>${esc(job.id)}</td></tr>
+    <tr><td><b>Address: </b>${esc(VENDOR.address)}</td><td><b>Site Address: </b>${esc(job.address)}</td></tr>
+    <tr><td><b>Contact Person: </b>${esc(VENDOR.contact)}</td><td><b>AC Unit: </b>${esc(job.ac)}</td></tr>
+    <tr><td><b>Phone No: </b>${esc(VENDOR.phone)}</td><td><b>Scheduled: </b>${esc(job.date)}${job.time ? ', ' + esc(job.time) : ''}</td></tr>
+    <tr><td><b>Email: </b>${esc(VENDOR.email)}</td><td><b>Technician: </b>${esc(job.tech)}</td></tr>
+  </table>
+
+  <table>
+    <thead><tr>
+      <th style="width:9%">SR. NO</th><th style="width:42%">DESCRIPTION</th>
+      <th style="width:10%">QTY</th><th style="width:17%">RATE</th><th style="width:22%">TOTAL</th>
+    </tr></thead>
+    <tbody>
+      ${rows}
+      <tr><td colspan="3" class="blank"></td><td class="r b">SUBTOTAL</td><td class="r mono">${money(subtotal)}</td></tr>
+      <tr><td colspan="3" class="blank"></td><td class="r b">GST</td><td class="r mono">${money(gstAmt)}</td></tr>
+      <tr><td colspan="3" class="blank"></td><td class="r b" style="font-size:13px">TOTAL</td><td class="r mono" style="font-weight:800;font-size:13px">${money(total)}</td></tr>
+    </tbody>
+  </table>
+
+  ${job.issue ? `<div class="notes"><div class="lbl">ISSUE / DESCRIPTION</div><div>${esc(job.issue)}</div></div>` : ''}
+  ${job.notes ? `<div class="notes"><div class="lbl">SERVICE NOTES</div><div>${esc(job.notes)}</div></div>` : ''}
+
+  <div class="foot">
+    <div>Thanking You,</div>
+    <div class="name">Mr. ${esc(VENDOR.contact)}</div>
+    <div>${esc(VENDOR.phone)}</div>
+    <div>From: ${esc(VENDOR.company)}</div>
+    <img src="${signatureImg}" alt="Signature"/>
+    <div class="sig">[Authorized Signatory]</div>
+  </div>
+</body></html>`);
     win.document.close();
     win.focus();
-    win.print();
   };
 
   /* ── Loading / error states (initial fetch) ── */

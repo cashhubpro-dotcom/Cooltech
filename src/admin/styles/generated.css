@@ -22416,21 +22416,44 @@
   }
 
   .ap-complaints-page-4 {
-    padding: 6px 14px;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    gap: 5px;
-    align-items: center;
-  }
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  transition: all .15s;
+}
 
-  .ap-complaints-page-5 {
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 99px;
-  }
+.ap-complaints-page-4:hover {
+  border-color: var(--brand);
+  color: var(--text-h2);
+}
+
+.ap-complaints-page-4--active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+}
+
+.ap-complaints-page-5 {
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.ap-complaints-page-5--active {
+  background: rgba(255,255,255,.25);
+  color: white;
+}
 
   .ap-complaints-page-6 {
     display: flex;
@@ -42575,6 +42598,20 @@
   .ap-kanban-page-6 {
     margin-left: 10px;
   }
+
+  .ap-kanban-page-7 {
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-h2);
+  min-height: 18px;
+}
+
+.kb-card-btn--view {
+  color: var(--info-text);
+}
 
   /* ── pages/productivity/ProjectsPage.jsx ── */
   .ap-projects-page-1 {
@@ -71224,21 +71261,44 @@
   }
 
   .ap-complaints-page-4 {
-    padding: 6px 14px;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    gap: 5px;
-    align-items: center;
-  }
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  transition: all .15s;
+}
 
-  .ap-complaints-page-5 {
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 99px;
-  }
+.ap-complaints-page-4:hover {
+  border-color: var(--brand);
+  color: var(--text-h2);
+}
+
+.ap-complaints-page-4--active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+}
+
+.ap-complaints-page-5 {
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.ap-complaints-page-5--active {
+  background: rgba(255,255,255,.25);
+  color: white;
+}
 
   .ap-complaints-page-6 {
     display: flex;
@@ -89611,6 +89671,42 @@
   .ap-suppliers-page-7 {
     cursor: pointer;
   }
+
+  .sup-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  padding: 0 4px;
+  margin-bottom: 16px;
+}
+.sup-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 12px 14px;
+  margin-bottom: -1px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color .15s, border-color .15s;
+}
+.sup-tab:hover { color: var(--text-h2); }
+.sup-tab--active { color: var(--brand); border-bottom-color: var(--brand); }
+.sup-tab:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.sup-tab-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--bg-muted, #F1F5F9);
+  color: var(--text-muted);
+}
+.sup-tab--active .sup-tab-count { background: var(--brand); color: #fff; }
 
   /* ── pages/operations/WarrantyPage.jsx ── */
   .ap-warranty-page-1 {

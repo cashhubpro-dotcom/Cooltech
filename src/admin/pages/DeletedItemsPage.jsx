@@ -618,9 +618,12 @@ id = id ?? doc._id;
   const customerName = typeof doc.customer === 'object' && doc.customer !== null ? doc.customer.name : doc.customerName ?? doc.customer ?? null;
   const name = customerName ?? doc.name ?? doc.title ?? doc.issue ?? doc.subject ?? doc.company ?? '—';
   return {
-    _id: doc._id,
-    id,
-    name,
+    // _id: doc._id,
+    // id,
+    // name,
+  _id: doc._id ?? doc.id,
+  id,
+  name,
     module: resource.module,
     resourceKey: resource.key,
     by: doc.deletedBy ?? 'Admin',

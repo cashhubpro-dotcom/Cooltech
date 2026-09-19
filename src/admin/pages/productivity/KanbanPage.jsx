@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { jobsApi, techsApi, customersApi } from '../../services/api';
 import { fmtDateDMY } from '../../../shared/formatDate';
+import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
 
 // ─── Constants — matched exactly to Job model enums ───────────────────────────
 const priorityColor = {
@@ -49,6 +50,7 @@ const KanbanCard = ({
   onDragStart,
   onDragEnd,
   isDragging,
+  onView,
   onEdit,
   onDelete
 }) => {
@@ -56,7 +58,7 @@ const KanbanCard = ({
   const jid = job._id || job.id;
 
   // Format scheduled date nicely
-  const dateStr = job.scheduledDate ?fmtDateDMY(new Date(job.scheduledDate)) : '';
+  const dateStr = job.scheduledDate ? fmtDateDMY(new Date(job.scheduledDate)) : '';
   return <div className={`kb-card${isDragging ? ' kb-card--dragging' : ''}`} style={{
     borderLeftColor: pr
   }} draggable onDragStart={e => onDragStart(e, jid)} onDragEnd={onDragEnd}>
@@ -75,6 +77,10 @@ const KanbanCard = ({
       {dateStr && <div className="kb-card-date">📅 {dateStr}</div>}
 
       <div className="kb-card-actions">
+        <button className="kb-card-btn kb-card-btn--view" onClick={e => {
+        e.stopPropagation();
+        onView(job);
+      }} title="View">👁</button>
         <button className="kb-card-btn kb-card-btn--edit" onClick={e => {
         e.stopPropagation();
         onEdit(job);
@@ -296,6 +302,48 @@ const JobModal = ({
     </div>, document.body);
 };
 
+// ─── JobViewModal (read-only) ──────────────────────────────────────────────────
+const JobViewModal = ({ job, onClose, onEdit }) => {
+  if (!job) return null;
+  const dateStr = job.scheduledDate ? fmtDateDMY(new Date(job.scheduledDate)) : '—';
+  const statusLabel = kanbanCols.find(c => c.id === job.status)?.label || job.status;
+  const rows = [
+    ['Customer', job.customerName || '—'],
+    ['Issue / Description', job.issue || '—'],
+    ['Address', job.address || '—'],
+    ['Type', job.type || '—'],
+    ['Priority', job.priority || '—'],
+    ['Status', statusLabel],
+    ['Technician', job.techName || 'Unassigned'],
+    ['Scheduled Date', dateStr],
+    ['Scheduled Time', job.scheduledTime || '—'],
+    ['AC Unit / Model', job.ac || '—'],
+    ['Remarks', job.remarks || '—'],
+  ];
+  return createPortal(<div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box ap-kanban-page-1" onClick={e => e.stopPropagation()}>
+
+        <div className="modal-header">
+          <span className="modal-title">Job {job.jobId || job._id || job.id}</span>
+          <button className="modal-close-btn" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="modal-body">
+          {rows.map(([label, value]) => <div key={label} className="form-row">
+              <label className="form-label">{label}</label>
+              <div className="ap-kanban-page-7">{value}</div>
+            </div>)}
+
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>
+            <button className="btn btn-primary" onClick={() => { onClose(); onEdit(job); }}>✎ Edit Job</button>
+          </div>
+        </div>
+
+      </div>
+    </div>, document.body);
+};
+
 // ─── KanbanPage ───────────────────────────────────────────────────────────────
 const KanbanPage = ({
   openModal: _openModal
@@ -306,7 +354,9 @@ const KanbanPage = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
-  const [modal, setModal] = useState(null); // null | 'new' | job-object
+  const [modal, setModal] = useState(null); // null | 'new' | job-object (edit)
+  const [viewJob, setViewJob] = useState(null); // job-object (view) | null
+  const [deleteTarget, setDeleteTarget] = useState(null); // job-object | null
   const [draggingId, setDraggingId] = useState(null);
   const [overCol, setOverCol] = useState(null);
   const [overCard, setOverCard] = useState(null);
@@ -340,9 +390,13 @@ const KanbanPage = ({
     const updated = await jobsApi.update(id, payload);
     setJobs(prev => prev.map(j => (j._id || j.id) === id ? updated : j));
   };
-  const handleDelete = async job => {
+  const handleDelete = job => {
+    setDeleteTarget(job);
+  };
+  const confirmDelete = async () => {
+    const job = deleteTarget;
+    setDeleteTarget(null);
     const id = job._id || job.id;
-    if (!window.confirm(`Delete job ${job.jobId || id}?`)) return;
     await jobsApi.remove(id);
     setJobs(prev => prev.filter(j => (j._id || j.id) !== id));
   };
@@ -479,7 +533,7 @@ const KanbanPage = ({
                             {overCard === jid && draggingId !== jid && <div className="kb-drop-line" style={{
                   background: col.color
                 }} />}
-                            <KanbanCard job={j} isDragging={draggingId === jid} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onEdit={setModal} onDelete={handleDelete} />
+                            <KanbanCard job={j} isDragging={draggingId === jid} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onView={setViewJob} onEdit={setModal} onDelete={handleDelete} />
                           </div>;
             })}
                 </div>
@@ -487,8 +541,18 @@ const KanbanPage = ({
       })}
         </div>}
 
-      {/* Modal */}
-      {modal && <JobModal job={modal === 'new' ? null : modal} onClose={() => setModal(null)} onSave={handleCreate.length === 1 ? (payload, id) => id ? handleUpdate(payload, id) : handleCreate(payload) : (payload, id) => id ? handleUpdate(payload, id) : handleCreate(payload)} technicians={technicians} customers={customers} />}
+      {/* Modals */}
+      {modal && <JobModal job={modal === 'new' ? null : modal} onClose={() => setModal(null)} onSave={(payload, id) => id ? handleUpdate(payload, id) : handleCreate(payload)} technicians={technicians} customers={customers} />}
+      {viewJob && <JobViewModal job={viewJob} onClose={() => setViewJob(null)} onEdit={setModal} />}
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+        title="Delete this job?"
+        message={deleteTarget ? `Job ${deleteTarget.jobId || deleteTarget._id || deleteTarget.id} will be permanently removed. You will not be able to recover it.` : ''}
+        confirmText="Yes, Delete It!"
+        cancelText="Cancel"
+      />
     </div>;
 };
 export default KanbanPage;

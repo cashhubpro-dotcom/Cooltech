@@ -1,6 +1,7 @@
 import logoImg from '../../assets/logo.png';
 import signatureImg from '../../assets/signature.png';
 import { fmtDateDMY } from '../../../shared/formatDate';
+export { logoImg, signatureImg };
 
 // ─── Shared CoolTech header ───────────────────────────────────────────────────
 const Header = ({
@@ -33,14 +34,14 @@ const InfoRow = ({
   </div>;
 
 // ─── Shared Alisha constants ──────────────────────────────────────────────────
-const VENDOR = {
+export const VENDOR = {
   company: "Alisha Engineering",
   address: "L.I.G-II -164 G.I.D.C HOUSING BOARD NEAR CHHOTALAL CHAR RASTA BESIDE SWAMINARAYAN MANDIR ODAHAV AHMEDABAD-382415",
   contact: "Vakil Yadav",
   phone: "9724763909",
   email: "alishaengineering@gmail.com"
 };
-const NAVY = "#1a2e5c";
+export const NAVY = "#1a2e5c";
 const ORANGE = "#F97316";
 const cell = (extra = {}) => ({
   border: `1px solid ${NAVY}`,

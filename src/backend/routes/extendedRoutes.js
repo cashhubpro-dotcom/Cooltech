@@ -638,14 +638,31 @@ reviewRouter.get('/stats/summary', async (req, res) => {
   }
 });
 
+// reviewRouter.put('/:id/respond', async (req, res) => {
+//   try {
+//     const { response } = req.body;
+//     const doc = await Review.findByIdAndUpdate(
+//       req.params.id,
+//       { response, respondedAt: new Date() },
+//       { new: true }
+//     );
+//     res.json(doc);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
+
 reviewRouter.put('/:id/respond', async (req, res) => {
   try {
-    const { response } = req.body;
-    const doc = await Review.findByIdAndUpdate(
-      req.params.id,
+    const response = String(req.body.response ?? '').trim();
+    if (!response) return res.status(400).json({ message: 'Reply text is required.' });
+
+    const doc = await Review.findOneAndUpdate(
+      { _id: req.params.id, isDeleted: { $ne: true } },
       { response, respondedAt: new Date() },
       { new: true }
     );
+    if (!doc) return res.status(404).json({ message: 'Review not found.' });
     res.json(doc);
   } catch (err) {
     res.status(500).json({ message: err.message });

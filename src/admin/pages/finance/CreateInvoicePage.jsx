@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { NewCustomerModal } from '../../components/modals/Modals';
-import { invoicesApi, customersApi } from '../../services/api';
+import { invoicesApi, customersApi, gstApi } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 const LOGO_IMG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAn0AAACuCAYAAABDRrtlAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAIdUAACHVAQSctJ0AAP+lSURBVHhe7L0HmGPpVec9PU5ksHEaT+hQSTnnnLNUSTmXpFKVVCWpco6duydnh2VNMl5YWFiMYcEEr/lsMBhjMDaYaNYY44ixPQ4T+nzPed97pVt3emY6VM/02HOe5zxXpVLp3lKpu371P+f8zy23vBKvxCvxSlxxJF7Vb4m/adCYEQwZ8yahozAsdFYbQld1ReAorg7ZCouD1mzqhD0vGVRn3njLLbfcyn+GmyBuPXq09EP99twdA5a0fsieTQic2flBR+7skDUzdcyYPcr/gh+QOHLLLerX3GGI397nKPiH7IXWkC2zMWBO7A1YEvU+e7yf/wUvadjtr5YZ82+WustShXciqPCVswr3REPhmVhTuvInJY70Y3JH+udl9tSvSG2J98nM8fdLrGPvlVoSb5dYknfLrKk1mS1RkdjSo1J71qP0FIRqT/0nb9L37NWFWv0agTV3m8SdMYqc6ZjAmc4M2tN5gT0bEVtTd9Kf9UseeA1H+vsDr1OGKkfFwapZ4q8YxaGySeot2iT+glHsy8tvi0R+hP+FP4Bxqyy/+KOy6OxxFktN44fJqcbnJ1Xjcxuykfb56eDovyCYfcfWORMxz12G3o+fVGYvLWEfxpRQ29BQAAAAhJREFUWIVjYGBg+A8AAQQAAf/9AAAAAElFTkSuQmCC';
 const SIG_IMG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAi4AAAB3CAYAAAAkVMvJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAIdUAACHVAQSctJ0AAF6xSURBVHhe7d0HmGPpVec9PU5ksHEaT+hQSTnnnLNUSTmXpFKVVCWpco6duydnh2VNMl5YWFiMYcEEr/lsMBhjMDaYaNYY44ixPQ4T+nzPed97pVt3emY6VM/02HOe5zxXpVLp3lKpu371P+f8zy23vBKvxCvxSlxxJF7Vb4m/adCYEQwZ8yahozAsdFYbQld1ReAorg7ZCouD1mzqhD0vGVRn3njLLbfcyn+GmyBuPXq09EP99twdA5a0fsieTQic2flBR+7skDUzdcyYPcr/gh+QOHLLLerX3GGI377nKPiH7IXWkC2zMWBO7A1YEvU+e7yf/wUvadjtr5YZ82+WustShXciqPCVswr3REPhmVhTuvInJY70Y3JH+udl9tSvSG2J98nM8fdLrGPvlVoSb5dYknfLrKk1mS1RkdjSo1J71qP0FIRqT/0nb9L37NWFWv0agTV3m8SdMYqc6ZjAmc4M2tN5gT0bEVtTd9Kf9UseeA1H+vsDr1OGKkfFwapZ4q8YxaGySeot2iT+glHsy8tvi0R+hP+FP4Bxqyy/+KOy6OxxFktN44fJqcbnJ1Xjcxuykfb56eDovyCYfcfWORMxz12G3o+fVGYvLWEfxpRQ29BQAAAAhJREFUWIVjYGBg+A8AAQQAAf/9AAAAAElFTkSuQmCC';
@@ -14,30 +14,27 @@ const VENDOR = {
   email: 'alishaengrineering@gmail.com'
 };
 const SAMPLE_CUSTOMERS = ['Galaxy Towers', 'Meera Iyer', 'TechPark Ltd.', 'City Mall', 'Dr. Nair Clinic', 'Patel Villa', 'Sunrise Hotel', 'Sharma Residency'];
+// Note: GST rate is intentionally NOT stored here. It's resolved live from
+// GstCategory (via gstApi) at the moment a product is added to an invoice,
+// so a rate change in GST Settings is reflected on the very next invoice.
 const SAMPLE_PRODUCTS = [{
   name: 'Split AC Service (1.5T)',
-  rate: 599,
-  gst: 18
+  rate: 599
 }, {
   name: 'R-32 Gas Refill',
-  rate: 2800,
-  gst: 18
+  rate: 2800
 }, {
   name: 'Split AC Installation',
-  rate: 3500,
-  gst: 18
+  rate: 3500
 }, {
   name: 'Compressor Replacement (1T)',
-  rate: 8500,
-  gst: 18
+  rate: 8500
 }, {
   name: 'PCB Repair',
-  rate: 1800,
-  gst: 18
+  rate: 1800
 }, {
   name: 'Comprehensive AMC (1 Unit)',
-  rate: 7200,
-  gst: 18
+  rate: 7200
 }];
 const PAYMENT_MODES = ['Cash', 'UPI', 'Card', 'Net Banking', 'Cheque', 'EMI', 'Bank Transfer'];
 
@@ -131,6 +128,16 @@ const CreateInvoicePage = ({
   }, []);
   const custSuggestions = customerQuery.length > 0 ? liveCustomers.filter(c => c.name.toLowerCase().includes(customerQuery.toLowerCase())) : [];
 
+  /* ── GST categories — live from GST Settings ─────────────────────────────
+     Line items carry NO tax at all anymore — they're pure qty × rate amounts.
+     GST only enters the invoice when the user explicitly adds an Additional
+     Charge whose label mentions "GST" (see below) — nothing is silently
+     assumed or defaulted. */
+  const [gstCategories, setGstCategories] = useState([]);
+  useEffect(() => {
+    gstApi.list({ status: 'active' }).then(r => setGstCategories(r.data ?? [])).catch(() => {});
+  }, []);
+
   /* ── products ──────────────────────────────────────────── */
   const [productSearch, setProductSearch] = useState('');
   const [productQty, setProductQty] = useState('');
@@ -146,7 +153,6 @@ const CreateInvoicePage = ({
       qty,
       rate: product.rate,
       discount: 0,
-      gst: product.gst,
       total: qty * product.rate
     }]);
     setProductSearch('');
@@ -160,32 +166,56 @@ const CreateInvoicePage = ({
     qty: 1,
     rate: 0,
     discount: 0,
-    gst: 18,
     total: 0
   }]);
   const updateItem = (id, key, val) => setItems(prev => prev.map(it => {
     if (it.id !== id) return it;
     const up = {
       ...it,
-      [key]: ['qty', 'rate', 'discount', 'gst'].includes(key) ? parseFloat(val) || 0 : val
+      [key]: ['qty', 'rate', 'discount'].includes(key) ? parseFloat(val) || 0 : val
     };
     up.total = up.qty * up.rate * (1 - up.discount / 100);
     return up;
   }));
   const removeItem = id => setItems(prev => prev.filter(it => it.id !== id));
 
-  /* ── additional charges ────────────────────────────────── */
+  /* ── additional charges ────────────────────────────────── *
+   * Default shape is just a plain label + amount, no tax. The GST category
+   * dropdown ONLY appears once the charge's own label contains the word
+   * "gst" (case-insensitive) — e.g. the user renames "Delivery Charge" to
+   * "GST" or types a new charge called "GST". At that point the dropdown
+   * replaces the manual amount field, and picking a rate computes that
+   * charge's amount automatically as rate% of the current items subtotal —
+   * the user never types a GST amount by hand. Renaming the label away from
+   * "gst" reverts it to a plain manual-amount charge again. */
+  const isGstLabel = label => (label || '').trim().toLowerCase().includes('gst');
   const [additionalCharges, setAdditionalCharges] = useState([]);
   const addCharge = () => setAdditionalCharges(prev => [...prev, {
     id: Date.now(),
     label: 'Delivery Charge',
-    amount: 0
+    amount: 0,
+    gstCategoryId: null,
+    gst: 0
   }]);
-  const updateCharge = (id, key, val) => setAdditionalCharges(prev => prev.map(c => c.id === id ? {
-    ...c,
-    [key]: val
-  } : c));
+  const updateCharge = (id, key, val) => setAdditionalCharges(prev => prev.map(c => {
+    if (c.id !== id) return c;
+    if (key === 'gstCategoryId') {
+      const itemsBase = items.reduce((s, it) => s + it.total, 0);
+      if (val === 'none') return { ...c, gstCategoryId: null, gst: 0, amount: 0 };
+      const cat = gstCategories.find(g => g._id === val);
+      const rate = cat ? cat.rate : 0;
+      return { ...c, gstCategoryId: val, gst: rate, amount: parseFloat((itemsBase * rate / 100).toFixed(2)) };
+    }
+    if (key === 'label' && !isGstLabel(val) && isGstLabel(c.label)) {
+      // Label just changed FROM a GST charge to a plain one — reset so it
+      // doesn't silently keep a GST-derived amount without the dropdown.
+      return { ...c, label: val, gstCategoryId: null, gst: 0, amount: 0 };
+    }
+    return { ...c, [key]: val };
+  }));
   const removeCharge = id => setAdditionalCharges(prev => prev.filter(c => c.id !== id));
+
+
 
   /* ── discount / notes / terms ──────────────────────────── */
   const [globalDiscount, setGlobalDiscount] = useState(0);
@@ -234,10 +264,15 @@ const CreateInvoicePage = ({
     [key]: val
   } : s));
 
-  /* ── totals ────────────────────────────────────────────── */
+  /* ── totals ────────────────────────────────────────────── *
+   * Items carry no tax at all. Charges split into two buckets by their
+   * label: a "GST" charge contributes to gstAmount (shown in Summary only
+   * when it's non-empty), everything else is a plain untaxed extra charge. */
   const subtotal = items.reduce((s, it) => s + it.total, 0);
-  const extraCharges = additionalCharges.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
-  const gstAmount = items.reduce((s, it) => s + it.total * it.gst / 100, 0);
+  const gstCharges = additionalCharges.filter(c => isGstLabel(c.label));
+  const plainCharges = additionalCharges.filter(c => !isGstLabel(c.label));
+  const extraCharges = plainCharges.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
+  const gstAmount = gstCharges.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
   const discountAmt = subtotal * (globalDiscount / 100);
   const grandTotal = subtotal + extraCharges + gstAmount - discountAmt;
 
@@ -523,7 +558,7 @@ const CreateInvoicePage = ({
                     e.currentTarget.style.background = 'transparent';
                   }} className="ap-create-invoice-page-46">
                           <div className="ap-create-invoice-page-47">{p.name}</div>
-                          <div className="ap-create-invoice-page-48">₹{p.rate.toLocaleString()} + {p.gst}% GST</div>
+                          <div className="ap-create-invoice-page-48">₹{p.rate.toLocaleString()}</div>
                         </div>)}
                     </div>
                   </>}
@@ -625,33 +660,63 @@ const CreateInvoicePage = ({
                 ● Additional Charges
               </button>
               {additionalCharges.map(c => <div key={c.id} className="ap-create-invoice-page-61">
-                  <input value={c.label} onChange={e => updateCharge(c.id, 'label', e.target.value)} placeholder="Charge label (e.g. Delivery Charge)" className="ap-create-invoice-page-62" />
-                  <input value={c.amount} onChange={e => updateCharge(c.id, 'amount', e.target.value)} type="number" min="0" placeholder="Amount" className="ap-create-invoice-page-63" />
+                  <input value={c.label} onChange={e => updateCharge(c.id, 'label', e.target.value)} placeholder="Charge label (e.g. Delivery Charge, or type GST)" className="ap-create-invoice-page-62" />
+                  {isGstLabel(c.label) ? (
+                    <select
+                      value={c.gstCategoryId ? c.gstCategoryId : 'none'}
+                      onChange={e => updateCharge(c.id, 'gstCategoryId', e.target.value)}
+                      style={{
+                        padding: '7px 8px', borderRadius: 6, border: '1px solid #CBD5E1',
+                        fontSize: 12.5, minWidth: 170
+                      }}
+                    >
+                      <option value="none">Select GST rate…</option>
+                      {gstCategories.map(g => (
+                        <option key={g._id} value={g._id}>
+                          {g.name} — {g.rate}%
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input value={c.amount} onChange={e => updateCharge(c.id, 'amount', e.target.value)} type="number" min="0" placeholder="Amount" className="ap-create-invoice-page-63" />
+                  )}
+                  {isGstLabel(c.label) && (
+                    <span style={{ fontSize: 12, fontFamily: FONTS.mono, color: '#475569', minWidth: 90, textAlign: 'right' }}>
+                      ₹{fmtINR(c.amount)}
+                    </span>
+                  )}
                   <button onClick={() => removeCharge(c.id)} className="ap-create-invoice-page-64">✕</button>
                 </div>)}
             </div>
 
-            {/* Tax breakdown */}
+            {/* Tax breakdown — only shows rows for charges explicitly labeled
+                as GST. If none were added, there's simply no tax on this
+                invoice and the table says so instead of showing empty/zeroed
+                rows. */}
             <div className="ap-create-invoice-page-65">
-              <table className="ap-create-invoice-page-66">
-                <thead>
-                  <tr className="ap-create-invoice-page-67">
-                    {['Tax', 'Rate (%)', 'Taxable (₹)', 'With Tax (₹)'].map(h => <th key={h} className="ap-create-invoice-page-68">{h}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...new Set(items.map(it => it.gst))].sort().map(rate => {
-                  const base = items.filter(it => it.gst === rate).reduce((s, it) => s + it.total, 0);
-                  return <tr key={rate}>
+              {gstCharges.length > 0 ? (
+                <table className="ap-create-invoice-page-66">
+                  <thead>
+                    <tr className="ap-create-invoice-page-67">
+                      {['Tax', 'Rate (%)', 'Taxable (₹)', 'With Tax (₹)'].map(h => <th key={h} className="ap-create-invoice-page-68">{h}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gstCharges.map(c => (
+                      <tr key={c.id}>
                         <td className="ap-create-invoice-page-69">GST</td>
-                        <td className="ap-create-invoice-page-70">{rate}%</td>
-                        <td className="ap-create-invoice-page-71">₹{fmtINR(base)}</td>
-                        <td className="ap-create-invoice-page-72">₹{fmtINR(base * (1 + rate / 100))}</td>
-                      </tr>;
-                })}
-                  {items.length === 0 && <tr><td colSpan={4} className="ap-create-invoice-page-73">No data</td></tr>}
-                </tbody>
-              </table>
+                        <td className="ap-create-invoice-page-70">{c.gst || 0}%</td>
+                        <td className="ap-create-invoice-page-71">₹{fmtINR(subtotal)}</td>
+                        <td className="ap-create-invoice-page-72">₹{fmtINR(subtotal + (parseFloat(c.amount) || 0))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ fontSize: 12.5, color: '#94A3B8', padding: '10px 4px' }}>
+                  No GST added — type "GST" as an Additional Charge label to add one.
+                </div>
+              )}
             </div>
 
             {/* Global discount */}
@@ -731,7 +796,17 @@ const CreateInvoicePage = ({
             <div className="ap-create-invoice-page-23">
               <div style={hdr()}>Invoice Summary</div>
               <div className="ap-create-invoice-page-24">
-                {[['Subtotal', `₹${fmtINR(subtotal)}`], ['GST', `₹${fmtINR(gstAmount)}`], ...additionalCharges.map(c => [c.label, `₹${fmtINR(parseFloat(c.amount) || 0)}`]), ...(globalDiscount > 0 ? [['Discount', `-₹${fmtINR(discountAmt)}`]] : [])].map(([k, v]) => <div key={k} className="ap-create-invoice-page-92">
+                {[
+                  ['Subtotal', `₹${fmtINR(subtotal)}`],
+                  // GST only appears when at least one charge was explicitly
+                  // labeled "GST" — never shown as an assumed/default line.
+                  ...(gstCharges.length > 0 ? [['GST', `₹${fmtINR(gstAmount)}`]] : []),
+                  // Plain (non-GST) charges each show under their own label —
+                  // GST charges are excluded here since they're already
+                  // folded into the single "GST" row above, not shown twice.
+                  ...plainCharges.map(c => [c.label, `₹${fmtINR(parseFloat(c.amount) || 0)}`]),
+                  ...(globalDiscount > 0 ? [['Discount', `-₹${fmtINR(discountAmt)}`]] : [])
+                ].map(([k, v]) => <div key={k} className="ap-create-invoice-page-92">
                     <span className="ap-create-invoice-page-93">{k}</span>
                     <span className="ap-create-invoice-page-94">{v}</span>
                   </div>)}

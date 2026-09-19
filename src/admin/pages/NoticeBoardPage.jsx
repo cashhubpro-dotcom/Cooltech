@@ -3,6 +3,8 @@ import { noticesApi } from '../services/api';
 import { COLORS } from '../constants/tokens';
 import { KCard, SectionHdr } from '../components/ui/Cards';
 import { fmtDateDMY } from '../../shared/formatDate';
+import DeleteConfirmModal from '../components/ui/DeleteConfirmModal';
+
 const NOTICE_META = {
   Operational: {
     icon: '⚙️',
@@ -71,6 +73,7 @@ const NoticeBoardPage = ({
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const flash = msg => {
     setToast(msg);
     setTimeout(() => setToast(''), 3000);
@@ -104,8 +107,12 @@ const NoticeBoardPage = ({
       flash('Failed to pin.');
     }
   };
-  const handleDelete = async id => {
-    if (!window.confirm('Delete this notice?')) return;
+  const handleDeleteClick = id => {
+    setDeleteTarget(id);
+  };
+  const confirmDelete = async () => {
+    const id = deleteTarget;
+    setDeleteTarget(null);
     try {
       await noticesApi.remove(id);
       setNotices(p => p.filter(n => n._id !== id));
@@ -165,7 +172,7 @@ const NoticeBoardPage = ({
                 id: n._id
               })}>Edit</button>
                     <button className="btn ap-notice-board-page-21" onClick={() => handlePin(n)}>Unpin</button>
-                    <button className="btn ap-notice-board-page-22" onClick={() => handleDelete(n._id)}>Delete</button>
+                    <button className="btn ap-notice-board-page-22" onClick={() => handleDeleteClick(n._id)}>Delete</button>
                   </div>
                 </div>;
         })}
@@ -207,12 +214,22 @@ const NoticeBoardPage = ({
                 id: n._id
               })}>Edit</button>
                     <button className="btn ap-notice-board-page-39" onClick={() => handlePin(n)}>Pin</button>
-                    <button className="btn ap-notice-board-page-40" onClick={() => handleDelete(n._id)}>Del</button>
+                    <button className="btn ap-notice-board-page-40" onClick={() => handleDeleteClick(n._id)}>Del</button>
                   </div>
                 </div>;
         })}
           </div>
         </div>}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+        title="Delete this notice?"
+        message="This notice will be permanently removed. You will not be able to recover it."
+        confirmText="Yes, Delete It!"
+        cancelText="Cancel"
+      />
     </div>;
 };
 export default NoticeBoardPage;
