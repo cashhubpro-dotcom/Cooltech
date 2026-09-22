@@ -1,6 +1,7 @@
 // controllers/gstHistoryController.js
 import GstCategory from '../models/GstCategory.js';
 import GstHistory from '../models/GstHistory.js';
+import Invoice from '../models/Invoice.model.js';
 import { calculateGst } from '../utils/gstCalculator.js';
 
 // GET /api/gst/history
@@ -52,5 +53,32 @@ export const calculate = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to calculate GST', error: err.message });
+  }
+};
+
+// GET /api/gst/tax-collected
+// Sums Invoice.gstAmount for invoices that are actually paid (not just
+// issued), excluding drafts and soft-deleted records, dated in the current
+// calendar month. Invoice.date is a "YYYY-MM-DD" string (see Invoice.model.js),
+// so a prefix match against "YYYY-MM" is the correct way to scope to "this month".
+export const getTaxCollected = async (req, res) => {
+  try {
+    const monthPrefix = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+
+    const [result] = await Invoice.aggregate([
+      {
+        $match: {
+          isDeleted: { $ne: true },
+          paid: true,
+          status: { $ne: 'draft' },
+          date: { $regex: `^${monthPrefix}` },
+        },
+      },
+      { $group: { _id: null, amount: { $sum: '$gstAmount' } } },
+    ]);
+
+    res.json({ success: true, data: { amount: result?.amount || 0, month: monthPrefix } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to compute tax collected', error: err.message });
   }
 };

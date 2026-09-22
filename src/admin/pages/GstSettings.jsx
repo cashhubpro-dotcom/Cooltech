@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { ChevronRight, Percent, FileText, AlertTriangle, Coins, Boxes, Bell, History, Pencil, Save, X, ChevronDown, Info, Wind, CalendarClock, CheckCircle2, Plus, Loader2, AlertCircle } from "lucide-react";
+import { ChevronRight, Percent, FileText, AlertTriangle, Coins, Boxes, History, Pencil, Save, X, ChevronDown, Info, Wind, CalendarClock, CheckCircle2, Plus, Loader2, AlertCircle } from "lucide-react";
 // Adjust this path to wherever services/api.js actually lives relative to this file
 // e.g. src/pages/Settings/Gst/index.jsx -> "../../../services/api"
 import { gstApi } from "../services/api";
@@ -17,25 +17,6 @@ const CHART_COLORS = ["var(--info)", "var(--success)", "var(--warning)", "var(--
 // Mongo stores dates as ISO strings/Date objects — trim to YYYY-MM-DD for
 // display and for <input type="date"> values, which require that exact shape.
 const formatDate = d => d ? String(d).slice(0, 10) : "—";
-const notificationsSeed = [{
-  id: "n1",
-  code: "GO",
-  label: "CBIC 03/2025",
-  desc: "Service rate revision",
-  status: "Applied"
-}, {
-  id: "n2",
-  code: "GO",
-  label: "CBIC 07/2024",
-  desc: "HSN reclassification",
-  status: "Applied"
-}, {
-  id: "n3",
-  code: "GO",
-  label: "CBIC 11/2026",
-  desc: "Draft — hardware slab",
-  status: "Pending"
-}];
 const todayISO = () => new Date().toISOString().slice(0, 10);
 function buildConic(segments) {
   let acc = 0;
@@ -49,6 +30,9 @@ function buildConic(segments) {
 export default function GstSettings() {
   const [categories, setCategories] = useState([]);
   const [history, setHistory] = useState([]);
+  const [taxCollected, setTaxCollected] = useState(0);
+  const [reviewStatus, setReviewStatus] = useState(null);
+  const [markingReviewed, setMarkingReviewed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [formError, setFormError] = useState("");
@@ -62,22 +46,36 @@ export default function GstSettings() {
   const [highlightHistory, setHighlightHistory] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const [showNotifModal, setShowNotifModal] = useState(false);
   const historyRef = useRef(null);
   const tableCardRef = useRef(null);
   async function loadData() {
     try {
       setLoadError("");
-      const [catRes, histRes] = await Promise.all([gstApi.list(), gstApi.history()]);
+      const [catRes, histRes, reviewRes, taxRes] = await Promise.all([
+        gstApi.list(), gstApi.history(), gstApi.reviewStatus(), gstApi.taxCollected(),
+      ]);
       const cats = catRes.data || [];
       setCategories(cats);
       setHistory(histRes.data || []);
+      setReviewStatus(reviewRes.data || null);
+      setTaxCollected(taxRes.data?.amount || 0);
       // keep the calculator pointed at a valid category after every refresh
       setCalcCategoryId(prev => cats.some(c => c._id === prev) ? prev : cats[0]?._id ?? null);
     } catch (err) {
       setLoadError(err.message || "Failed to load GST data");
     } finally {
       setLoading(false);
+    }
+  }
+  async function markGstReviewed() {
+    setMarkingReviewed(true);
+    try {
+      const res = await gstApi.markReviewed();
+      setReviewStatus(res.data || null);
+    } catch (err) {
+      setLoadError(err.message || "Failed to update review status");
+    } finally {
+      setMarkingReviewed(false);
     }
   }
   useEffect(() => {
@@ -362,7 +360,7 @@ export default function GstSettings() {
         /* stat cards */
         .gst-stats {
           display: grid;
-          grid-template-columns: repeat(6, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 14px;
           margin-bottom: 18px;
         }
@@ -372,14 +370,27 @@ export default function GstSettings() {
           border-radius: var(--radius-card);
           box-shadow: var(--shadow-card);
           padding: 16px 16px 14px;
+          min-width: 0; /* let long values (e.g. ₹91,000) shrink instead of overflowing the card */
+          transition: box-shadow .15s ease, transform .15s ease;
+        }
+        .gst-stat-card:hover {
+          box-shadow: var(--shadow-card-hover, 0 6px 18px rgba(20, 24, 38, 0.08));
+          transform: translateY(-1px);
         }
         .gst-stat-top {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 8px;
           margin-bottom: 14px;
         }
-        .gst-stat-top span { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; }
+        .gst-stat-top span {
+          font-size: 12.5px;
+          color: var(--text-secondary);
+          font-weight: 500;
+          min-width: 0;
+          overflow-wrap: break-word;
+        }
         .gst-stat-icon {
           width: 30px;
           height: 30px;
@@ -387,8 +398,17 @@ export default function GstSettings() {
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
-        .gst-stat-value { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; line-height: 1; }
+        .gst-stat-value {
+          font-size: 24px;
+          font-weight: 800;
+          letter-spacing: -0.01em;
+          line-height: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
         .gst-stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
 
         /* notice banner */
@@ -745,12 +765,19 @@ export default function GstSettings() {
         .gst-footnote svg { flex-shrink: 0; margin-top: 1px; color: var(--orange); }
 
         @media (max-width: 1080px) {
-          .gst-stats { grid-template-columns: repeat(3, 1fr); }
+          .gst-stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
           .gst-grid-row1, .gst-grid-row3 { grid-template-columns: 1fr; }
           .gst-grid-row2 { grid-template-columns: 1fr; }
         }
         @media (max-width: 620px) {
-  .gst-stats { grid-template-columns: repeat(2, 1fr); }
+  .gst-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .gst-stat-card { padding: 13px 13px 12px; border-radius: 12px; }
+  .gst-stat-top { margin-bottom: 10px; }
+  .gst-stat-top span { font-size: 11.5px; }
+  .gst-stat-icon { width: 26px; height: 26px; border-radius: 8px; }
+  .gst-stat-icon svg { width: 13px; height: 13px; }
+  .gst-stat-value { font-size: 19px; }
+  .gst-stat-sub { font-size: 11px; margin-top: 4px; }
   .gst-calc-body { grid-template-columns: 1fr; }
   .gst-edit-grid { grid-template-columns: 1fr 1fr; }
   .gst-table thead { display: none; }
@@ -783,6 +810,15 @@ export default function GstSettings() {
   .gst-edit-actions.end button {
     flex: 1;
   }
+}
+
+/* Below ~380px even 2 KPI cards per row get cramped (long values like
+   ₹91,000 start clipping) — stack them full-width instead. */
+@media (max-width: 380px) {
+  .gst-stats { grid-template-columns: 1fr; }
+  .gst-stat-card { padding: 14px 14px 13px; }
+  .gst-stat-top { margin-bottom: 10px; }
+  .gst-stat-value { font-size: 22px; white-space: normal; }
 }
       `}</style>
 
@@ -845,34 +881,12 @@ export default function GstSettings() {
 
           <div className="gst-stat-card">
             <div className="gst-stat-top">
-              <span>Pending Reviews</span>
-              <div className="gst-stat-icon ap-gst-settings-9">
-                <AlertTriangle size={15} />
-              </div>
-            </div>
-            <div className="gst-stat-value">1</div>
-            <div className="gst-stat-sub">awaiting confirmation</div>
-          </div>
-
-          <div className="gst-stat-card">
-            <div className="gst-stat-top">
-              <span>Notifications</span>
-              <div className="gst-stat-icon ap-gst-settings-10">
-                <Bell size={15} />
-              </div>
-            </div>
-            <div className="gst-stat-value">{notificationsSeed.length}</div>
-            <div className="gst-stat-sub">from CBIC</div>
-          </div>
-
-          <div className="gst-stat-card">
-            <div className="gst-stat-top">
               <span>Tax Collected</span>
               <div className="gst-stat-icon ap-gst-settings-11">
                 <Coins size={15} />
               </div>
             </div>
-            <div className="gst-stat-value">₹42.6K</div>
+            <div className="gst-stat-value">₹{taxCollected.toLocaleString('en-IN')}</div>
             <div className="gst-stat-sub">this month</div>
           </div>
         </div>
@@ -887,13 +901,18 @@ export default function GstSettings() {
             <span>Government slabs typically revise every April — confirm this year's notification before it's applied.</span>
           </div>
           <div className="gst-banner-right">
-            <span className="gst-pill">Not Reviewed</span>
+            <span className="gst-pill">{reviewStatus?.reviewed ? `Reviewed${reviewStatus.reviewedAt ? ' · ' + formatDate(reviewStatus.reviewedAt) : ''}` : "Not Reviewed"}</span>
+            {!reviewStatus?.reviewed && (
+              <button className="gst-link" onClick={markGstReviewed} disabled={markingReviewed} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                {markingReviewed ? "Saving…" : "Mark Reviewed"}
+              </button>
+            )}
             <button className="gst-link" onClick={handleViewHistory} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>View →</button>
           </div>
         </div>
 
-        {/* row 1: rate table + notifications */}
-        <div className="gst-grid-row1">
+        {/* row 1: rate table */}
+        <div className="gst-grid-row1" style={{ gridTemplateColumns: '1fr' }}>
           <div className="gst-card" ref={tableCardRef}>
             <div className="gst-card-head">
               <div>
@@ -1091,79 +1110,7 @@ export default function GstSettings() {
               </tbody>
             </table>
           </div>
-
-          <div className="gst-card">
-            <div className="gst-card-head">
-              <div>
-                <h3>Recent Notifications</h3>
-                <p>CBIC circulars applied to your rates</p>
-              </div>
-              <button className="gst-viewall" onClick={() => setShowNotifModal(true)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>View All →</button>
-            </div>
-            <div className="gst-notif-list">
-              {notificationsSeed.map(n => <div className="gst-notif-item" key={n.id}>
-                  <div className="gst-notif-avatar">{n.code}</div>
-                  <div className="gst-notif-main">
-                    <div className="name">{n.label}</div>
-                    <div className="zone">{n.desc}</div>
-                  </div>
-                  <span className={`gst-status-pill ${n.status === "Applied" ? "gst-status-applied" : "gst-status-pending"}`}>
-                    {n.status}
-                  </span>
-                </div>)}
-            </div>
-          </div>
         </div>
-
-        {showNotifModal && (
-          <div
-            onClick={() => setShowNotifModal(false)}
-            style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
-            }}
-          >
-            <div
-              onClick={e => e.stopPropagation()}
-              style={{
-                background: 'white', borderRadius: 14, width: 480, maxWidth: '90vw',
-                maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden'
-              }}
-            >
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '18px 20px', borderBottom: '1px solid var(--card-border)'
-              }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>All CBIC Notifications</h3>
-                  <p style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--text-muted)' }}>
-                    {notificationsSeed.length} circulars on record
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowNotifModal(false)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1, color: 'var(--text-muted)' }}
-                >
-                  ×
-                </button>
-              </div>
-              <div className="gst-notif-list" style={{ padding: '8px 12px', overflowY: 'auto' }}>
-                {notificationsSeed.map(n => (
-                  <div className="gst-notif-item" key={n.id}>
-                    <div className="gst-notif-avatar">{n.code}</div>
-                    <div className="gst-notif-main">
-                      <div className="name">{n.label}</div>
-                      <div className="zone">{n.desc}</div>
-                    </div>
-                    <span className={`gst-status-pill ${n.status === "Applied" ? "gst-status-applied" : "gst-status-pending"}`}>
-                      {n.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* row 2: donuts + top categories */}
         <div className="gst-grid-row2">

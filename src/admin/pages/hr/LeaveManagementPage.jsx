@@ -10,7 +10,7 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
-import { LEAVE_BALANCE, LEAVE_DATA, LEAVE_STATUS, TECHNICIANS } from '../../data/mockData';
+import { LEAVE_BALANCE, LEAVE_STATUS } from '../../data/mockData';
 
 // ─── Column config for export ──────────────────────────────────────────────────
 const LEAVE_COLUMNS = [{
@@ -522,8 +522,8 @@ const ActionModal = ({
 const LeaveManagementPage = ({
   openModal
 }) => {
-  const [leaves, setLeaves] = useState(LEAVE_DATA);
-  const [technicians, setTechnicians] = useState(TECHNICIANS);
+  const [leaves, setLeaves] = useState([]);
+  const [technicians, setTechnicians] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [loadingAct, setLoadingAct] = useState(false);
   const [toast, setToast] = useState(null);
@@ -548,27 +548,23 @@ const LeaveManagementPage = ({
       limit: 200
     }).then(r => {
       const rows = Array.isArray(r) ? r : r?.data ?? [];
-      if (rows.length) {
-        setLeaves(rows.map(l => ({
-          ...l,
-          id: l.id || l._id || '',
-          tech: l.tech || l.technicianName || l.technician?.name || '?',
-          from: l.from ? String(l.from).slice(0, 10) : '',
-          to: l.to ? String(l.to).slice(0, 10) : ''
-        })));
-      }
+      setLeaves(rows.map(l => ({
+        ...l,
+        id: l.id || l._id || '',
+        tech: l.tech || l.technicianName || l.technician?.name || '?',
+        from: l.from ? String(l.from).slice(0, 10) : '',
+        to: l.to ? String(l.to).slice(0, 10) : ''
+      })));
     }).catch(() => {});
     techsApi.list({
       limit: 200
     }).then(r => {
       const rows = Array.isArray(r) ? r : r?.data ?? [];
-      if (rows.length) {
-        // normalize: ensure both id and _id exist
-        setTechnicians(rows.map(t => ({
-          ...t,
-          id: t.id || t._id || t.techId || ''
-        })));
-      }
+      // normalize: ensure both id and _id exist
+      setTechnicians(rows.map(t => ({
+        ...t,
+        id: t.id || t._id || t.techId || ''
+      })));
     }).catch(() => {});
   }, []);
 

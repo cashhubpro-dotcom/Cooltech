@@ -119,8 +119,8 @@ function TaskModal({
   taskLabels = [],
   onAddTaskLabel
 }) {
-  const taskCategoryList = taskCategories.length ? taskCategories : TASK_CATEGORY_DEFAULTS;
-  const taskLabelList = taskLabels.length ? taskLabels : TASK_LABEL_DEFAULTS;
+  const taskCategoryList = taskCategories;
+  const taskLabelList = taskLabels;
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');

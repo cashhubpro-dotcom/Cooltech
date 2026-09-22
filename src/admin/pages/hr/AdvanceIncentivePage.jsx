@@ -212,8 +212,8 @@ const NewRequestModal = ({
 }) => {
   const isAdv = mode === 'advance';
   const isIncentive = mode === 'incentive';
-  const recoveryPlanList = recoveryPlans.length ? recoveryPlans : RECOVERY_PLAN_DEFAULTS;
-  const incentiveTypeList = incentiveTypes.length ? incentiveTypes : INCENTIVE_TYPES;
+  const recoveryPlanList = recoveryPlans;
+  const incentiveTypeList = incentiveTypes;
   const copy = MODE_COPY[mode] || MODE_COPY.advance;
 
   const [form, setForm] = useState({
@@ -541,7 +541,7 @@ const RequestTab = ({
     }).catch(e => setLoadError(e.message || `Could not load ${mode} requests`)).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, [mode]);
-  const incentiveTypeList = incentiveTypes.length ? incentiveTypes : INCENTIVE_TYPES;
+  const incentiveTypeList = incentiveTypes;
   const [selMonth, setSelMonth] = useState(CURRENT_MONTH);
   const [showNew, setShowNew] = useState(!!(isAdv && prefillTech));
   const [activePrefill, setActivePrefill] = useState(isAdv ? prefillTech : null);

@@ -20,9 +20,9 @@ export function useLeadSources() {
     leadSourcesApi.list({ limit: 200 })
       .then(res => {
         const raw = res?.data || res || [];
-        if (raw.length > 0) {
+        // if (raw.length > 0) {
           setSources(raw.map(s => ({ ...s, name: s.name, active: s.isActive !== false })));
-        }
+        // }
       })
       .catch(() => { /* fall back to defaults */ })
       .finally(() => setLoading(false));

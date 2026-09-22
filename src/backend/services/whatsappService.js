@@ -8,6 +8,12 @@ const CLIENT_ID = "cooltech-team";
 const AUTH_DIR = path.resolve(".wwebjs_auth");
 const CACHE_DIR = path.resolve(".wwebjs_cache");
 
+// --- retry guard config -----------------------------------------------
+const MAX_INIT_RETRIES = 3; // give up after this many consecutive failures
+const RETRY_DELAY_MS = 5000;
+let initRetryCount = 0;
+// ------------------------------------------------------------------------
+
 let client = null;
 let io = null;
 let isRestarting = false; // guard against overlapping restarts
@@ -44,6 +50,7 @@ function buildClient() {
   client.on("authenticated", () => {
     console.log("[whatsapp] authenticated");
     state.status = "authenticated";
+    initRetryCount = 0; // successful auth clears the failure count
     io.emit("wa:status", { status: state.status });
   });
 
@@ -57,6 +64,7 @@ function buildClient() {
     console.log("[whatsapp] client ready");
     state.status = "ready";
     state.qrDataUrl = null;
+    initRetryCount = 0; // fully connected — reset for any future disconnect/retry cycle
     state.me = {
       number: client.info?.wid?.user,
       name: client.info?.pushname,
@@ -100,13 +108,44 @@ function buildClient() {
       state.qrDataUrl = null;
       io?.emit("wa:status", { status: state.status, error: err.message });
 
-      // retry once after a delay instead of leaving the client permanently dead
-      if (!isRestarting) {
-        setTimeout(() => {
-          console.log("[whatsapp] retrying initialize() after failure...");
-          buildClient();
-        }, 5000);
+      // Chrome missing is an environment problem, not a transient one —
+      // retrying will never succeed until Chrome is actually installed,
+      // so stop immediately instead of looping forever.
+      const isMissingChrome = /Could not find Chrome/i.test(err.message || "");
+      if (isMissingChrome) {
+        console.error(
+          "[whatsapp] Chrome binary missing — not retrying. " +
+            "Install it (e.g. `npx puppeteer browsers install chrome` in your build step) " +
+            "or set PUPPETEER_CACHE_DIR correctly, then redeploy."
+        );
+        io?.emit("wa:status", {
+          status: "disconnected",
+          error: "WhatsApp disabled: Chrome not installed on this server.",
+        });
+        return;
       }
+
+      if (isRestarting) return;
+
+      initRetryCount += 1;
+      if (initRetryCount > MAX_INIT_RETRIES) {
+        console.error(
+          `[whatsapp] giving up after ${MAX_INIT_RETRIES} failed init attempts. ` +
+            "WhatsApp integration is now disabled until the service is redeployed/restarted."
+        );
+        io?.emit("wa:status", {
+          status: "disconnected",
+          error: `WhatsApp init failed ${MAX_INIT_RETRIES} times — giving up.`,
+        });
+        return;
+      }
+
+      console.log(
+        `[whatsapp] retrying initialize() after failure... (attempt ${initRetryCount}/${MAX_INIT_RETRIES})`
+      );
+      setTimeout(() => {
+        buildClient();
+      }, RETRY_DELAY_MS);
     });
 }
 
@@ -168,6 +207,7 @@ async function cleanupAndRestart() {
     await new Promise((r) => setTimeout(r, 1500));
 
     console.log("[whatsapp] reinitializing client after logout...");
+    initRetryCount = 0; // fresh restart cycle gets a fresh retry budget
     buildClient();
   } catch (e) {
     // last-resort catch — guarantees this function NEVER throws up to the caller

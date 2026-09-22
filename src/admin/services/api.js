@@ -627,6 +627,22 @@ export const settingsApi = {
 // ── GST / Tax Rate Categories ──────────────────────────────────────────────
 // Not using crud() here because update is PATCH (not PUT) and there are two
 // extra read endpoints (audit history + server-side calculator).
+// export const gstApi = {
+//   list: (params = {}) => {
+//     const qs = new URLSearchParams(params).toString();
+//     return req('GET', `/gst/categories${qs ? '?' + qs : ''}`);
+//   },
+//   get:      (id)       => req('GET',    `/gst/categories/${id}`),
+//   create:   (body)     => req('POST',   '/gst/categories', body),
+//   update:   (id, body) => req('PATCH',  `/gst/categories/${id}`, body),
+//   remove:   (id)       => req('DELETE', `/gst/categories/${id}`),
+//   history:  (params = {}) => {
+//     const qs = new URLSearchParams(params).toString();
+//     return req('GET', `/gst/history${qs ? '?' + qs : ''}`);
+//   },
+//   calculate: (body)    => req('POST', '/gst/calculate', body),
+// };
+
 export const gstApi = {
   list: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
@@ -641,6 +657,14 @@ export const gstApi = {
     return req('GET', `/gst/history${qs ? '?' + qs : ''}`);
   },
   calculate: (body)    => req('POST', '/gst/calculate', body),
+
+  // Real ₹ figure computed server-side from paid, non-draft invoices this month.
+  taxCollected: () => req('GET', '/gst/tax-collected'),
+
+  // Annual GST review workflow — status for the current financial year, and
+  // marking it reviewed (admin-only on the backend).
+  reviewStatus: ()          => req('GET',  '/gst/review'),
+  markReviewed: (body = {}) => req('POST', '/gst/review', body),
 };
 
 export const clientPortalApi = {

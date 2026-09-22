@@ -18,6 +18,19 @@
   --header-height: 56px;
 }
 
+/* ── Hide modal scrollbars app-wide ──────────────────────────
+   shared/base.css only thins the site's scrollbars (5px), it doesn't
+   hide them, so every scrollable modal (.modal-box, .gp-modal, and the
+   per-page auto-generated ones from generated.css, e.g. .ap-modals-214,
+   .ap-quotation-modals-3) was still showing a visible bar. This catches
+   any class containing "modal" — harmless no-op on non-scrolling modal
+   elements like .modal-title / .modal-header. */
+[class*="modal"] {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* old Edge/IE */
+}
+[class*="modal"]::-webkit-scrollbar { display: none; } /* Chrome/Safari/new Edge */
+
 .animate-fade-up  { animation: fadeUp  .28s ease both; }
 .animate-fade-up1 { animation: fadeUp  .28s .05s ease both; }
 .animate-fade-up2 { animation: fadeUp  .28s .10s ease both; }
@@ -958,8 +971,8 @@
   background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
   background-attachment: local, local, scroll, scroll;
 }
-/* scrollbar-hiding for .modal-box, .cal-modal-card, .gp-modal, .dcm-card
-   is now centralized in src/shared/base.css */
+/* scrollbar hidden by the global [class*="modal"] rule near the top of
+   this file; the scroll-shadow gradients above are the visual cue instead */
 .modal-header {
   display: flex;
   justify-content: space-between;

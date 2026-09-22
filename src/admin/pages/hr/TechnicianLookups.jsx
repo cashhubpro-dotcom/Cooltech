@@ -1,6 +1,8 @@
 // pages/settings/TechnicianLookups.jsx
 // Full CRUD — reads from and writes to /api/technician-lookups
-// On first load, seeds defaults automatically if the DB is empty.
+// Shows exactly what's in the DB; does not auto-populate an empty list.
+// technicianLookupsApi.seed() is still available for an explicit "Reset
+// defaults"-style action, but nothing calls it automatically on load.
 
 import { useState, useEffect, useCallback } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
@@ -134,7 +136,7 @@ const TechnicianLookups = () => {
     }
   }, []);
   useEffect(() => {
-    fetchAll(true);
+    fetchAll();
   }, [fetchAll]);
   const tab = TABS.find(t => t.key === activeTab);
   const list = grouped[activeTab] || [];

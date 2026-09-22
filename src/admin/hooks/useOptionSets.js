@@ -2,8 +2,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // One thin useOptionSet(...) wrapper per admin-editable dropdown list, matching
 // the existing useContractTypes / usePlans / useLeadSources pattern. Grouped by
-// area. Defaults mirror what was previously hardcoded in each modal so nothing
-// changes visually until the API actually has data.
+// area.
+//
+// Each list starts empty and is populated entirely by the API response — there
+// are no hardcoded fallback options here. useOptionSet() itself ignores a
+// defaults array as a second argument by design; don't pass one expecting it
+// to pre-seed the dropdown.
 //
 // IMPORTANT — these are intentionally SHARED across multiple modals in a few
 // cases (see comments below and services/api.js). Don't split them back into
@@ -22,107 +26,65 @@ import {
 
 // ── Jobs / Quotations / Ops ────────────────────────────────────────────────
 // Shared by NewJobModal, ConvertToJobModal, NewQuotationModal (Type field).
-export const useJobTypes = () =>
-  useOptionSet(jobTypesApi, ['Service', 'Repair', 'Installation', 'AMC Visit', 'Inspection', 'AMC']);
+export const useJobTypes = () => useOptionSet(jobTypesApi);
 
-export const useExpenseCategories = () =>
-  useOptionSet(expenseCategoriesApi, ['Fuel', 'Tools', 'Parts', 'Training', 'Office', 'Miscellaneous', 'Other']);
+export const useExpenseCategories = () => useOptionSet(expenseCategoriesApi);
 
-export const useNoticeCategories = () =>
-  useOptionSet(noticeCategoriesApi, ['Operations', 'Policy', 'Holiday', 'Training', 'Achievement', 'General', 'HR', 'Finance', 'Safety', 'Urgent']);
+export const useNoticeCategories = () => useOptionSet(noticeCategoriesApi);
 
-export const useTicketIssueTypes = () =>
-  useOptionSet(ticketIssueTypesApi, [
-    'Not Cooling', 'Water Leakage', 'Strange Noise', 'Not Turning On',
-    'Remote / Controls Issue', 'Gas Leak / Smell', 'Error Code on Display',
-    'AMC Scheduled Visit', 'Installation Request', 'Other',
-  ]);
+export const useTicketIssueTypes = () => useOptionSet(ticketIssueTypesApi);
 
-export const useTicketChannels = () =>
-  useOptionSet(ticketChannelsApi, ['Phone Call', 'WhatsApp', 'Email', 'Walk-in', 'App / Portal']);
+export const useTicketChannels = () => useOptionSet(ticketChannelsApi);
 
 // ── Inventory / Purchasing / Sales ─────────────────────────────────────────
 // Shared by AddInventoryModal, NewPOModal, NewSOModal, NewSupplierModal.
-export const useItemCategories = () =>
-  useOptionSet(itemCategoriesApi, [
-    'Refrigerant', 'Compressor', 'Electrical / PCB', 'Filter', 'Capacitor',
-    'Copper Pipe', 'Drain Pipe', 'Gas Valve', 'Fan Motor', 'Remote / Sensor',
-    'Lubricant', 'Tools', 'Split AC', 'Window AC', 'Cassette AC', 'Portable AC',
-    'Duct AC', 'Installation Kit', 'Stabilizer', 'AMC Package', 'Extended Warranty',
-    'Spare Part', 'Other',
-  ]);
+export const useItemCategories = () => useOptionSet(itemCategoriesApi);
 
-export const useInventoryUnits = () =>
-  useOptionSet(inventoryUnitsApi, ['Cylinder', 'Piece', 'Meter', 'Litre', 'Set']);
+export const useInventoryUnits = () => useOptionSet(inventoryUnitsApi);
 
-export const usePoTypes = () =>
-  useOptionSet(poTypesApi, [
-    'Refrigerant Restock', 'Spare Parts', 'Tools & Equipment', 'Consumables',
-    'Compressor Unit', 'PCB / Electrical', 'Piping & Fittings', 'Miscellaneous',
-  ]);
+export const usePoTypes = () => useOptionSet(poTypesApi);
 
 // ── Assets & Warranty ───────────────────────────────────────────────────────
-export const useVehicleSubtypes = () =>
-  useOptionSet(vehicleSubtypesApi, ['Service Van', 'Bike (Company)', 'Bike (Own)', 'Pickup Truck', 'Three-Wheeler', 'Other']);
+export const useVehicleSubtypes = () => useOptionSet(vehicleSubtypesApi);
 
-export const useEquipmentSubtypes = () =>
-  useOptionSet(equipmentSubtypesApi, ['Vacuum Pump', 'Recovery Machine', 'Nitrogen Cylinder', 'Manifold Gauge Set', 'Brazing Kit', 'Testing Tool', 'Leak Detector', 'Other']);
+export const useEquipmentSubtypes = () => useOptionSet(equipmentSubtypesApi);
 
-export const usePartTypes = () =>
-  useOptionSet(partTypesApi, ['Compressor', 'PCB Board', 'Capacitor', 'Fan Motor', 'Gas Charge', 'IDU/ODU Coil', 'Remote', 'Sensor', 'Other']);
+export const usePartTypes = () => useOptionSet(partTypesApi);
 
-export const useAcTypes = () =>
-  useOptionSet(acTypesApi, ['Split AC', 'Window AC', 'Cassette AC', 'Ductable', 'VRF', 'Other']);
+export const useAcTypes = () => useOptionSet(acTypesApi);
 
-export const useUnitWarrantyTypes = () =>
-  useOptionSet(unitWarrantyTypesApi, ['Comprehensive', 'Compressor', 'Parts & Labour', 'Parts Only']);
+export const useUnitWarrantyTypes = () => useOptionSet(unitWarrantyTypesApi);
 
-export const usePartWarrantyTypes = () =>
-  useOptionSet(partWarrantyTypesApi, ['Manufacturer', 'Dealer', 'AMC covered', 'Extended']);
+export const usePartWarrantyTypes = () => useOptionSet(partWarrantyTypesApi);
 
 // ── Admin ────────────────────────────────────────────────────────────────
-export const useAdminRoles = () =>
-  useOptionSet(adminRolesApi, ['Manager', 'Accountant', 'Dispatcher', 'Super Admin']);
+export const useAdminRoles = () => useOptionSet(adminRolesApi);
 
 // ── HR ───────────────────────────────────────────────────────────────────
-export const usePaymentMethods = () =>
-  useOptionSet(paymentMethodsApi, ['Bank Transfer / NEFT', 'UPI', 'Cash', 'Cheque', 'Credit Card']);
+export const usePaymentMethods = () => useOptionSet(paymentMethodsApi);
 
-export const usePriceItemCategories = () =>
-  useOptionSet(priceItemCategoriesApi, ['Service', 'Gas Refill', 'Installation', 'Repair', 'AMC']);
+export const usePriceItemCategories = () => useOptionSet(priceItemCategoriesApi);
 
-export const usePriceItemUnits = () =>
-  useOptionSet(priceItemUnitsApi, ['per visit', 'per unit', 'per cylinder', 'per year', 'per month', 'per day', 'per job']);
+export const usePriceItemUnits = () => useOptionSet(priceItemUnitsApi);
 
-export const useReminderTypes = () =>
-  useOptionSet(reminderTypesApi, ['Annual Service', 'AMC Service Due', 'Gas Refill Check', 'AMC Renewal', 'Filter Cleaning']);
+export const useReminderTypes = () => useOptionSet(reminderTypesApi);
 
-export const useLeaveTypes = () =>
-  useOptionSet(leaveTypesApi, ['Casual Leave', 'Sick Leave', 'Earned Leave', 'Unpaid Leave']);
+export const useLeaveTypes = () => useOptionSet(leaveTypesApi);
 
-export const useGasTypes = () =>
-  useOptionSet(gasTypesApi, ['R-32', 'R-410A', 'R-22', 'R-134a', 'R-407C', 'R-404A']);
+export const useGasTypes = () => useOptionSet(gasTypesApi);
 
-export const useGasReasons = () =>
-  useOptionSet(gasReasonsApi, ['New installation', 'Gas leak – refill', 'Annual refill', 'Compressor replacement', 'Routine refill', 'Top-up service', 'Recovery only']);
+export const useGasReasons = () => useOptionSet(gasReasonsApi);
 
-export const useGasRegulationRefs = () =>
-  useOptionSet(gasRegulationRefsApi, ['EU F-Gas Reg 517/2014', 'BEE India Guidelines', 'ASHRAE 15', 'Other / Local']);
+export const useGasRegulationRefs = () => useOptionSet(gasRegulationRefsApi);
 
-export const useGasDisposalMethods = () =>
-  useOptionSet(gasDisposalMethodsApi, ['N/A – No recovery', 'Reclaimed – reuse', 'Returned to supplier', 'Destroyed / certified disposal']);
+export const useGasDisposalMethods = () => useOptionSet(gasDisposalMethodsApi);
 
-export const useTaskCategories = () =>
-  useOptionSet(taskCategoriesApi, ['Service', 'Installation', 'Repair', 'AMC', 'Sales', 'Finance', 'HR', 'Operations', 'Admin']);
+export const useTaskCategories = () => useOptionSet(taskCategoriesApi);
 
-export const useTaskLabels = () =>
-  useOptionSet(taskLabelsApi, ['Urgent Follow-up', 'Customer Complaint', 'AMC Related', 'Internal', 'Revenue Critical']);
+export const useTaskLabels = () => useOptionSet(taskLabelsApi);
 
-export const useActivityTypes = () =>
-  useOptionSet(activityTypesApi, ['Service', 'Installation', 'Repair', 'AMC', 'Gas Refill', 'Training', 'Admin', 'Travel', 'Other']);
+export const useActivityTypes = () => useOptionSet(activityTypesApi);
 
-export const useRecoveryPlans = () =>
-  useOptionSet(recoveryPlansApi, ['1 month (full)', '2 months (split)', '3 months (split)']);
+export const useRecoveryPlans = () => useOptionSet(recoveryPlansApi);
 
-export const useIncentiveTypes = () =>
-  useOptionSet(incentiveTypesApi, ['Performance Bonus', 'Referral Bonus', 'Festival Bonus', 'Overtime Incentive', 'Other']);
+export const useIncentiveTypes = () => useOptionSet(incentiveTypesApi);

@@ -1,2 +1,3 @@
-2026/09/19-18:13:12.631 3e64 Creating DB D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\Session Storage since it was missing.
-2026/09/19-18:13:13.005 3e64 Reusing MANIFEST D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\Session Storage/MANIFEST-000001
+2026/09/22-13:11:17.643 6fc8 Reusing MANIFEST D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\Session Storage/MANIFEST-000001
+2026/09/22-13:11:17.707 6fc8 Recovering log #3
+2026/09/22-13:11:17.738 6fc8 Reusing old log D:\Download Data\cooltech-fixed\cooltech\src\backend\.wwebjs_auth\session-cooltech-team\Default\Session Storage/000003.log 

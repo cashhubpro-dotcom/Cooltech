@@ -19,9 +19,7 @@ export function useCustomerTypes() {
     customerTypesApi.list({ limit: 200 })
       .then(res => {
         const raw = res?.data || res || [];
-        if (raw.length > 0) {
-          setTypes(raw.map(t => ({ ...t, name: t.name, active: t.isActive !== false })));
-        }
+        setTypes(raw.map(t => ({ ...t, name: t.name, active: t.isActive !== false })));
       })
       .catch(() => { /* fall back to defaults */ })
       .finally(() => setLoading(false));

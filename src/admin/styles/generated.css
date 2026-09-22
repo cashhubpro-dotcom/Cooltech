@@ -5255,6 +5255,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 14px;
+    /* Top-align each field instead of stretch/center: End Date's cell has
+       extra content below it (the "Without Due Date" checkbox), which was
+       pushing the End Date input up out of line with Start Date / Visits. */
+    align-items: start;
   }
 
   .ap-modals-67 {
@@ -54087,6 +54091,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 14px;
+    /* Top-align each field instead of stretch/center: End Date's cell has
+       extra content below it (the "Without Due Date" checkbox), which was
+       pushing the End Date input up out of line with Start Date / Visits. */
+    align-items: start;
   }
 
   .ap-modals-67 {

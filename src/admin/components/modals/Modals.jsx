@@ -210,8 +210,8 @@ const NewTicketModal = ({
   channels: channelOptions = [],
   onAddChannel
 }) => {
-  const issueTypeList = issueTypeOptions.length ? issueTypeOptions : Object.keys(ISSUE_TYPE_TO_CATEGORY);
-  const channelList = channelOptions.length ? channelOptions : ['Phone Call', 'WhatsApp', 'Email', 'Walk-in', 'App / Portal'];
+  const issueTypeList = issueTypeOptions;
+  const channelList = channelOptions;
   const [files, setFiles] = useState([]);
   const [autoCreateJob, setAutoCreateJob] = useState(false);
   const [liveCustomers, setLiveCustomers] = useState([]);
@@ -410,7 +410,7 @@ const NewJobModal = ({
   jobTypes: jobTypeOptions = [],
   onAddJobType
 }) => {
-  const jobTypeList = jobTypeOptions.length ? jobTypeOptions : JOB_TYPE_DEFAULTS;
+  const jobTypeList = jobTypeOptions;
   const [files, setFiles] = useState([]);
   const [liveCustomers, setLiveCustomers] = useState([]);
   const [liveTechs, setLiveTechs] = useState([]);
@@ -928,7 +928,7 @@ const NewQuotationModal = ({
   jobTypes: jobTypeOptions = [],
   onAddJobType
 }) => {
-  const jobTypeList = jobTypeOptions.length ? jobTypeOptions : JOB_TYPE_DEFAULTS;
+  const jobTypeList = jobTypeOptions;
   const notesRef = useRef(null);
   const termsRef = useRef(null);
   const EMPTY_FORM = {
@@ -1168,6 +1168,129 @@ const AddTypeModal = ({
 };
 
 // ─── NewCustomerModal ─────────────────────────────────────────────────────────
+// const NewCustomerModal = ({
+//   open,
+//   onClose,
+//   onSave,
+//   activeTypes = [],
+//   onAddType
+// }) => {
+//   const fallback = ["Residential", "Commercial"];
+//   const typeList = activeTypes.length > 0 ? activeTypes : fallback;
+//   const EMPTY = {
+//     name: "",
+//     phone: "",
+//     email: "",
+//     units: 1,
+//     amc: "None"
+//   };
+//   const EMPTY_ADDR = {
+//     country: "",
+//     state: "",
+//     city: "",
+//     area: "",
+//     pincode: ""
+//   };
+//   const [form, setForm] = useState(EMPTY);
+//   const [addr, setAddr] = useState(EMPTY_ADDR);
+//   const [streetLine, setStreetLine] = useState("");
+//   const [selectedType, setSelectedType] = useState(typeList[0] || "");
+//   const [showAddType, setShowAddType] = useState(false);
+//   const [saving, setSaving] = useState(false);
+//   const [error, setError] = useState("");
+//   useEffect(() => {
+//     if (open) {
+//       setForm(EMPTY);
+//       setAddr(EMPTY_ADDR);
+//       setStreetLine("");
+//       setSelectedType(typeList[0] || "");
+//       setError("");
+//     }
+//   }, [open]);
+//   const set = k => e => setForm(f => ({
+//     ...f,
+//     [k]: e.target.value
+//   }));
+//   const handleAddType = newType => {
+//     onAddType?.(newType);
+//     setSelectedType(newType);
+//   };
+//   const composedAddress = [streetLine, addr.area, addr.city, addr.state, addr.pincode, addr.country].filter(Boolean).join(', ');
+//   const handleSave = async () => {
+//     setError("");
+//     if (!form.name.trim()) return setError("Full name / company is required.");
+//     if (!form.phone.trim()) return setError("Phone number is required.");
+//     setSaving(true);
+//     try {
+//       await onSave({
+//         name: form.name.trim(),
+//         type: selectedType,
+//         phone: form.phone.trim(),
+//         email: form.email.trim(),
+//         units: Number(form.units) || 1,
+//         amc: form.amc === "Active",
+//         address: composedAddress,
+//         country: addr.country,
+//         state: addr.state,
+//         city: addr.city,
+//         area: addr.area,
+//         pincode: addr.pincode
+//       });
+//       onClose();
+//     } catch (e) {
+//       setError(e.message || "Failed to create customer.");
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+//   return <>
+//       <Modal open={open} onClose={onClose} title="👤 Add New Customer" width={620} footer={<>
+//           <FBtn secondary onClick={onClose} disabled={saving}>Cancel</FBtn>
+//           <FBtn onClick={handleSave} disabled={saving}>{saving ? "Adding…" : "Add Customer"}</FBtn>
+//         </>}>
+//         <div className="ap-modals-56">
+//           <FRow label="Full Name / Company *">
+//             <FInput placeholder="Sharma Residency" value={form.name} onChange={set("name")} />
+//           </FRow>
+//           <FRow label="Type">
+//             <div className="ap-modals-57">
+//               <select value={selectedType} onChange={e => setSelectedType(e.target.value)} className="ap-modals-58">
+//                 {typeList.map(t => <option key={t}>{t}</option>)}
+//               </select>
+//               <button onClick={() => setShowAddType(true)} title="Add new type" className="ap-modals-59">+</button>
+//             </div>
+//           </FRow>
+//           <FRow label="Phone *">
+//             <FInput type="tel" placeholder="+91 XXXXX XXXXX" value={form.phone} onChange={set("phone")} />
+//           </FRow>
+//           <FRow label="Email">
+//             <FInput type="email" placeholder="email@example.com" value={form.email} onChange={set("email")} />
+//           </FRow>
+//           <FRow label="AC Units">
+//             <FInput type="number" placeholder="2" value={form.units} onChange={set("units")} />
+//           </FRow>
+//           <FRow label="AMC Status">
+//             <FSelect value={form.amc} onChange={set("amc")}>
+//               <option>None</option>
+//               <option>Active</option>
+//             </FSelect>
+//           </FRow>
+//         </div>
+//         <div className="addr-section-label">Address</div>
+//         <FRow label="Street / Flat / Building">
+//           <FInput placeholder="e.g. Flat 4B, Green Apartments, MG Road" value={streetLine} onChange={e => setStreetLine(e.target.value)} />
+//         </FRow>
+//         <AddressFields prefix="cust_" value={addr} onChange={setAddr} />
+
+//         {error && <div className="ap-modals-60">
+//             {error}
+//           </div>}
+//       </Modal>
+//       {showAddType && <AddTypeModal onClose={() => setShowAddType(false)} onSave={handleAddType} label="Customer Type" placeholder="e.g. Industrial, Government…" />}
+//     </>;
+// };
+
+// ─── NewCustomerModal ─────────────────────────────────────────────────────────
 const NewCustomerModal = ({
   open,
   onClose,
@@ -1175,8 +1298,7 @@ const NewCustomerModal = ({
   activeTypes = [],
   onAddType
 }) => {
-  const fallback = ["Residential", "Commercial"];
-  const typeList = activeTypes.length > 0 ? activeTypes : fallback;
+  const typeList = activeTypes;
   const EMPTY = {
     name: "",
     phone: "",
@@ -1220,6 +1342,7 @@ const NewCustomerModal = ({
     setError("");
     if (!form.name.trim()) return setError("Full name / company is required.");
     if (!form.phone.trim()) return setError("Phone number is required.");
+    if (!selectedType) return setError("Please add a customer type before adding a customer.");
     setSaving(true);
     try {
       await onSave({
@@ -1254,9 +1377,15 @@ const NewCustomerModal = ({
           </FRow>
           <FRow label="Type">
             <div className="ap-modals-57">
-              <select value={selectedType} onChange={e => setSelectedType(e.target.value)} className="ap-modals-58">
-                {typeList.map(t => <option key={t}>{t}</option>)}
-              </select>
+              {typeList.length > 0 ? (
+                <select value={selectedType} onChange={e => setSelectedType(e.target.value)} className="ap-modals-58">
+                  {typeList.map(t => <option key={t}>{t}</option>)}
+                </select>
+              ) : (
+                <select value="" disabled className="ap-modals-58">
+                  <option value="">None yet</option>
+                </select>
+              )}
               <button onClick={() => setShowAddType(true)} title="Add new type" className="ap-modals-59">+</button>
             </div>
           </FRow>
@@ -1337,8 +1466,8 @@ const NewAMCModal = ({
   const [error, setError] = useState("");
  
   const FALLBACK_TYPES = ["AMC – Basic", "AMC – Comprehensive", "AMC – Premium", "Installation", "Service Agreement", "Rental / Lease", "Warranty Extension", "One-time Repair"];
-  const typeList = contractTypes.length ? contractTypes : FALLBACK_TYPES;
-  const planList = planOptions.length ? planOptions : ["Basic", "Comprehensive", "Premium", "Custom"];
+  const typeList = contractTypes;
+  const planList = planOptions;
   const [contractType, setContractType] = useState("");
  
   useEffect(() => {
@@ -1759,13 +1888,14 @@ export const DynamicSelect = ({
   disabled = false
 }) => {
   const [showModal, setShowModal] = useState(false);
+  const isEmpty = options.length === 0;
   return <>
       <div className="ap-modals-97">
-        <select value={value} onChange={e => onChange(e.target.value)} disabled={disabled} style={{
-        background: disabled ? "var(--bg)" : "var(--white)",
-        cursor: disabled ? "not-allowed" : "default"
+        <select value={isEmpty ? "" : value} onChange={e => onChange(e.target.value)} disabled={disabled || isEmpty} style={{
+        background: (disabled || isEmpty) ? "var(--bg)" : "var(--white)",
+        cursor: (disabled || isEmpty) ? "not-allowed" : "default"
       }} className="ap-modals-98">
-          {options.map(o => {
+          {isEmpty ? <option value="">None yet</option> : options.map(o => {
             const { label, value: optValue } = normalizeOption(o);
             return <option key={optValue} value={optValue}>
                 {label}
@@ -1938,12 +2068,12 @@ const AddTechnicianModal = ({
   lookups = {},
   onAddLookup
 }) => {
-  const roles = lookups.roles?.length ? lookups.roles : ["Junior Technician", "Technician", "Senior Technician", "Lead Technician", "Supervisor", "Foreman"];
-  const departments = lookups.departments?.length ? lookups.departments : ["Field Service", "Installation", "AMC", "Repair", "VRF / Chillers"];
-  const employmentTypes = lookups.employmentTypes?.length ? lookups.employmentTypes : ["Full-time", "Part-time", "Contract", "Freelancer", "Apprentice"];
-  const reportingTo = lookups.reportingTo?.length ? lookups.reportingTo : ["Admin / Owner"];
-  const vehicleTypes = lookups.vehicleTypes?.length ? lookups.vehicleTypes : ["None", "Bike (Own)", "Bike (Company)", "Van (Company)"];
-  const banks = lookups.banks?.length ? lookups.banks : ["SBI – State Bank of India", "HDFC Bank", "ICICI Bank", "Axis Bank", "Kotak Mahindra", "Bank of Baroda", "Punjab National Bank", "Canara Bank", "Union Bank", "IndusInd Bank", "Other"];
+  const roles = lookups.roles || [];
+  const departments = lookups.departments || [];
+  const employmentTypes = lookups.employmentTypes || [];
+  const reportingTo = lookups.reportingTo || [];
+  const vehicleTypes = lookups.vehicleTypes || [];
+  const banks = lookups.banks || [];
  
   const EMPTY = {
     salutation: "", fullName: "", role: roles[1] ?? roles[0] ?? "", department: departments[0] ?? "",
@@ -2364,7 +2494,7 @@ const AddExpenseModal = ({
   expenseCategories: expenseCategoryOptions = [],
   onAddExpenseCategory
 }) => {
-  const expenseCategoryList = expenseCategoryOptions.length ? expenseCategoryOptions : CATEGORY_OPTIONS;
+  const expenseCategoryList = expenseCategoryOptions;
   const [form, setForm] = useState({
     category: expenseCategoryList[0],
     technician: '',
@@ -2486,8 +2616,8 @@ const AddInventoryModal = ({
 }) => {
   const ITEM_CATEGORY_DEFAULTS = ["Refrigerant", "Compressor", "Electrical / PCB", "Filter", "Capacitor", "Copper Pipe", "Drain Pipe", "Gas Valve", "Fan Motor", "Remote / Sensor", "Lubricant", "Tools", "Split AC", "Window AC", "Cassette AC", "Portable AC", "Duct AC", "Installation Kit", "Stabilizer", "AMC Package", "Extended Warranty", "Spare Part", "Other"];
   const INVENTORY_UNIT_DEFAULTS = ["Cylinder", "Piece", "Meter", "Litre", "Set"];
-  const itemCategoryList = itemCategoryOptions.length ? itemCategoryOptions : ITEM_CATEGORY_DEFAULTS;
-  const inventoryUnitList = inventoryUnitOptions.length ? inventoryUnitOptions : INVENTORY_UNIT_DEFAULTS;
+  const itemCategoryList = itemCategoryOptions;
+  const inventoryUnitList = inventoryUnitOptions;
   const [liveSuppliers, setLiveSuppliers] = useState([]);
   const [form, setForm] = useState({
     name: "", category: itemCategoryList[0] || "", sku: "", unit: inventoryUnitList[0] || "",
@@ -2621,18 +2751,18 @@ const NewLeadModal = ({
   onAddCustomerType
 }) => {
   const [showAddSource, setShowAddSource] = useState(false);
-  const SOURCES = sources.length ? sources : ["Referral", "Google Ad", "Walk-in", "Instagram", "LinkedIn", "Cold Call", "Website", "Other"];
+  const SOURCES = sources;
   // Reuses the same option set as NewCustomerModal's Customer Type, rather than
   // a separate hardcoded list — the two concepts are the same underlying idea.
-  const customerTypeList = customerTypeOptions.length ? customerTypeOptions : ["Residential", "Commercial", "Industrial"];
+  const customerTypeList = customerTypeOptions;
   const [form, setForm] = useState({
     name: "",
     contact: "",
     phone: "",
     email: "",
-    type: "Residential",
+    type: "",
     units: 2,
-    source: "Other",
+    source: "",
     value: "",
     assignedTo: "",
     notes: ""
@@ -2700,9 +2830,15 @@ const NewLeadModal = ({
           </FRow>
           <FRow label="Source">
             <div className="ap-modals-173">
-              <select value={form.source} onChange={set("source")} className="ap-modals-174">
-                {SOURCES.map(s => <option key={s}>{s}</option>)}
-              </select>
+              {SOURCES.length > 0 ? (
+                <select value={form.source} onChange={set("source")} className="ap-modals-174">
+                  {SOURCES.map(s => <option key={s}>{s}</option>)}
+                </select>
+              ) : (
+                <select value="" disabled className="ap-modals-174">
+                  <option value="">None yet</option>
+                </select>
+              )}
               <button onClick={() => setShowAddSource(true)} title="Add new source" className="ap-modals-175">
                 +
               </button>
@@ -2750,8 +2886,8 @@ const NewPOModal = ({
 }) => {
   const ITEM_CATEGORY_DEFAULTS = ["Refrigerant", "Compressor", "Electrical / PCB", "Filter", "Capacitor", "Copper Pipe", "Drain Pipe", "Gas Valve", "Fan Motor", "Remote / Sensor", "Lubricant", "Tools", "Split AC", "Window AC", "Cassette AC", "Portable AC", "Duct AC", "Installation Kit", "Stabilizer", "AMC Package", "Extended Warranty", "Spare Part", "Other"];
   const PO_TYPE_DEFAULTS = ["Refrigerant Restock", "Spare Parts", "Tools & Equipment", "Consumables", "Compressor Unit", "PCB / Electrical", "Piping & Fittings", "Miscellaneous"];
-  const itemCategoryList = itemCategoryOptions.length ? itemCategoryOptions : ITEM_CATEGORY_DEFAULTS;
-  const poTypeList = poTypeOptions.length ? poTypeOptions : PO_TYPE_DEFAULTS;
+  const itemCategoryList = itemCategoryOptions;
+  const poTypeList = poTypeOptions;
   const [poType, setPoType] = useState(poTypeList[0] || "");
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [liveSuppliers, setLiveSuppliers] = useState([]);
@@ -2935,7 +3071,7 @@ const NewSupplierModal = ({
   onAddItemCategory
 }) => {
   const ITEM_CATEGORY_DEFAULTS = ["Refrigerant", "Compressor", "Electrical / PCB", "Filter", "Capacitor", "Copper Pipe", "Drain Pipe", "Gas Valve", "Fan Motor", "Remote / Sensor", "Lubricant", "Tools", "Split AC", "Window AC", "Cassette AC", "Portable AC", "Duct AC", "Installation Kit", "Stabilizer", "AMC Package", "Extended Warranty", "Spare Part", "Other"];
-  const itemCategoryList = itemCategoryOptions.length ? itemCategoryOptions : ITEM_CATEGORY_DEFAULTS;
+  const itemCategoryList = itemCategoryOptions;
   const EMPTY = { name: "", category: itemCategoryList[0] || "", contact: "", phone: "", email: "", paymentTerms: "Immediate", address: "" };
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -3021,8 +3157,8 @@ const NewAssetModal = ({
   const isEditing = !!editAsset?._id;
   const [tab, setTab] = useState(defaultTab);
   const [liveTechs, setLiveTechs] = useState([]);
-  const vehicleSubtypeList = vehicleSubtypeOptions.length ? vehicleSubtypeOptions : VEHICLE_SUBTYPES;
-  const equipmentSubtypeList = equipmentSubtypeOptions.length ? equipmentSubtypeOptions : EQUIPMENT_SUBTYPES;
+  const vehicleSubtypeList = vehicleSubtypeOptions;
+  const equipmentSubtypeList = equipmentSubtypeOptions;
   const EMPTY = {
     name: '',
     subType: vehicleSubtypeList[0],
@@ -3278,10 +3414,10 @@ const RegisterWarrantyModal = ({
   partWarrantyTypes: partWarrantyTypeOptions = [],
   onAddPartWarrantyType
 }) => {
-  const partTypeList = partTypeOptions.length ? partTypeOptions : PART_TYPES;
-  const acTypeList = acTypeOptions.length ? acTypeOptions : AC_TYPES;
-  const unitWarrantyTypeList = unitWarrantyTypeOptions.length ? unitWarrantyTypeOptions : UNIT_WARRANTY_TYPES;
-  const partWarrantyTypeList = partWarrantyTypeOptions.length ? partWarrantyTypeOptions : PART_WARRANTY_TYPES;
+  const partTypeList = partTypeOptions;
+  const acTypeList = acTypeOptions;
+  const unitWarrantyTypeList = unitWarrantyTypeOptions;
+  const partWarrantyTypeList = partWarrantyTypeOptions;
   const [form, setForm] = useState({
     ...EMPTY_FORM,
     recordType: defaultRecordType
@@ -3516,7 +3652,7 @@ const NewNoticeModal = ({
   noticeCategories: noticeCategoryOptions = [],
   onAddNoticeCategory
 }) => {
-  const noticeCategoryList = noticeCategoryOptions.length ? noticeCategoryOptions : NOTICE_CATEGORY_DEFAULTS;
+  const noticeCategoryList = noticeCategoryOptions;
   const EMPTY = {
     title: '',
     category: 'Operations',
@@ -3816,7 +3952,7 @@ const ConvertToJobModal = ({
   onAddJobType
 }) => {
   const JOB_TYPE_DEFAULTS = ["Service", "Repair", "Installation", "AMC Visit", "Inspection", "AMC"];
-  const jobTypeList = jobTypeOptions.length ? jobTypeOptions : JOB_TYPE_DEFAULTS;
+  const jobTypeList = jobTypeOptions;
   const [liveTechs, setLiveTechs] = useState([]);
   const [form, setForm] = useState({
     jobType: jobTypeList[0] || "Service",
@@ -3954,7 +4090,7 @@ const AddAdminUserModal = ({
   onAddAdminRole
 }) => {
   const ADMIN_ROLE_DEFAULTS = ["Manager", "Accountant", "Dispatcher", "Super Admin"];
-  const adminRoleList = adminRoleOptions.length ? adminRoleOptions : ADMIN_ROLE_DEFAULTS;
+  const adminRoleList = adminRoleOptions;
   const [form, setForm] = useState({ name: "", email: "", role: adminRoleList[0] || "", password: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -4908,7 +5044,7 @@ const NewSOModal = ({
   onAddItemCategory
 }) => {
   const ITEM_CATEGORY_DEFAULTS = ["Refrigerant", "Compressor", "Electrical / PCB", "Filter", "Capacitor", "Copper Pipe", "Drain Pipe", "Gas Valve", "Fan Motor", "Remote / Sensor", "Lubricant", "Tools", "Split AC", "Window AC", "Cassette AC", "Portable AC", "Duct AC", "Installation Kit", "Stabilizer", "AMC Package", "Extended Warranty", "Spare Part", "Other"];
-  const itemCategoryList = itemCategoryOptions.length ? itemCategoryOptions : ITEM_CATEGORY_DEFAULTS;
+  const itemCategoryList = itemCategoryOptions;
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [liveCustomers, setLiveCustomers] = useState([]);
   const [customer, setCustomer] = useState("");

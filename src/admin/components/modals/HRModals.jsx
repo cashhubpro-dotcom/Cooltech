@@ -252,7 +252,7 @@ export const RecordPaymentModal = ({
   paymentMethods: paymentMethodOptions = [],
   onAddPaymentMethod
 }) => {
-  const paymentMethodList = paymentMethodOptions.length ? paymentMethodOptions : PAYMENT_METHOD_DEFAULTS;
+  const paymentMethodList = paymentMethodOptions;
   const [liveInvoices, setLiveInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState('');
   const [form, setForm] = useState({
@@ -362,8 +362,8 @@ export const NewPriceItemModal = ({
   priceItemUnits: priceItemUnitOptions = [],
   onAddPriceItemUnit
 }) => {
-  const priceItemCategoryList = priceItemCategoryOptions.length ? priceItemCategoryOptions : PRICE_ITEM_CATEGORY_DEFAULTS;
-  const priceItemUnitList = priceItemUnitOptions.length ? priceItemUnitOptions : PRICE_ITEM_UNIT_DEFAULTS;
+  const priceItemCategoryList = priceItemCategoryOptions;
+  const priceItemUnitList = priceItemUnitOptions;
   const isEditing = !!(item && (item._id || item.priceId));
 
   const [form, setForm] = useState(EMPTY_PRICE_ITEM_FORM);
@@ -477,7 +477,7 @@ export const NewReminderModal = ({
   reminderTypes: reminderTypeOptions = [],
   onAddReminderType
 }) => {
-  const reminderTypeList = reminderTypeOptions.length ? reminderTypeOptions : REMINDER_TYPE_DEFAULTS;
+  const reminderTypeList = reminderTypeOptions;
   const [form, setForm] = useState({
     customer: '',
     acUnit: '',
@@ -554,7 +554,7 @@ export const ApplyLeaveModal = ({
   leaveTypes: leaveTypeOptions = [],
   onAddLeaveType
 }) => {
-  const leaveTypeList = leaveTypeOptions.length ? leaveTypeOptions : LEAVE_TYPE_DEFAULTS;
+  const leaveTypeList = leaveTypeOptions;
   const [liveTechs, setLiveTechs] = useState([]);
   const [form, setForm] = useState({
     technician: '',
@@ -654,10 +654,10 @@ export const LogGasModal = ({
   gasDisposalMethods: gasDisposalMethodOptions = [],
   onAddGasDisposalMethod
 }) => {
-  const gasTypeList = gasTypeOptions.length ? gasTypeOptions : GAS_TYPE_DEFAULTS;
-  const gasReasonList = gasReasonOptions.length ? gasReasonOptions : GAS_REASON_DEFAULTS;
-  const gasRegulationRefList = gasRegulationRefOptions.length ? gasRegulationRefOptions : GAS_REGULATION_REF_DEFAULTS;
-  const gasDisposalMethodList = gasDisposalMethodOptions.length ? gasDisposalMethodOptions : GAS_DISPOSAL_METHOD_DEFAULTS;
+  const gasTypeList = gasTypeOptions;
+  const gasReasonList = gasReasonOptions;
+  const gasRegulationRefList = gasRegulationRefOptions;
+  const gasDisposalMethodList = gasDisposalMethodOptions;
   const [leakTestDone, setLeakTestDone] = useState(false);
   const [liveTechs, setLiveTechs] = useState([]);
   const [liveJobs, setLiveJobs] = useState([]);
@@ -870,8 +870,8 @@ export const NewTaskModal = ({
   taskLabels: taskLabelOptions = [],
   onAddTaskLabel
 }) => {
-  const taskCategoryList = taskCategoryOptions.length ? taskCategoryOptions : TASK_CATEGORY_DEFAULTS;
-  const taskLabelList = taskLabelOptions.length ? taskLabelOptions : TASK_LABEL_DEFAULTS;
+  const taskCategoryList = taskCategoryOptions;
+  const taskLabelList = taskLabelOptions;
   const [showOtherDetails, setShowOtherDetails] = useState(true);
   const [makePrivate, setMakePrivate] = useState(false);
   const [billable, setBillable] = useState(false);
@@ -1486,7 +1486,7 @@ export const LogTimeModal = ({
   activityTypes: activityTypeOptions = [],
   onAddActivityType
 }) => {
-  const activityTypeList = activityTypeOptions.length ? activityTypeOptions : ACTIVITY_TYPE_DEFAULTS;
+  const activityTypeList = activityTypeOptions;
   const [liveTechs, setLiveTechs] = useState([]);
   const [liveJobs, setLiveJobs] = useState([]);
   const [form, setForm] = useState({
