@@ -22,6 +22,8 @@ import technicianExpenseRoutes from './routes/technicianExpense.route.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import reportRoutes from './routes/reports.routes.js';
 import apiRoutes from './routes/api.js';
+import customerAccessRoutes from './routes/customerAccess.routes.js'; // POST /api/customers with optional client-portal login
+import technicianAccessRoutes from './routes/technicianAccess.routes.js'; // POST /api/technicians with optional app login
 import stripMongoId from './middleware/stripMongoId.middleware.js';
 import leaveRoutes from './routes/leaveRoutes.js';
 import technicianLeaveRoutes from './routes/technicianLeaveRoutes.js';  
@@ -127,6 +129,10 @@ app.use('/api/technician/expenses', technicianExpenseRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/sales-orders', salesOrderRoutes);
 app.use('/api/reports', reportRoutes);
+// Must be BEFORE apiRoutes: handle POST /api/customers and POST /api/technicians (create the record + optional app login).
+// Every other method/path on those two prefixes falls through to the generic CRUD in apiRoutes.
+app.use('/api/customers', protect, customerAccessRoutes);
+app.use('/api/technicians', protect, technicianAccessRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/leaves', protect, adminOnly, leaveRoutes);
 app.use('/api/timelogs', timelogsRouter);

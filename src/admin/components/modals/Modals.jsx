@@ -1304,7 +1304,8 @@ const NewCustomerModal = ({
     phone: "",
     email: "",
     units: 1,
-    amc: "None"
+    amc: "None",
+    tempPassword: ""
   };
   const EMPTY_ADDR = {
     country: "",
@@ -1320,6 +1321,9 @@ const NewCustomerModal = ({
   const [showAddType, setShowAddType] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [loginAllowed, setLoginAllowed] = useState(false);
+  const [emailNotif, setEmailNotif] = useState(true);
+  const [whatsappNotif, setWhatsappNotif] = useState(false);
   useEffect(() => {
     if (open) {
       setForm(EMPTY);
@@ -1327,6 +1331,9 @@ const NewCustomerModal = ({
       setStreetLine("");
       setSelectedType(typeList[0] || "");
       setError("");
+      setLoginAllowed(false);
+      setEmailNotif(true);
+      setWhatsappNotif(false);
     }
   }, [open]);
   const set = k => e => setForm(f => ({
@@ -1343,6 +1350,10 @@ const NewCustomerModal = ({
     if (!form.name.trim()) return setError("Full name / company is required.");
     if (!form.phone.trim()) return setError("Phone number is required.");
     if (!selectedType) return setError("Please add a customer type before adding a customer.");
+    if (loginAllowed) {
+      if (!form.email.trim()) return setError("Email is required to grant app access.");
+      if (!form.tempPassword || form.tempPassword.length < 8) return setError("Temporary password must be at least 8 characters.");
+    }
     setSaving(true);
     try {
       await onSave({
@@ -1357,7 +1368,11 @@ const NewCustomerModal = ({
         state: addr.state,
         city: addr.city,
         area: addr.area,
-        pincode: addr.pincode
+        pincode: addr.pincode,
+        loginAllowed,
+        emailNotif,
+        whatsappNotif,
+        tempPassword: loginAllowed ? form.tempPassword : undefined
       });
       onClose();
     } catch (e) {
@@ -1410,6 +1425,29 @@ const NewCustomerModal = ({
           <FInput placeholder="e.g. Flat 4B, Green Apartments, MG Road" value={streetLine} onChange={e => setStreetLine(e.target.value)} />
         </FRow>
         <AddressFields prefix="cust_" value={addr} onChange={setAddr} />
+
+        <SectionHeads title="System Access & Notifications" icon="🔐" />
+        <div className="ap-modals-147">
+          <FRow label="App Login Allowed">
+            <ToggleField value={loginAllowed} onChange={setLoginAllowed} onLabel="Yes – grant app access" offLabel="No – no portal login" />
+          </FRow>
+          <FRow label="Email Notifications">
+            <ToggleField value={emailNotif} onChange={setEmailNotif} onLabel="Yes – send emails" offLabel="No emails" />
+          </FRow>
+          <FRow label="WhatsApp Notifications">
+            <ToggleField value={whatsappNotif} onChange={setWhatsappNotif} onLabel="Yes – WhatsApp alerts" offLabel="No WhatsApp" />
+          </FRow>
+        </div>
+        {loginAllowed && <div className="ap-modals-148">
+            <FRow label="Temporary Password *">
+              <FInput type="password" placeholder="Min 8 characters" value={form.tempPassword} onChange={set("tempPassword")} />
+            </FRow>
+            <FRow label="User Role">
+              <FSelect value="Client (Portal)" onChange={() => {}}>
+                <option>Client (Portal)</option>
+              </FSelect>
+            </FRow>
+          </div>}
 
         {error && <div className="ap-modals-60">
             {error}
@@ -2128,6 +2166,10 @@ const AddTechnicianModal = ({
     if (!form.mobile.trim()) return setError("Mobile number is required.");
     if (!form.basicSalary) return setError("Basic salary is required.");
     if (!form.serviceArea.trim()) return setError("Service area is required.");
+    if (loginAllowed) {
+      if (!form.email.trim() && !form.personalEmail.trim()) return setError("Email is required to grant app access.");
+      if (!form.tempPassword || form.tempPassword.length < 8) return setError("Temporary password must be at least 8 characters.");
+    }
     setSaving(true);
     try {
       await onSave({
@@ -2148,6 +2190,7 @@ const AddTechnicianModal = ({
         personalEmail: form.personalEmail,
         emergencyContact: { name: form.emergencyName, phone: form.emergencyPhone },
         address: composedAddress,
+        street: form.street,
         country: addr.country, state: addr.state, city: addr.city, area: addr.area, pincode: addr.pincode,
         joinDate: form.joinDate || undefined,
         probationEnd: form.probationEnd || undefined,

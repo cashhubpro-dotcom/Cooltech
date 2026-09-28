@@ -218,7 +218,8 @@ const TechnicianDetail = ({
   onBack,
   initialEditMode = false,
   // openModal,
-  jobs = []
+  jobs = [],
+  onUpdate
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [docFiles, setDocFiles] = useState({ aadhaar: null, pan: null, licence: null, cert: null });
@@ -240,7 +241,7 @@ const TechnicianDetail = ({
   }];
 
   return <EditableDetailView id={tech.id} breadcrumb="Technicians" onBack={onBack} fields={TECH_FIELDS} data={tech} initialEditMode={initialEditMode} onSave={updated => {
-    console.log('Saved technician:', { ...updated, documents: docFiles });
+    onUpdate?.(updated);
   }} onDelete={() => {
     console.log('Deleted:', tech.id);
     onBack();
@@ -658,8 +659,24 @@ const TechniciansPage = ({
     setDeleteTarget(null);
     if (selectedTech?._id === id) closeDetail();
   };
+  // ── Persist edits made in the detail view ───────────────────────────────
+  const handleUpdate = async updated => {
+    try {
+      const payload = { ...updated };
+      // the skills input is a comma-separated string while editing; the schema stores an array
+      if (typeof payload.skills === 'string') {
+        payload.skills = payload.skills.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      const doc = await techsApi.update(updated._id ?? selectedTech._id, payload);
+      const fresh = normaliseTech(doc);
+      setTechnicians(prev => prev.map(t => t._id === fresh._id ? fresh : t));
+      setSelectedTech(fresh);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
   if (selectedTech) {
-    return <TechnicianDetail tech={selectedTech} onBack={closeDetail} initialEditMode={openInEditMode} openModal={openModal} jobs={jobs} />;
+    return <TechnicianDetail tech={selectedTech} onBack={closeDetail} initialEditMode={openInEditMode} openModal={openModal} jobs={jobs} onUpdate={handleUpdate} />;
   }
   const todayStr =fmtDateDMY(new Date());
   const todaysJobs = jobs.filter(j => j.date === todayStr);

@@ -28,6 +28,11 @@ const customerSchema = new mongoose.Schema({
     serviceReminders: { type: Boolean, default: false },
     promotions:       { type: Boolean, default: false },
   },
+  // ── Client-portal access (set from the Add Customer modal) ────────────────
+  portalAccess:           { type: Boolean, default: false },
+  portalUser:             { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  emailNotifications:     { type: Boolean, default: true },
+  whatsappNotifications:  { type: Boolean, default: false },
   isDeleted:   { type: Boolean, default: false },
   deletedAt:   { type: Date },
 }, { timestamps: true });

@@ -104,6 +104,7 @@ router.put('/change-password', protect, async (req, res) => {
       return res.status(401).json({ message: 'Current password is incorrect.' });
 
     user.password = newPassword;
+    user.mustChangePassword = false;
     await user.save();
     await user.logActivity('Changed account password', '#0369A1');
 
@@ -168,6 +169,7 @@ router.post('/reset-password/:token', async (req, res) => {
     if (!user) return res.status(400).json({ message: 'Reset link is invalid or has expired.' });
 
     user.password = password;
+    user.mustChangePassword = false;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();

@@ -695,7 +695,22 @@ function AppShell() {
       <NewCustomerModal
   open={modal?.type === 'new_customer'}
   onClose={closeModal}
-  onSave={async (data) => { await saveWithFallback(customersApi.create, data, 'Customer added!', showToast, closeModal); window.dispatchEvent(new Event('focus')); }}
+  onSave={async (data) => {
+    // Errors are re-thrown so the modal stays open and shows them inline (keeps the typed data).
+    const res = await customersApi.create(data);
+    const access = res?.access;
+    if (access?.created) {
+      showToast(
+        access.emailSent
+          ? 'Customer added! Login details emailed.'
+          : `Customer added with portal login${access.note ? ' — ' + access.note : ''}.`
+      );
+    } else {
+      showToast('Customer added!');
+    }
+    closeModal();
+    window.dispatchEvent(new Event('focus'));
+  }}
   activeTypes={customerTypes.filter(t => t.active).map(t => t.name)}
   onAddType={addCustomerType}
 />
@@ -741,7 +756,37 @@ function AppShell() {
   onAddPlan={addPlan}
 />
       <NewInvoiceModal       open={modal?.type === 'new_invoice'}       onClose={closeModal} onSave={async (data) => { await saveWithFallback(invoicesApi.create, data, 'Invoice generated!', showToast, closeModal); window.dispatchEvent(new Event('focus')); }} />
-      <AddTechnicianModal    open={modal?.type === 'new_tech'}          onClose={closeModal} onSave={async (data) => { await saveWithFallback(techsApi.create, data, 'Technician added!', showToast, closeModal); window.dispatchEvent(new Event('focus')); }} />
+      <AddTechnicianModal
+  open={modal?.type === 'new_tech'}
+  onClose={closeModal}
+  onSave={async (data) => {
+    // Errors are re-thrown so the modal stays open and shows them inline (keeps the typed data).
+    // File objects can't go in a JSON body: upload the photo first and send its URL instead.
+    // (ID-document files are intentionally not sent — see the note in the chat.)
+    const { photo, documents, ...payload } = data;
+    let photoFailed = false;
+    if (photo instanceof File) {
+      try {
+        payload.photo = (await uploadApi.upload(photo)).url;
+      } catch {
+        photoFailed = true;
+      }
+    }
+    const res = await techsApi.create(payload);
+    const access = res?.access;
+    if (access?.created) {
+      showToast(
+        access.emailSent
+          ? 'Technician added! Login details emailed.'
+          : `Technician added with app login${access.note ? ' — ' + access.note : ''}.`
+      );
+    } else {
+      showToast(photoFailed ? 'Technician added, but the photo could not be uploaded.' : 'Technician added!');
+    }
+    closeModal();
+    window.dispatchEvent(new Event('focus'));
+  }}
+/>
       <AddExpenseModal
   open={modal?.type === 'new_expense'}
   onClose={closeModal}

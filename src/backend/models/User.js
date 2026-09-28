@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema({
   phone:    { type: String },
   avatar:   { type: String },
   isActive: { type: Boolean, default: true },
+  mustChangePassword: { type: Boolean, default: false },   // true while the user still has an admin-issued temp password
   passwordResetToken:   String,
   passwordResetExpires: Date,
 
