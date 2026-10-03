@@ -8,7 +8,6 @@ import { Avatar } from "../ui/Badges";
 import AddressFields from "./AddressFields";
 import RichTextFileEditor from "./RichTextFileEditor";
 import RichTextEditorNoFile from "../ui/RichTextEditorNoFile";
-import { TECHNICIANS as technicians, customers, invoices, jobs } from "../../data/mockData";
 import { jobsApi, customersApi, techsApi, invoicesApi, expensesApi, complaintsApi, inventoryApi, noticesApi , suppliersApi} from '../../services/api';
 import { fmtDateDMY } from '../../../shared/formatDate';
 
@@ -2087,7 +2086,6 @@ const ToggleField = ({
 const FALLBACK_ROLES = ["Junior Technician", "Technician", "Senior Technician", "Lead Technician", "Supervisor", "Foreman"];
 const FALLBACK_DEPARTMENTS = ["Field Service", "Installation", "AMC", "Repair", "VRF / Chillers"];
 const FALLBACK_EMPLOYMENT_TYPES = ["Full-time", "Part-time", "Contract", "Freelancer", "Apprentice"];
-const FALLBACK_REPORTING_TO = ["Admin / Owner", ...technicians.filter(t => t.role?.includes("Senior") || t.role?.includes("Supervisor")).map(t => t.name)];
 const FALLBACK_VEHICLE_TYPES = ["None", "Bike (Own)", "Bike (Company)", "Van (Company)"];
 const FALLBACK_BANKS = ["SBI – State Bank of India", "HDFC Bank", "ICICI Bank", "Axis Bank", "Kotak Mahindra", "Bank of Baroda", "Punjab National Bank", "Canara Bank", "Union Bank", "IndusInd Bank", "Other"];
 
@@ -3687,6 +3685,11 @@ const RegisterWarrantyModal = ({
     </div>;
 };
 const NOTICE_CATEGORY_DEFAULTS = ['Operations', 'Policy', 'Holiday', 'Training', 'Achievement', 'General', 'HR', 'Finance', 'Safety', 'Urgent'];
+const NOTICE_PRIORITIES = [
+  { label: 'Normal', value: 'low' },  
+  { label: 'Medium', value: 'medium' },  
+  { label: 'High',   value: 'high' },
+];
 const NewNoticeModal = ({
   open,
   onClose,
@@ -3699,7 +3702,7 @@ const NewNoticeModal = ({
   const EMPTY = {
     title: '',
     category: 'Operations',
-    priority: 'Normal',
+    priority: 'low',
     target: 'all',
     isPinned: false,
     content: '',
@@ -3716,7 +3719,12 @@ const NewNoticeModal = ({
       .then(doc => setForm({
         title: doc.title || '',
         category: doc.category || 'Operations',
-        priority: doc.priority === 'high' || doc.priority === 'urgent' ? 'High' : 'Normal',
+        // priority: doc.priority === 'high' || doc.priority === 'urgent' ? 'High' : 'Normal',
+        priority: (() => {
+         const p = String(doc.priority || '').toLowerCase();
+         if (p === 'urgent') return 'high';
+         return ['low', 'medium', 'high'].includes(p) ? p : 'low';
+       })(),
         target: doc.target || 'all',
         isPinned: doc.isPinned || false,
         content: doc.content || '',
@@ -3738,7 +3746,8 @@ const NewNoticeModal = ({
         title: form.title.trim(),
         content: form.content.trim(),
         category: form.category,
-        priority: form.priority === 'High' ? 'high' : 'medium',
+        // priority: form.priority === 'High' ? 'high' : 'medium',
+         priority: form.priority,
         target: form.target,
         isPinned: form.isPinned,
         postedBy: form.postedBy
@@ -3776,7 +3785,8 @@ const NewNoticeModal = ({
           ...p,
           priority: e.target.value
         }))}>
-            <option>Normal</option><option>High</option>
+            {/* <option>Normal</option><option>High</option> */}
+             {NOTICE_PRIORITIES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </FSelect>
         </FRow>
         <FRow label="Target">

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { NewCustomerModal } from '../../components/modals/Modals';
-import { invoicesApi, customersApi, gstApi } from '../../services/api';
+import { useCustomerTypes } from '../../hooks/useCustomerTypes';
+import { invoicesApi, customersApi, gstApi, priceItemsApi } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 const LOGO_IMG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAn0AAACuCAYAAABDRrtlAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAIdUAACHVAQSctJ0AAP+lSURBVHhe7L0HmGPpVec9PU5ksHEaT+hQSTnnnLNUSTmXpFKVVCWpco6duydnh2VNMl5YWFiMYcEEr/lsMBhjMDaYaNYY44ixPQ4T+nzPed97pVt3emY6VM/02HOe5zxXpVLp3lKpu371P+f8zy23vBKvxCvxSlxxJF7Vb4m/adCYEQwZ8yahozAsdFYbQld1ReAorg7ZCouD1mzqhD0vGVRn3njLLbfcyn+GmyBuPXq09EP99twdA5a0fsieTQic2flBR+7skDUzdcyYPcr/gh+QOHLLLerX3GGI397nKPiH7IXWkC2zMWBO7A1YEvU+e7yf/wUvadjtr5YZ82+WustShXciqPCVswr3REPhmVhTuvInJY70Y3JH+udl9tSvSG2J98nM8fdLrGPvlVoSb5dYknfLrKk1mS1RkdjSo1J71qP0FIRqT/0nb9L37NWFWv0agTV3m8SdMYqc6ZjAmc4M2tN5gT0bEVtTd9Kf9UseeA1H+vsDr1OGKkfFwapZ4q8YxaGySeot2iT+glHsy8tvi0R+hP+FP4Bxqyy/+KOy6OxxFktN44fJqcbnJ1Xjcxuykfb56eDovyCYfcfWORMxz12G3o+fVGYvLWEfxpRQ29BQAAAAhJREFUWIVjYGBg+A8AAQQAAf/9AAAAAElFTkSuQmCC';
 const SIG_IMG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAi4AAAB3CAYAAAAkVMvJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAIdUAACHVAQSctJ0AAF6xSURBVHhe7d0HmGPpVec9PU5ksHEaT+hQSTnnnLNUSTmXpFKVVCWpco6duydnh2VNMl5YWFiMYcEEr/lsMBhjMDaYaNYY44ixPQ4T+nzPed97pVt3emY6VM/02HOe5zxXpVLp3lKpu371P+f8zy23vBKvxCvxSlxxJF7Vb4m/adCYEQwZ8yahozAsdFYbQld1ReAorg7ZCouD1mzqhD0vGVRn3njLLbfcyn+GmyBuPXq09EP99twdA5a0fsieTQic2flBR+7skDUzdcyYPcr/gh+QOHLLLerX3GGI377nKPiH7IXWkC2zMWBO7A1YEvU+e7yf/wUvadjtr5YZ82+WustShXciqPCVswr3REPhmVhTuvInJY70Y3JH+udl9tSvSG2J98nM8fdLrGPvlVoSb5dYknfLrKk1mS1RkdjSo1J71qP0FIRqT/0nb9L37NWFWv0agTV3m8SdMYqc6ZjAmc4M2tN5gT0bEVtTd9Kf9UseeA1H+vsDr1OGKkfFwapZ4q8YxaGySeot2iT+glHsy8tvi0R+hP+FP4Bxqyy/+KOy6OxxFktN44fJqcbnJ1Xjcxuykfb56eDovyCYfcfWORMxz12G3o+fVGYvLWEfxpRQ29BQAAAAhJREFUWIVjYGBg+A8AAQQAAf/9AAAAAElFTkSuQmCC';
@@ -13,29 +14,10 @@ const VENDOR = {
   phone: '9724763909',
   email: 'alishaengrineering@gmail.com'
 };
-const SAMPLE_CUSTOMERS = ['Galaxy Towers', 'Meera Iyer', 'TechPark Ltd.', 'City Mall', 'Dr. Nair Clinic', 'Patel Villa', 'Sunrise Hotel', 'Sharma Residency'];
+// Products offered in the "add item" search come from the Price List (see priceItems below).
 // Note: GST rate is intentionally NOT stored here. It's resolved live from
 // GstCategory (via gstApi) at the moment a product is added to an invoice,
 // so a rate change in GST Settings is reflected on the very next invoice.
-const SAMPLE_PRODUCTS = [{
-  name: 'Split AC Service (1.5T)',
-  rate: 599
-}, {
-  name: 'R-32 Gas Refill',
-  rate: 2800
-}, {
-  name: 'Split AC Installation',
-  rate: 3500
-}, {
-  name: 'Compressor Replacement (1T)',
-  rate: 8500
-}, {
-  name: 'PCB Repair',
-  rate: 1800
-}, {
-  name: 'Comprehensive AMC (1 Unit)',
-  rate: 7200
-}];
 const PAYMENT_MODES = ['Cash', 'UPI', 'Card', 'Net Banking', 'Cheque', 'EMI', 'Bank Transfer'];
 
 /* ─── tiny helpers ─────────────────────────────────────────── */
@@ -113,7 +95,9 @@ const CreateInvoicePage = ({
   /* ── customer ──────────────────────────────────────────── */
   const [liveCustomers, setLiveCustomers] = useState([]);
   const [showCreateCustomer, setShowCreateCustomer] = useState(false);
-  const [activeTypes, setActiveTypes] = useState(['Residential', 'Commercial']);
+  // Customer types come from Settings → Customer Types; "+" in the modal saves a new type there.
+  const { types: customerTypes, addType: addCustomerType } = useCustomerTypes();
+  const activeTypes = customerTypes.filter(t => t.active).map(t => t.name);
   const [customerQuery, setCustomerQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null); // { _id, name } | null
   const [showCustDrop, setShowCustDrop] = useState(false);
@@ -143,7 +127,14 @@ const CreateInvoicePage = ({
   const [productQty, setProductQty] = useState('');
   const [items, setItems] = useState([]);
   const [showProdDrop, setShowProdDrop] = useState(false);
-  const prodSuggestions = productSearch.length > 0 ? SAMPLE_PRODUCTS.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase())) : [];
+  // live Price List (Settings → Price List): name + price of every active item
+  const [priceItems, setPriceItems] = useState([]);
+  useEffect(() => {
+    priceItemsApi.list({ limit: 500 })
+      .then(r => setPriceItems((r.data ?? []).filter(pi => pi.isActive !== false && pi.name).map(pi => ({ name: pi.name, rate: Number(pi.price) || 0 }))))
+      .catch(() => {});
+  }, []);
+  const prodSuggestions = productSearch.length > 0 ? priceItems.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase())) : [];
   const addItem = product => {
     const qty = parseInt(productQty) || 1;
     setItems(prev => [...prev, {
@@ -990,7 +981,7 @@ const CreateInvoicePage = ({
       setBillToAddress(doc.address || '');
       setBillToPhone(doc.phone || '');
       setBillToEmail(doc.email || '');
-    }} activeTypes={activeTypes} onAddType={newType => setActiveTypes(prev => [...prev, newType])} />
+    }} activeTypes={activeTypes} onAddType={addCustomerType} />
     </div>;
 };
 export default CreateInvoicePage;

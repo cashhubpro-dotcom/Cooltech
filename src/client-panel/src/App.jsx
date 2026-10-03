@@ -5,6 +5,7 @@ import './styles/main.css';
 
 import Sidebar from './components/layout/Sidebar';
 import Header  from './components/layout/Header';
+import AutoRefresh from '../../shared/AutoRefresh';
 
 import Dashboard      from './pages/Dashboard';
 import JobsPage       from './pages/JobsPage';
@@ -112,20 +113,22 @@ function AppShell() {
           onMarkAllRead={markAllRead}
         />
         <div className="page-content">
-          <Routes>
-            <Route path=""            element={<Dashboard />} />
-            <Route path="jobs"        element={<JobsPage />} />
-            <Route path="invoices"    element={<InvoicesPage />} />
-            <Route path="payments"    element={<PaymentsPage />} />
-            <Route path="amc"         element={<AMCPage />} />
-            <Route path="quotations"  element={<QuotationsPage />} />
-            <Route path="contracts"   element={<ContractsPage />} />
-            <Route path="tickets"     element={<TicketsPage />} />
-            <Route path="reminders"   element={<RemindersPage />} />
-            <Route path="documents"   element={<DocumentsPage />} />
-            <Route path="profile"     element={<ProfilePage />} />
-            <Route path="*"           element={<Navigate to="/portal" replace />} />
-          </Routes>
+          <AutoRefresh>
+            <Routes>
+              <Route path=""            element={<Dashboard />} />
+              <Route path="jobs"        element={<JobsPage />} />
+              <Route path="invoices"    element={<InvoicesPage />} />
+              <Route path="payments"    element={<PaymentsPage />} />
+              <Route path="amc"         element={<AMCPage />} />
+              <Route path="quotations"  element={<QuotationsPage />} />
+              <Route path="contracts"   element={<ContractsPage />} />
+              <Route path="tickets"     element={<TicketsPage />} />
+              <Route path="reminders"   element={<RemindersPage />} />
+              <Route path="documents"   element={<DocumentsPage />} />
+              <Route path="profile"     element={<ProfilePage />} />
+              <Route path="*"           element={<Navigate to="/portal" replace />} />
+            </Routes>
+          </AutoRefresh>
         </div>
       </div>
     </div>

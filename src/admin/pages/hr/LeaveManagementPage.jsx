@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { techsApi, leavesApi } from '../../services/api';
+import { useLeaveTypes } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { SBadge, TypeTag, Avatar } from '../../components/ui/Badges';
 import { KCard, SectionHdr, Thead } from '../../components/ui/Cards';
@@ -10,7 +12,7 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
-import { LEAVE_BALANCE, LEAVE_STATUS } from '../../data/mockData';
+import { LEAVE_STATUS } from '../../constants/statusMaps';
 
 // ─── Column config for export ──────────────────────────────────────────────────
 const LEAVE_COLUMNS = [{
@@ -522,6 +524,7 @@ const ActionModal = ({
 const LeaveManagementPage = ({
   openModal
 }) => {
+  const { activeItems: activeLeaveTypes } = useLeaveTypes();   // Settings → Leave Types
   const [leaves, setLeaves] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
@@ -567,6 +570,25 @@ const LeaveManagementPage = ({
       })));
     }).catch(() => {});
   }, []);
+
+  // ── leave balance: yearly quota minus APPROVED days already taken this year ──
+  const LEAVE_QUOTA = { casual: 10, sick: 7, earned: 12 };
+  const balanceFor = tech => {
+    const year = new Date().getFullYear();
+    const used = { casual: 0, sick: 0, earned: 0 };
+    leaves.forEach(l => {
+      if (l.status !== 'approved' || l.tech !== tech.name) return;
+      if (l.from && new Date(l.from).getFullYear() !== year) return;
+      const t = String(l.type || '').toLowerCase();
+      const key = t.includes('sick') ? 'sick' : t.includes('earn') ? 'earned' : t.includes('casual') ? 'casual' : null;
+      if (key) used[key] += Number(l.days) || 0;
+    });
+    return {
+      casual: Math.max(0, LEAVE_QUOTA.casual - used.casual),
+      sick: Math.max(0, LEAVE_QUOTA.sick - used.sick),
+      earned: Math.max(0, LEAVE_QUOTA.earned - used.earned)
+    };
+  };
 
   // ── search + filter ───────────────────────────────────────────────────────
   const {
@@ -743,15 +765,11 @@ const LeaveManagementPage = ({
 
       {/* Leave Balance */}
       <div className="ap-leave-management-page-48">
-        <div className="ap-leave-management-page-49">Leave Balance – March 2026</div>
+        <div className="ap-leave-management-page-49">Leave Balance – {new Date().toLocaleString('en-IN', { month: 'long', year: 'numeric' })}</div>
         <div className="ap-leave-management-page-50">
           {technicians.map(t => {
           const tid = t.id || t._id;
-          const bal = LEAVE_BALANCE[tid] || LEAVE_BALANCE[t.techId] || LEAVE_BALANCE[t.name] || {
-            casual: 10,
-            sick: 6,
-            earned: 12
-          };
+          const bal = balanceFor(t);
           return <div key={tid} className="ap-leave-management-page-51">
                 <div className="ap-leave-management-page-52">
                   <Avatar name={t.name} size={28} />
@@ -781,7 +799,7 @@ const LeaveManagementPage = ({
         {/* filter bar */}
         <div className="ap-leave-management-page-60">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by technician, type, reason…" />
-          <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={leaveTypes} allLabel="All Types" />
+          <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={mergeOptions(activeLeaveTypes, leaveTypes)} allLabel="All Types" />
           <FilterSelect value={statusFilter} onChange={setStatusFilter} options={['pending', 'approved', 'rejected']} allLabel="All Statuses" />
           <div className="ap-leave-management-page-61"><ExportDropdown {...exportProps} /></div>
         </div>

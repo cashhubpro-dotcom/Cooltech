@@ -1,4 +1,7 @@
-import { inventoryApi } from '../../services/api';
+import { inventoryApi, jobsApi } from '../../services/api';
+import { fmtDateDMY } from '../../../shared/formatDate';
+import { useItemCategories } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { useState, useEffect } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { SBadge, TypeTag, PBadge, SevBadge, Avatar, Divider } from '../../components/ui/Badges';
@@ -119,71 +122,7 @@ const USAGE_COLUMNS = [{
   key: 'date',
   width: 10
 }];
-const USAGE_LOG = [{
-  id: "USG-021",
-  item: "R-32 Refrigerant",
-  qty: 0.8,
-  unit: "Cylinder",
-  job: "JOB-1042",
-  tech: "Ramesh K.",
-  date: "Mar 3"
-}, {
-  id: "USG-020",
-  item: "Split AC Filter 1.5T",
-  qty: 2,
-  unit: "Piece",
-  job: "JOB-1041",
-  tech: "Vijay S.",
-  date: "Mar 3"
-}, {
-  id: "USG-019",
-  item: "R-32 Refrigerant",
-  qty: 1.0,
-  unit: "Cylinder",
-  job: "JOB-1040",
-  tech: "Arjun D.",
-  date: "Mar 2"
-}, {
-  id: "USG-018",
-  item: "Capacitor 25µF",
-  qty: 1,
-  unit: "Piece",
-  job: "JOB-1039",
-  tech: "Suresh Y.",
-  date: "Mar 2"
-}, {
-  id: "USG-017",
-  item: "R-410A Refrigerant",
-  qty: 0.6,
-  unit: "Cylinder",
-  job: "JOB-1038",
-  tech: "Ramesh K.",
-  date: "Mar 1"
-}, {
-  id: "USG-016",
-  item: 'Copper Pipe 1/4"',
-  qty: 8,
-  unit: "Meter",
-  job: "JOB-1040",
-  tech: "Arjun D.",
-  date: "Mar 1"
-}, {
-  id: "USG-015",
-  item: "Compressor Oil",
-  qty: 0.5,
-  unit: "Litre",
-  job: "JOB-1037",
-  tech: "Vijay S.",
-  date: "Feb 29"
-}, {
-  id: "USG-014",
-  item: "R-32 Refrigerant",
-  qty: 1.8,
-  unit: "Cylinder",
-  job: "JOB-1037",
-  tech: "Vijay S.",
-  date: "Feb 29"
-}];
+// Usage Log rows are built from the parts recorded on completed jobs (see usageLog below).
 
 // ─── FIX: normalize raw API inventory row ────────────────────────────────────
 const normalizeItem = (item, idx) => ({
@@ -202,6 +141,7 @@ const normalizeItem = (item, idx) => ({
 const InventoryPage = ({
   openModal
 }) => {
+  const { activeItems: activeItemCategories } = useItemCategories();   // Settings → Item Categories
   const [items, setItems] = useState([]);
   const [view, setView] = useState("items");
   useEffect(() => {
@@ -209,6 +149,31 @@ const InventoryPage = ({
       limit: 200
     }).then(r => setItems((r.data ?? []).map(normalizeItem))).catch(() => {});
   }, []);
+  // ── Usage Log: parts consumed on completed / invoiced jobs (real data) ────
+  const [jobs, setJobs] = useState([]);
+  useEffect(() => {
+    jobsApi.list({ limit: 500 }).then(r => setJobs(r?.data ?? [])).catch(() => {});
+  }, []);
+  const usageLog = jobs
+    .filter(j => ['completed', 'invoiced'].includes(j.status))
+    .flatMap(j => (j.parts || []).map((p, n) => {
+      const when = new Date(j.completedAt || j.updatedAt || j.createdAt || 0);
+      const stockId = String(p.inventoryItem?._id ?? p.inventoryItem ?? '');
+      const stockItem = stockId ? items.find(i => String(i._id ?? i.id) === stockId) : null;
+      const jobRef = j.jobId || j.id || j._id;
+      return {
+        id: `${jobRef}-${n + 1}`,
+        item: p.name,
+        qty: Number(p.qty) || 0,
+        unit: stockItem?.unit || '—',
+        job: jobRef,
+        tech: j.techName && j.techName !== 'Unassigned' ? j.techName : '—',
+        date: isNaN(when) || !when.getTime() ? '—' : fmtDateDMY(when),
+        ts: when.getTime() || 0
+      };
+    }))
+    .sort((a, b) => b.ts - a.ts);
+  const usageThisWeek = usageLog.filter(u => Date.now() - u.ts <= 7 * 86400000).length;
   const low = items.filter(i => i.qty <= i.reorder);
   const totalValue = items.reduce((s, i) => s + i.qty * i.cost, 0);
   const categories = [...new Set(items.map(i => i.category))];
@@ -272,7 +237,7 @@ const InventoryPage = ({
     activeFilters: usageFilters,
     setFilter: setUsageFilter,
     filtered: usageSearchFiltered
-  } = useTableSearch(USAGE_LOG, ['item', 'tech', 'job', 'id'], {
+  } = useTableSearch(usageLog, ['item', 'tech', 'job', 'id'], {
     tech: ''
   });
   const usageFiltered = usageSearchFiltered.filter(r => !usageFilters.tech || r.tech === usageFilters.tech);
@@ -298,7 +263,7 @@ const InventoryPage = ({
     columns: USAGE_COLUMNS,
     rows: usageFiltered
   });
-  const uniqueTechs = [...new Set(USAGE_LOG.map(u => u.tech))];
+  const uniqueTechs = [...new Set(usageLog.map(u => u.tech).filter(t => t !== '—'))];
   return <div className="fi ap-inventory-page-1">
 
       {/* ── Header ── */}
@@ -333,7 +298,7 @@ const InventoryPage = ({
         <KCard label="Stock Value" value={`₹${(totalValue / 1000).toFixed(0)}K`} icon="💰" iconBg="#FEFCE8" color="#CA8A04" delay="1" />
         <KCard label="Low Stock" value={low.length} icon="⚠️" iconBg="#FEF2F2" color="#DC2626" delay="2" />
         <KCard label="Categories" value={categories.length} icon="📂" iconBg="#EFF6FF" color="#0369A1" delay="3" />
-        <KCard label="Usage This Week" value="8 logs" icon="📋" iconBg="#F0FDF4" color="#16A34A" delay="3" />
+        <KCard label="Usage This Week" value={`${usageThisWeek} ${usageThisWeek === 1 ? 'log' : 'logs'}`} icon="📋" iconBg="#F0FDF4" color="#16A34A" delay="3" />
       </div>
 
       {/* ── Low stock alert ── */}
@@ -359,7 +324,7 @@ const InventoryPage = ({
           {/* Toolbar */}
           <div className="ap-inventory-page-18">
             <TableSearchBar value={itemsQ} onChange={setItemsQ} placeholder="Search by name, SKU, supplier…" />
-            <FilterSelect value={itemsFilters.category} onChange={val => setItemsFilter("category", val)} options={categories} allLabel="All Categories" />
+            <FilterSelect value={itemsFilters.category} onChange={val => setItemsFilter("category", val)} options={mergeOptions(activeItemCategories, categories)} allLabel="All Categories" />
             <FilterSelect value={itemsFilters.stockStatus} onChange={val => setItemsFilter("stockStatus", val)} options={["OK", "Low Stock"]} allLabel="All Stock Status" />
             <button className="btn ap-inventory-page-19" onClick={() => openModal("new_po")}>
               🛒 Raise PO

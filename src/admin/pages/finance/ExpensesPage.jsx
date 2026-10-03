@@ -1,5 +1,7 @@
 import { EXP_STATUS } from '../../constants/statusMaps';
 import { expensesApi, uploadApi, fileUrl } from '../../services/api';
+import { useExpenseCategories } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { useState, useEffect, useRef } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { Avatar } from '../../components/ui/Badges';
@@ -101,7 +103,8 @@ const CAT_COLORS = {
     color: "var(--x26282b)"
   }
 };
-const CATEGORY_OPTIONS = Object.keys(CAT_COLORS);
+// Category list now comes from Settings → Expense Categories; CAT_COLORS above is
+// only used for the colour of each tag (unknown categories get the neutral fallback).
 const STATUS_OPTIONS = ['pending', 'approved', 'rejected'];
 const STATUS_MAP = {
   approved: {
@@ -268,6 +271,7 @@ const EditExpenseModal = ({
   onClose,
   onSaved
 }) => {
+  const { activeItems: activeExpenseCategories } = useExpenseCategories();   // Settings → Expense Categories
   const [form, setForm] = useState({
     category: expense.category || 'Other',
     techName: expense.tech || '',
@@ -326,7 +330,7 @@ const EditExpenseModal = ({
       <form onSubmit={handleSubmit}>
         <Field label="Category">
           <select value={form.category} onChange={e => set('category', e.target.value)} className="ap-expenses-page-19">
-            {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+            {mergeOptions(activeExpenseCategories, form.category).map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </Field>
 
@@ -445,6 +449,7 @@ const avatarName = techName => {
 const ExpensesPage = ({
   openModal
 }) => {
+  const { activeItems: activeExpenseCategories } = useExpenseCategories();   // Settings → Expense Categories
   const [catFilter, setCatFilter] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [rowModal, setRowModal] = useState(null); // { type: 'view'|'edit'|'delete', expense }
@@ -486,7 +491,7 @@ const ExpensesPage = ({
   const totalApproved = expenses.filter(e => e.status === "approved").reduce((s, e) => s + e.amount, 0);
   const totalPending = expenses.filter(e => e.status === "pending").reduce((s, e) => s + e.amount, 0);
   const totalAll = expenses.reduce((s, e) => s + e.amount, 0);
-  const byCat = CATEGORY_OPTIONS.map(c => ({
+  const byCat = mergeOptions(activeExpenseCategories, expenses.map(e => e.category)).map(c => ({
     cat: c,
     total: expenses.filter(e => e.category === c).reduce((s, e) => s + e.amount, 0),
     count: expenses.filter(e => e.category === c).length
@@ -552,7 +557,7 @@ const ExpensesPage = ({
 
           <FilterSelect value={activeFilters.status} onChange={val => setFilter("status", val)} options={STATUS_OPTIONS} allLabel="All Statuses" />
 
-          <FilterSelect value={activeFilters.category} onChange={val => setFilter("category", val)} options={CATEGORY_OPTIONS} allLabel="All Categories" />
+          <FilterSelect value={activeFilters.category} onChange={val => setFilter("category", val)} options={mergeOptions(activeExpenseCategories, expenses.map(e => e.category))} allLabel="All Categories" />
 
           <div className="ap-expenses-page-44">
             <ExportDropdown {...exportProps} />

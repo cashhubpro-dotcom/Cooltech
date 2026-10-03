@@ -72,6 +72,7 @@ const reqBlob = async (method, path) => {
 };
 
 export const crud = (resource) => ({
+  resource,   // used by the auto-refresh engine to know which lists to reload
   list:    (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return req('GET', `/${resource}${qs ? '?' + qs : ''}`);

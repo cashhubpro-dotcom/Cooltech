@@ -58,6 +58,9 @@ const normalizeComplaint = (c, idx) => ({
   description: c.description ?? c.desc ?? '',
   severity: c.severity ?? 'medium',
   date: c.date ?? (c.createdAt ?fmtDateDMY(new Date(c.createdAt)) : ''),
+  createdAt: c.createdAt,
+  resolvedAt: c.resolvedAt,
+  updatedAt: c.updatedAt,
 });
 
 const ComplaintsPage = ({ openModal }) => {
@@ -81,6 +84,21 @@ const ComplaintsPage = ({ openModal }) => {
   const openC = complaints.filter(c => c.status === 'open').length;
   const inProgC = complaints.filter(c => c.status === 'in_progress').length;
   const resolvedC = complaints.filter(c => c.status === 'resolved').length;
+  // "Resolved — this month": complaints that reached Resolved/Closed in the current month
+  // (resolvedAt is stamped by the backend; older ones fall back to their last update).
+  const nowD = new Date();
+  const resolvedThisMonth = complaints.filter(c => {
+    if (!['resolved', 'closed'].includes(c.status)) return false;
+    const d = new Date(c.resolvedAt ?? c.updatedAt ?? Date.now());
+    return d.getMonth() === nowD.getMonth() && d.getFullYear() === nowD.getFullYear();
+  }).length;
+  // average days from logged to resolved, over complaints that have both dates
+  const resolutionDays = complaints
+    .filter(c => ['resolved', 'closed'].includes(c.status) && c.createdAt && c.resolvedAt)
+    .map(c => (new Date(c.resolvedAt) - new Date(c.createdAt)) / 86400000);
+  const avgResolution = resolutionDays.length
+    ? `${(resolutionDays.reduce((a, b) => a + b, 0) / resolutionDays.length).toFixed(1)} days`
+    : '—';
   const closedC = complaints.filter(c => c.status === 'closed').length;
   const statusDot = status => COMP_STATUS[status]?.dot ?? '#E5E7EB';
 
@@ -92,8 +110,8 @@ const ComplaintsPage = ({ openModal }) => {
       <div className="ap-complaints-page-2">
         <KCard label="Open" value={openC} sub="need resolution" icon="🔴" iconBg="#FEF2F2" color="#DC2626" />
         <KCard label="In Progress" value={inProgC} sub="being resolved" icon="🟡" iconBg="#FFFBEB" color="#B45309" />
-        <KCard label="Resolved" value={resolvedC} sub="this month" icon="🟢" iconBg="#F0FDF4" color="#16A34A" />
-        <KCard label="Avg Resolution" value="2.3 days" sub="response time" icon="⏱" iconBg="#EFF6FF" color="#0369A1" />
+        <KCard label="Resolved" value={resolvedThisMonth} sub="this month" icon="🟢" iconBg="#F0FDF4" color="#16A34A" />
+        <KCard label="Avg Resolution" value={avgResolution} sub="response time" icon="⏱" iconBg="#EFF6FF" color="#0369A1" />
       </div>
 
       {/* <div className="ap-complaints-page-3">

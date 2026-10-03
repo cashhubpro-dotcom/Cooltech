@@ -2,6 +2,7 @@
 // API-backed lead sources hook
 import { useState, useEffect } from 'react';
 import { leadSourcesApi } from '../services/api';
+import { useDataVersion } from '../../shared/dataSync';
 
 const DEFAULT_SOURCES = [
   { name: 'Referral',  active: true },
@@ -15,6 +16,8 @@ const DEFAULT_SOURCES = [
 export function useLeadSources() {
   const [sources, setSources] = useState(DEFAULT_SOURCES);
   const [loading, setLoading] = useState(true);
+  // Reload whenever lead sources change anywhere (see useCustomerTypes).
+  const version = useDataVersion(['lead-sources']);
 
   useEffect(() => {
     leadSourcesApi.list({ limit: 200 })
@@ -26,7 +29,7 @@ export function useLeadSources() {
       })
       .catch(() => { /* fall back to defaults */ })
       .finally(() => setLoading(false));
-  }, []);
+  }, [version]);
 
   // const addSource = async (name) => {
   //   if (!name?.trim()) return;

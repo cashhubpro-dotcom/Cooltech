@@ -279,3 +279,127 @@ export const PO_STATUS = {
 /* ══════════════════════════════════════════════════════════════════════════
    MOCK DATA
 ══════════════════════════════════════════════════════════════════════════ */
+
+// ── Moved here from data/mockData.js (they are style config, not sample data) ──
+export const PAY_STATUS = {
+  paid: {
+    label: "Paid",
+    bg: "var(--success-bg)",
+    color: "var(--success-text)"
+  },
+  pending: {
+    label: "Pending",
+    bg: "var(--warning-bg)",
+    color: "var(--warning-text)"
+  }
+};
+
+export const REMINDER_STATUS = {
+  upcoming: {
+    label: "Upcoming",
+    bg: "var(--info-bg)",
+    color: "var(--info-text)",
+    dot: "var(--info)"
+  },
+  due_soon: {
+    label: "Due Soon",
+    bg: "var(--warning-bg)",
+    color: "var(--warning-text)",
+    dot: "var(--warning)"
+  },
+  overdue: {
+    label: "Overdue",
+    bg: "var(--danger-bg)",
+    color: "var(--danger-text)",
+    dot: "var(--danger)"
+  }
+};
+
+export const LEAVE_STATUS = {
+  approved: {
+    label: "Approved",
+    bg: "var(--success-bg)",
+    color: "var(--success-text)"
+  },
+  pending: {
+    label: "Pending",
+    bg: "var(--warning-bg)",
+    color: "var(--warning-text)"
+  },
+  rejected: {
+    label: "Rejected",
+    bg: "var(--danger-bg)",
+    color: "var(--danger-text)"
+  }
+};
+
+export const NOTIF_TYPE_CFG = {
+  urgent: {
+    color: "var(--danger-text)",
+    bg: "var(--danger-bg)"
+  },
+  ticket: {
+    color: "var(--purple)",
+    bg: "var(--purple-bg)"
+  },
+  payment: {
+    color: "var(--warning-text)",
+    bg: "var(--warning-bg)"
+  },
+  lead: {
+    color: "#0EA5E9",
+    bg: "#E0F2FE"
+  },
+  contract: {
+    color: "var(--info-text)",
+    bg: "var(--info-bg)"
+  },
+  amc: {
+    color: "var(--success-text)",
+    bg: "var(--success-bg)"
+  },
+  inventory: {
+    color: "var(--x06b6d4)",
+    bg: "var(--xecfeff)"
+  },
+  feedback: {
+    color: "var(--xca8a04)",
+    bg: "var(--xfefce8)"
+  },
+  complaint: {
+    color: "var(--purple-text)",
+    bg: "var(--purple-bg)"
+  },
+  salary: {
+    color: "var(--text-muted)",
+    bg: "var(--bg)"
+  }
+};
+
+// Purchase-order status as the Suppliers page shows it (has a coloured dot and a
+// different "draft" colour than PO_STATUS above). Kept separate so that page
+// looks exactly as before.
+export const PO_STATUS_WITH_DOT = {
+  draft: {
+    label: "Draft",
+    bg: "var(--bg)",
+    color: "var(--text-body)"
+  },
+  ordered: {
+    label: "Ordered",
+    bg: "var(--info-bg)",
+    color: "var(--info-text)",
+    dot: "var(--info)"
+  },
+  received: {
+    label: "Received",
+    bg: "var(--success-bg)",
+    color: "var(--success-text)",
+    dot: "var(--success)"
+  },
+  cancelled: {
+    label: "Cancelled",
+    bg: "var(--danger-bg)",
+    color: "var(--danger-text)"
+  }
+};

@@ -1,4 +1,6 @@
 import { assetsApi } from '../../services/api';
+import { useEquipmentSubtypes } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { COLORS, FONTS } from '../../constants/tokens';
@@ -397,6 +399,7 @@ const LogServiceModal = ({
 const AssetsPage = ({
   openModal
 }) => {
+  const { activeItems: activeEquipmentSubtypes } = useEquipmentSubtypes();   // Settings → Equipment Subtypes
   const [assets, setAssets] = useState([]);
   const [viewAsset, setViewAsset] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -564,7 +567,7 @@ const AssetsPage = ({
 
         <div className="ap-assets-page-51">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by name, type, assigned to…" />
-          <FilterSelect value={activeFilters.subType} onChange={val => setFilter("subType", val)} options={subTypes} allLabel="All Types" />
+          <FilterSelect value={activeFilters.subType} onChange={val => setFilter("subType", val)} options={mergeOptions(activeEquipmentSubtypes, subTypes)} allLabel="All Types" />
           <FilterSelect value={activeFilters.status} onChange={val => setFilter("status", val)} options={["active", "maintenance", "inactive", "retired"]} allLabel="All Statuses" />
           <div className="ap-assets-page-52">
               <ExportDropdown {...exportProps} />

@@ -5,6 +5,7 @@ import './styles/main.css';
 
 import Sidebar      from './components/layout/Sidebar';
 import Header       from './components/layout/Header';
+import AutoRefresh from '../../shared/AutoRefresh';
 
 // import LoginPage    from './pages/LoginPage';
 import Dashboard    from './pages/Dashboard';
@@ -144,20 +145,22 @@ export default function TechApp() {
             onMarkRead={markRead}
             onMarkAllRead={markAllRead}/>
         <div className="page-content">
-          <Routes>
-            <Route path=""            element={<Dashboard />} />
-            <Route path="jobs"        element={<JobsPage />} />
-            <Route path="schedule"    element={<SchedulePage />} />
-            <Route path="amc"         element={<AMCPage />} />
-            <Route path="attendance"  element={<AttendancePage />} />
-            <Route path="expenses"    element={<ExpensesPage />} />
-            <Route path="inventory"   element={<InventoryPage />} />
-            <Route path="leaves"      element={<LeavesPage />} />
-            <Route path="salary"      element={<SalaryPage />} />
-            <Route path="advances" element={<AdvancesPage />} />
-            <Route path="profile"     element={<ProfilePage />} />
-            <Route path="*"           element={<Navigate to="/tech" replace />} />
-          </Routes>
+          <AutoRefresh>
+            <Routes>
+              <Route path=""            element={<Dashboard />} />
+              <Route path="jobs"        element={<JobsPage />} />
+              <Route path="schedule"    element={<SchedulePage />} />
+              <Route path="amc"         element={<AMCPage />} />
+              <Route path="attendance"  element={<AttendancePage />} />
+              <Route path="expenses"    element={<ExpensesPage />} />
+              <Route path="inventory"   element={<InventoryPage />} />
+              <Route path="leaves"      element={<LeavesPage />} />
+              <Route path="salary"      element={<SalaryPage />} />
+              <Route path="advances" element={<AdvancesPage />} />
+              <Route path="profile"     element={<ProfilePage />} />
+              <Route path="*"           element={<Navigate to="/tech" replace />} />
+            </Routes>
+          </AutoRefresh>
         </div>
       </div>
     </div>

@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { inventoryApi, purchaseApi, suppliersApi } from '../../services/api';
+import { useItemCategories } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { SBadge, TypeTag, Avatar } from '../../components/ui/Badges';
 import { KCard, Thead } from '../../components/ui/Cards';
@@ -13,7 +15,7 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
-import { PO_STATUS } from '../../data/mockData';
+import { PO_STATUS_WITH_DOT as PO_STATUS } from '../../constants/statusMaps';
 import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Column config for export ─────────────────────────────────────────────────
@@ -216,6 +218,7 @@ const SupplierDetail = ({
 const SuppliersPage = ({
   openModal
 }) => {
+  const { activeItems: activeItemCategories } = useItemCategories();   // Settings → Item Categories
   const [suppliers, setSuppliers] = useState([]);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [inventory, setInventory] = useState([]);
@@ -414,7 +417,7 @@ const SuppliersPage = ({
           inactive: "Inactive"
         }} />
 
-          <FilterSelect value={activeFilters.category} onChange={val => setFilter("category", val)} options={categories} allLabel="All Categories" />
+          <FilterSelect value={activeFilters.category} onChange={val => setFilter("category", val)} options={mergeOptions(activeItemCategories, categories)} allLabel="All Categories" />
 
           <div className="ap-suppliers-page-4">
             <ExportDropdown {...exportProps} />

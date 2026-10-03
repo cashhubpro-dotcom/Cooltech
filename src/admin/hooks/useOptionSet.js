@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { onDataChanged } from '../../shared/dataSync';
 
 const normalize = (arr) =>
   arr.map(item => (typeof item === 'string' ? { name: item, active: true } : item));
@@ -33,6 +34,17 @@ function getStore(api, defaults) {
     snapshot: { items, loading: true },
   };
   stores.set(api, store);
+
+  // Auto-refresh: whenever ANYTHING adds / edits / deletes a row of this
+  // resource (this hook, a settings page, another modal…), reload the shared
+  // list so every dropdown in the app shows the change without a page reload.
+  if (api.resource) {
+    onDataChanged(changed => {
+      if (store.fetchStarted && (changed.includes(api.resource) || changed.includes('*'))) {
+        loadItems(api, store, false);
+      }
+    });
+  }
   return store;
 }
 
@@ -42,14 +54,13 @@ function setStoreState(store, patch) {
   store.listeners.forEach(l => l());
 }
 
-function ensureFetched(api, store) {
-  if (store.fetchStarted) return;
-  store.fetchStarted = true;
-
-  api.list({ limit: 200 })
+// `initial` = first load. An empty first response keeps the defaults (as before);
+// a later reload trusts the server, so deleting the last item empties the list.
+function loadItems(api, store, initial) {
+  return api.list({ limit: 200 })
     .then(res => {
       const raw = res?.data || res || [];
-      if (raw.length > 0) {
+      if (raw.length > 0 || !initial) {
         const items = raw.map(s => ({ ...s, name: s.name, active: s.isActive !== false }));
         setStoreState(store, { items, loading: false });
       } else {
@@ -57,9 +68,15 @@ function ensureFetched(api, store) {
       }
     })
     .catch(() => {
-      // keep defaults on failure — same behavior as before
+      // keep current items on failure — same behavior as before
       setStoreState(store, { loading: false });
     });
+}
+
+function ensureFetched(api, store) {
+  if (store.fetchStarted) return;
+  store.fetchStarted = true;
+  loadItems(api, store, true);
 }
 
 export function useOptionSet(api, defaults = []) {

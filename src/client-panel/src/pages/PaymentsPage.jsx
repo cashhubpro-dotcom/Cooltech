@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { clientPaymentsApi } from '../services/clientPortalApi'; // adjust the relative path to match where you place this in your project
+import { clientPaymentsApi, clientProfileApi } from '../services/clientPortalApi';
+import { readStoredUser } from '../../../shared/initials'; // adjust the relative path to match where you place this in your project
 import { fmtDateDMY } from '../../../shared/formatDate';
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -16,10 +17,6 @@ const COLORS = {
   sub: "var(--text-muted)",
   border: "var(--border)",
   bg: "var(--bg)"
-};
-const CLIENT = {
-  name: 'Sunrise Hotel',
-  code: 'CLI-1042'
 };
 
 /* CoolTech's own account — this is what the CLIENT needs in order to pay */
@@ -190,6 +187,11 @@ export default function ClientPaymentsPage() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Name printed on receipts: the logged-in client (from login, refreshed from the profile API)
+  const [payerName, setPayerName] = useState(() => readStoredUser('portal_user').name || 'Client');
+  useEffect(() => {
+    clientProfileApi.get().then(r => r?.data?.name && setPayerName(r.data.name)).catch(() => {});
+  }, []);
   const [busyId, setBusyId] = useState(null); // disables the Pay Now button for the row currently checking out
 
   const [activeTab, setActiveTab] = useState('history');
@@ -312,7 +314,7 @@ export default function ClientPaymentsPage() {
   const printReceipt = p => {
     const w = window.open('', '_blank', 'width=440,height=640');
     if (!w) return;
-    const rows = [['Invoice', p.invoice], ['Paid by', CLIENT.name], ['Method', p.method], ['Gateway', p.gateway || 'Manual'], ['Date', p.date], ['Ref / UTR', p.ref], ['Status', STATUS_MAP[p.status]?.label || p.status]].map(([k, v]) => `
+    const rows = [['Invoice', p.invoice], ['Paid by', payerName], ['Method', p.method], ['Gateway', p.gateway || 'Manual'], ['Date', p.date], ['Ref / UTR', p.ref], ['Status', STATUS_MAP[p.status]?.label || p.status]].map(([k, v]) => `
       <tr>
         <td style="padding:8px 0;color:#64748B;font-size:13px;border-bottom:1px solid #E2E8F0;">${k}</td>
         <td style="padding:8px 0;font-weight:700;text-align:right;font-size:13px;border-bottom:1px solid #E2E8F0;">${v}</td>

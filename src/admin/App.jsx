@@ -15,17 +15,13 @@ import WelcomeToast from './components/ui/WelcomeToast';
 import { NAV, TITLES } from './constants/navigation';
 import { PATH_FOR }    from './constants/routes';
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-import {
-  jobs, quotations, invoices, complaints, tickets,
-  leads,
-  INIT_CLOCK_SESSIONS,
-} from './data/mockData';
-
 // ── Shared state ──────────────────────────────────────────────────────────────
 import { useLeadSources }    from './hooks/useLeadSources';
+import AutoRefresh from '../shared/AutoRefresh';
+import { useDataVersion } from '../shared/dataSync';
 import { useCustomerTypes }  from './hooks/useCustomerTypes';
 import { useContractTypes } from './hooks/useContractTypes';
+import { useTechnicianLookups } from './hooks/useTechnicianLookups';
 import { usePlans } from './hooks/usePlans';
 import {
   useJobTypes, useExpenseCategories, useNoticeCategories, useTicketIssueTypes,
@@ -40,7 +36,7 @@ import {
   jobsApi, quotationsApi, customersApi, amcApi, invoicesApi,
   techsApi, expensesApi, inventoryApi, leadsApi, purchaseApi,
   suppliersApi, assetsApi, remindersApi, noticesApi,
-  notificationsApi, uploadApi, ticketsApi, contractsApi,
+  notificationsApi, uploadApi, ticketsApi, contractsApi, complaintsApi,
 } from './services/api';
 
 // ── Modals ────────────────────────────────────────────────────────────────────
@@ -379,6 +375,7 @@ function AppShell() {
   const { types: customerTypes, addType: addCustomerType, deleteType: deleteCustomerType, toggleType: toggleCustomerType } = useCustomerTypes();
   const { activeTypes: activeContractTypes, addType: addContractType } = useContractTypes();
   const { activePlans, addPlan } = usePlans();
+  const { lookups: technicianLookups, addLookup: addTechnicianLookup } = useTechnicianLookups();
 
   // ── Tier-1 option sets (DynamicSelect-backed dropdowns) ───────────────────
   const { activeItems: activeJobTypes, add: addJobType } = useJobTypes();
@@ -415,16 +412,17 @@ function AppShell() {
   const [clockInTime,    setClockInTime]    = useState(null);
   const [breakStartTime, setBreakStartTime] = useState(null);
   const [totalBreakSecs, setTotalBreakSecs] = useState(0);
-  const [clockSessions,  setClockSessions]  = useState(INIT_CLOCK_SESSIONS || []);
+  const [clockSessions,  setClockSessions]  = useState([]);
 
   // ── Technicians — used by AddExpenseModal's technician picker ────────────
   const [technicians, setTechnicians] = useState([]);
+  const techVersion = useDataVersion(['technicians']);   // auto-refresh: reload after a technician is added / edited / deleted
 
   useEffect(() => {
     techsApi.list({ limit: 500 })
       .then(r => setTechnicians(r?.data ?? []))
       .catch(() => {});
-  }, []);
+  }, [techVersion]);
 
   const [notifs,        setNotifs]        = useState([]);
   const [notifsLoading, setNotifsLoading] = useState(true);
@@ -524,12 +522,6 @@ function AppShell() {
   //   const t = setInterval(() => setTime(new Date()), 1000);
   //   return () => clearInterval(t);
   // }, []);
-
-  const urgentCount = jobs.filter(j =>
-    j.priority === 'urgent' && !['completed', 'cancelled'].includes(j.status)
-  ).length;
-  const overdueInv = invoices.filter(i => i.status === 'overdue').length;
-  const openComps  = complaints.filter(c => c.status === 'open').length;
 
   // const badges = {
   //   jobs:        urgentCount,
@@ -759,6 +751,8 @@ function AppShell() {
       <AddTechnicianModal
   open={modal?.type === 'new_tech'}
   onClose={closeModal}
+  lookups={technicianLookups}
+  onAddLookup={addTechnicianLookup}
   onSave={async (data) => {
     // Errors are re-thrown so the modal stays open and shows them inline (keeps the typed data).
     // File objects can't go in a JSON body: upload the photo first and send its URL instead.
@@ -973,9 +967,6 @@ function AppShell() {
           TITLES={TITLES}
           // time={time}
           clockProps={clockProps}
-          urgentCount={urgentCount}
-          overdueInv={overdueInv}
-          openComps={openComps}
           setPage={setPage}
           onLogout={handleLogout}
           setSidebarOpen={setSidebarOpen}
@@ -986,16 +977,18 @@ function AppShell() {
         />
 
         <div className="page-content">
-          <Routes>
-            {ROUTE_MAP.map(({ id, component: Page }) => (
-              <Route
-                key={id}
-                path={PATH_FOR[id]}
-                element={getPageElement(id, Page)}
-              />
-            ))}
-            <Route path="*" element={<Navigate to={pathFor('dashboard')} replace />} />
-          </Routes>
+          <AutoRefresh>
+            <Routes>
+              {ROUTE_MAP.map(({ id, component: Page }) => (
+                <Route
+                  key={id}
+                  path={PATH_FOR[id]}
+                  element={getPageElement(id, Page)}
+                />
+              ))}
+              <Route path="*" element={<Navigate to={pathFor('dashboard')} replace />} />
+            </Routes>
+          </AutoRefresh>
         </div>
       </div>
     </div>

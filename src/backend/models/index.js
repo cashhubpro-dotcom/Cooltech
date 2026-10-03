@@ -97,6 +97,41 @@ inventorySchema.pre('save', async function (next) {
 
 export const Inventory = mongoose.model('Inventory', inventorySchema);
 
+// ── Keeps a "when did it happen" date in step with a status field ──────────────
+// Lead.wonAt        — stamped when stage moves INTO 'won'
+// Complaint.resolvedAt — stamped when status moves INTO 'resolved' / 'closed'
+// The date is set ONCE, at the moment the record enters that state, and cleared if
+// it leaves it again. It works for every way a record can change (create, save,
+// PUT, PATCH, findByIdAndUpdate…), and editing other fields of a record that is
+// already in the state never moves the date. The date is server-controlled:
+// a value sent by a client is ignored.
+function trackStateDate(schema, { field, dateField, inState }) {
+  schema.pre('save', function (next) {
+    if (this.isNew || this.isModified(field)) {
+      if (inState(this[field])) { if (!this[dateField]) this[dateField] = new Date(); }
+      else this[dateField] = undefined;
+    }
+    next();
+  });
+  schema.pre('findOneAndUpdate', async function (next) {
+    try {
+      const update = this.getUpdate() || {};
+      const target = update.$set || update;
+      delete update[dateField];
+      if (update.$set) delete update.$set[dateField];
+      const incoming = target[field];
+      if (incoming === undefined) return next();
+      if (inState(incoming)) {
+        const prev = await this.model.findOne(this.getQuery()).select(`${field} ${dateField}`).lean();
+        if (!(prev && inState(prev[field]) && prev[dateField])) this.set(dateField, new Date());
+      } else {
+        this.set(dateField, null);
+      }
+      next();
+    } catch (err) { next(err); }
+  });
+}
+
 // ── Lead ──────────────────────────────────────────────────────────────────────
 const activitySchema = new mongoose.Schema({
   date:   { type: Date, default: Date.now },
@@ -126,6 +161,7 @@ const leadSchema = new mongoose.Schema({
   emails:     { type: Number, default: 0 },
   visits:     { type: Number, default: 0 },
   lastContact:{ type: Date },
+  wonAt:      { type: Date },   // set automatically when stage becomes 'won'
   convertedTo:{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   isDeleted:  { type: Boolean, default: false },
 }, { timestamps: true });
@@ -137,6 +173,8 @@ leadSchema.pre('save', async function (next) {
   }
   next();
 });
+
+trackStateDate(leadSchema, { field: 'stage', dateField: 'wonAt', inState: v => v === 'won' });
 
 export const Lead = mongoose.model('Lead', leadSchema);
 
@@ -169,6 +207,8 @@ complaintSchema.pre('save', async function (next) {
   }
   next();
 });
+
+trackStateDate(complaintSchema, { field: 'status', dateField: 'resolvedAt', inState: v => v === 'resolved' || v === 'closed' });
 
 export const Complaint = mongoose.model('Complaint', complaintSchema);
 

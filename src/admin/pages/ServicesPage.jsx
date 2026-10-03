@@ -12,6 +12,8 @@ import Pagination from '../components/ui/Pagination';
 import ExportDropdown from '../components/layout/ExportDropdown';
 import useExport from '../hooks/useExport';
 import { servicesApi } from '../services/api';
+import { useJobTypes } from '../hooks/useOptionSets';
+import { mergeOptions } from '../utils/mergeOptions';
 
 const mapService = s => ({
   id: s.serviceId,
@@ -123,7 +125,7 @@ const mapService = s => ({
 //   popular: false,
 //   description: "Full compressor swap with gas recovery, vacuum and re-charge."
 // }];
-const CATEGORIES = ["Installation", "Service", "Repair", "AMC"];
+// Service categories come from Settings → Job Types (same list as work orders).
 const CAT_COLOR = {
   Installation: {
     bg: "var(--info-bg)",
@@ -315,6 +317,7 @@ const ServiceFormModal = ({
   onSave,
   onClose
 }) => {
+  const { activeItems: activeJobTypes } = useJobTypes();   // Settings → Job Types
   const [form, setForm] = useState({
     ...BLANK
   });
@@ -392,7 +395,7 @@ const ServiceFormModal = ({
                 <div>{label("Service ID")}<input value={form.id} onChange={set("id")} placeholder="Auto / SVC-007" style={fStyle} /></div>
               </div>
               <div className="ap-services-page-35">
-                <div>{label("Category *")}<select value={form.category} onChange={set("category")} style={fStyle}>{["Installation", "Service", "Repair", "AMC"].map(c => <option key={c}>{c}</option>)}</select></div>
+                <div>{label("Category *")}<select value={form.category} onChange={set("category")} style={fStyle}>{(mergeOptions(activeJobTypes, form.category)).length ? mergeOptions(activeJobTypes, form.category).map(c => <option key={c}>{c}</option>) : <option value="">None yet</option>}</select></div>
                 <div>{label("AC Type")}<select value={form.acType} onChange={set("acType")} style={fStyle}>{["All Types", "Split AC", "Cassette AC", "Window AC", "Inverter Split", "Ductable AC", "Tower AC"].map(t => <option key={t}>{t}</option>)}</select></div>
               </div>
               <div>{label("Description")}<textarea value={form.description} onChange={set("description")} rows={3} placeholder="Brief description..." style={{
@@ -515,6 +518,7 @@ const ServiceEditView = ({
   onSave,
   onDelete
 }) => {
+  const { activeItems: activeJobTypes } = useJobTypes();   // Settings → Job Types
   const [form, setForm] = useState({
     ...svc
   });
@@ -599,7 +603,7 @@ const ServiceEditView = ({
                 <select value={form.category} onChange={set("category")} style={{
                 ...fStyle
               }} className="ap-services-page-87">
-                  {["Installation", "Service", "Repair", "AMC"].map(c => <option key={c}>{c}</option>)}
+                  {(mergeOptions(activeJobTypes, form.category)).length ? mergeOptions(activeJobTypes, form.category).map(c => <option key={c}>{c}</option>) : <option value="">None yet</option>}
                 </select>
                 {[["active", "Active"], ["popular", "⭐ Popular"]].map(([key, lbl]) => <label key={key} className="ap-services-page-88">
                     <div onClick={toggle(key)} style={{
@@ -895,6 +899,7 @@ const ServiceDetail = ({
 const ServicesPage = ({
   openModal
 }) => {
+  const { activeItems: activeJobTypes } = useJobTypes();   // Settings → Job Types
   const [services, setServices] = useState([]);
   const [viewMode, setViewMode] = useState("grid");
   const [statusFilter, setStatusFilter] = useState("");
@@ -1036,7 +1041,7 @@ const handleDelete = async (id) => {
       {/* Toolbar */}
       <div className="ap-services-page-185">
         <TableSearchBar value={q} onChange={setQ} placeholder="Search by name, category, AC type…" />
-        <FilterSelect value={activeFilters.category} onChange={val => setFilter("category", val)} options={CATEGORIES} allLabel="All Categories" />
+        <FilterSelect value={activeFilters.category} onChange={val => setFilter("category", val)} options={mergeOptions(activeJobTypes, services.map(sv => sv.category))} allLabel="All Categories" />
         <FilterSelect value={statusFilter} onChange={val => setStatusFilter(val)} options={["Active", "Inactive"]} allLabel="All Statuses" />
         <div className="ap-services-page-186">
             <ExportDropdown {...exportProps} />

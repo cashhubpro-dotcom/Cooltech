@@ -1,7 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { CLIENT_NAV, CLIENT_PATH } from '../../constants/navigation';
 import { COLORS } from '../../constants/tokens';
+import { clientProfileApi } from '../../services/clientPortalApi';
+import { getInitials, readStoredUser } from '../../../../shared/initials';
 
 // ─── This panel is always mounted under /portal/* by the root router ─────────
 const PORTAL_PREFIX = '/portal';
@@ -17,6 +20,11 @@ const Sidebar = ({
   setSidebarOpen,
   notifs = []
 }) => {
+  // Who is logged in: instant from what login saved, then refreshed from the API.
+  const [me, setMe] = useState(() => readStoredUser('portal_user'));
+  useEffect(() => {
+    clientProfileApi.get().then(r => r?.data && setMe(prev => ({ ...prev, ...r.data }))).catch(() => {});
+  }, []);
   const location = useLocation();
 
   const relativePath = location.pathname.replace(/^\/portal\/?/, '/');
@@ -87,9 +95,9 @@ const Sidebar = ({
         {/* Footer */}
         <div className="sidebar-footer">
           <div className="sidebar-user">
-            <div className="sidebar-user-avatar">SH</div>
+            <div className="sidebar-user-avatar">{getInitials(me.name)}</div>
             {!isCollapsed && <div className="sidebar-footer-info">
-                <div className="sidebar-user-name">Sunrise Hotel</div>
+                <div className="sidebar-user-name">{me.name || 'Client'}</div>
                 <div className="sidebar-user-role">Client Account</div>
               </div>}
           </div>

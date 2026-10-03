@@ -1,11 +1,13 @@
 // ─── useApi hook ──────────────────────────────────────────────────────────────
 // Provides: data, loading, error, reload, create, update, remove
 import { useState, useEffect, useCallback } from 'react';
+import { useDataVersion } from '../../shared/dataSync';
 
 export function useApi(apiFn, params = {}) {
   const [data,    setData]    = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
+  const version = useDataVersion();   // reload after any add / edit / delete in the app
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -14,7 +16,7 @@ export function useApi(apiFn, params = {}) {
       setData(res.data ?? res);
     } catch (e) { setError(e.message); }
     finally     { setLoading(false); }
-  }, [JSON.stringify(params)]);
+  }, [JSON.stringify(params), version]);
 
   useEffect(() => { load(); }, [load]);
 

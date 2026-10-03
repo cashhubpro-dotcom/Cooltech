@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useDataVersion } from '../../shared/dataSync';
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -21,9 +22,10 @@ export function useAdCampaigns() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState(null);
+  const version = useDataVersion(['ad-campaigns']);
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
+  const fetchAll = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const data = await apiFetch('/');
@@ -40,7 +42,8 @@ export function useAdCampaigns() {
     }
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  // first load shows the spinner; auto-refreshes after a change are silent
+  useEffect(() => { fetchAll(version > 0); }, [fetchAll, version]);
 
   const createCampaign = async (payload) => {
     const created = await apiFetch('/', { method: 'POST', body: JSON.stringify(payload) });
@@ -59,5 +62,5 @@ export function useAdCampaigns() {
     setCampaigns(prev => prev.filter(c => c.id !== id));
   };
 
-  return { campaigns, setCampaigns, loading, error, refetch: fetchAll, createCampaign, updateCampaign, deleteCampaign };
+  return { campaigns, setCampaigns, loading, error, refetch: () => fetchAll(), createCampaign, updateCampaign, deleteCampaign };
 }

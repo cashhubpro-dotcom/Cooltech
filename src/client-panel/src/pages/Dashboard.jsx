@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Ticket as TicketIcon, Phone, MessageCircle, Mail, Wrench, Receipt, ShieldCheck, CreditCard, Star, Calendar, Clock, Wind, Droplet, Zap, Package, Search, User } from 'lucide-react';
 import { COLORS, FONTS } from '../constants/tokens';
-import { STATUS_MAPS } from '../data/mockData'; // keep — this is just style config, not fake data
+import { STATUS_MAPS } from '../constants/statusMaps';
 import { SBadge } from '../components/ui/Components';
 import { RequestsDonut, RequestTrendChart, StarRating, KpiSparkline, BannerCityscape, TechnicianAvatar } from '../components/DashboardCharts';
 import { usePortalData } from '../context/PortalDataContext';
 import { clientDashboardApi } from '../services/clientPortalApi';
 import { fmtDateDMY } from '../../../shared/formatDate';
+import ChartExpand from '../../../shared/ChartExpand';
 const TREND_PERIODS = [{
   value: 'this_month',
   label: 'This Month'
@@ -286,6 +287,9 @@ const Dashboard = () => {
         <div className="card animate-fade-up1">
           <div className="card-header">
             <div className="card-title">Service Requests Overview</div>
+            <ChartExpand title="Service Requests Overview">
+              <RequestsDonut overview={requestsOverview} large />
+            </ChartExpand>
           </div>
           <RequestsDonut overview={requestsOverview} />
           <div className="cp-dashboard-29">
@@ -296,9 +300,16 @@ const Dashboard = () => {
         <div className="card animate-fade-up2">
           <div className="card-header">
             <div className="card-title">Request Status Trend</div>
-            <select value={trendPeriod} onChange={e => setTrendPeriod(e.target.value)} className="cp-dashboard-31">
-              {TREND_PERIODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {!trendLoading && (
+                <ChartExpand title={`Request Status Trend — ${TREND_PERIODS.find(p => p.value === trendPeriod)?.label || ''}`}>
+                  <RequestTrendChart large trend={formattedTrend || { days: [], series: { pending: [], inProgress: [], completed: [], cancelled: [] } }} />
+                </ChartExpand>
+              )}
+              <select value={trendPeriod} onChange={e => setTrendPeriod(e.target.value)} className="cp-dashboard-31">
+                {TREND_PERIODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+              </select>
+            </div>
           </div>
           {trendLoading ? <div className="cp-dashboard-32">
               Loading trend…

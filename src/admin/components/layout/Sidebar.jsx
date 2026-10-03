@@ -4,6 +4,18 @@ import { COLORS } from "../../constants/tokens";
 import { PATH_FOR } from "../../constants/routes";
 import { ChevronRight } from "lucide-react";
 import { useCompany } from "../../context/CompanyContext";
+import { dashboardApi } from "../../services/api";
+import { useDataVersion } from "../../../shared/dataSync";
+
+// 91500 -> "₹91.5K", 91000 -> "₹91K", 250000 -> "₹2.5L", 12000000 -> "₹1.2Cr"
+const compactINR = value => {
+  const n = Number(value) || 0;
+  const trim = x => String(parseFloat(x.toFixed(1)));
+  if (n >= 1e7) return `₹${trim(n / 1e7)}Cr`;
+  if (n >= 1e5) return `₹${trim(n / 1e5)}L`;
+  if (n >= 1e3) return `₹${trim(n / 1e3)}K`;
+  return `₹${Math.round(n)}`;
+};
 
 // ─── Admin panel is mounted at /admin/* — every route must be prefixed ───────
 const ADMIN_PREFIX = "/admin";
@@ -37,6 +49,26 @@ const Sidebar = ({
   const navigate = useNavigate();
   const isCollapsed = !sidebarOpen;
   const [flyout, setFlyout] = useState(null);
+
+  // Footer numbers come from the backend (same /dashboard/stats the welcome toast
+  // uses): jobs scheduled for today and paid-invoice revenue for this month.
+  // Refetched after any add / edit / delete (auto-refresh); on failure the last
+  // known numbers stay on screen.
+  const [footerStats, setFooterStats] = useState({ todayJobs: 0, revenue: 0 });
+  const statsVersion = useDataVersion();
+  useEffect(() => {
+    let cancelled = false;
+    dashboardApi()
+      .then(r => {
+        if (cancelled || !r) return;
+        setFooterStats({
+          todayJobs: r.jobs?.todaysJobs ?? 0,
+          revenue: r.finance?.revenueThisMonth ?? 0
+        });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [statsVersion]);
   const {
     logoUrl,
     companyName,
@@ -196,7 +228,7 @@ const Sidebar = ({
         {/* Footer */}
         <div className="sidebar-footer">
           {!isCollapsed && <div className="sidebar-footer-stats">
-              {[["0 jobs", "Today", "#F97316"], ["₹91K", "Revenue", "#22C55E"]].map(([v, k, c]) => <div key={k} className="sidebar-stat">
+              {[[`${footerStats.todayJobs} ${footerStats.todayJobs === 1 ? "job" : "jobs"}`, "Today", "#F97316", "Jobs scheduled for today"], [compactINR(footerStats.revenue), "Revenue", "#22C55E", "Revenue this month (paid invoices)"]].map(([v, k, c, tip]) => <div key={k} className="sidebar-stat" title={tip}>
                   <div className="sidebar-stat-value" style={{
               color: c
             }}>{v}</div>

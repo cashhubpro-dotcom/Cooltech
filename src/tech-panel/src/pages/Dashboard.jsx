@@ -6,6 +6,7 @@ import { JOB_STATUS } from '../constants/statusMaps';
 import { SBadge, TypeTag, PBadge } from '../components/ui/Components';
 import { technicianDashboardApi } from '../services/technicianPortalApi';
 import { fmtDateDMY } from '../../../shared/formatDate';
+import ChartExpand from '../../../shared/ChartExpand';
 
 // Today's jobs / timeline icon per job type — same emoji set the old
 // dashboard used, kept here so this file has no other dependencies.
@@ -76,8 +77,20 @@ function MonthSelect({
       {MONTH_OPTIONS.map(o => <option key={`${o.year}-${o.month}`} value={`${o.year}-${o.month}`}>{o.label}</option>)}
     </select>;
 }
+// A KPI card "has data" when its value is a real number > 0 or a real string
+// (not the '—' / '0' / '0★' placeholders). Used to hide decorative sparklines.
+const hasKpiData = v => {
+  if (v == null || v === '—') return false;
+  const n = parseFloat(String(v).replace(/[^0-9.-]/g, ''));
+  return Number.isNaN(n) ? true : n > 0;
+};
+// This panel is mounted under /tech/* by the root router (see TechApp), so
+// absolute paths like '/jobs' leave the panel and land on the login redirect.
+// Always go through `go('/jobs')` → '/tech/jobs'.
+const TECH_PREFIX = '/tech';
 const Dashboard = () => {
   const navigate = useNavigate();
+  const go = path => navigate(`${TECH_PREFIX}${path}`);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
@@ -153,7 +166,7 @@ const Dashboard = () => {
     icon: '📦',
     color: '#16A34A',
     bg: '#F0FDF4',
-    link: '/parts-request'
+    link: '/inventory'
   }, {
     label: 'Mark Attendance',
     icon: '🕐',
@@ -239,7 +252,7 @@ const Dashboard = () => {
         spark: '0,10 20,16 40,12 60,20 80,14 100,18'
       }, {
         label: 'Customer Rating',
-        value: `${stats.rating}★`,
+        value: stats.totalJobsAllTime > 0 && stats.rating ? `${stats.rating}★` : '—',
         sub: `${stats.totalJobsAllTime ?? '—'} total jobs`,
         icon: '⭐',
         bg: '#FFFBEB',
@@ -257,7 +270,7 @@ const Dashboard = () => {
         link: '/salary',
         sparkColor: '#7C3AED',
         spark: monthlyEarningsSeries.length > 1 ? monthlyEarningsSeries.map((d, i) => `${i / (monthlyEarningsSeries.length - 1) * 100},${28 - d.cumulative / (monthlyEarningsSeries[monthlyEarningsSeries.length - 1].cumulative || 1) * 24}`).join(' ') : '0,20 100,20'
-      }].map(k => <div key={k.label} className="stat-card afu tp-dashboard-18" onClick={() => navigate(k.link)}>
+      }].map(k => <div key={k.label} className="stat-card afu tp-dashboard-18" onClick={() => go(k.link)}>
             <div className="tp-dashboard-19">
               <div className="stat-label tp-dashboard-20">{k.label}</div>
               <div className="stat-icon tp-dashboard-21" style={{
@@ -269,7 +282,7 @@ const Dashboard = () => {
         }}>{k.value}</div>
             <div className="tp-dashboard-23">
               <div className="stat-sub tp-dashboard-24">{k.sub}</div>
-              <StatSparkline points={k.spark} color={k.sparkColor} />
+              <StatSparkline points={hasKpiData(k.value) ? k.spark : null} color={k.sparkColor} />
             </div>
           </div>)}
       </div>
@@ -279,7 +292,38 @@ const Dashboard = () => {
 
         {/* Job Completion donut */}
         <div className="card afu">
-          <div className="card-header"><div className="card-title">Job Completion Overview</div></div>
+          <div className="card-header">
+            <div className="card-title">Job Completion Overview</div>
+            <ChartExpand title="Job Completion Overview">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32, flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', width: 'min(340px, 70vw)', aspectRatio: '1 / 1', flexShrink: 0 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={donutData} dataKey="value" nameKey="name" innerRadius="68%" outerRadius="100%" paddingAngle={2} stroke="none">
+                        {donutData.map(d => <Cell key={d.key} fill={DONUT_COLORS[d.key]} />)}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                    <div style={{ fontSize: 40, fontWeight: 800, color: COLORS.h1 }}>{jobCompletionOverview.total}</div>
+                    <div style={{ fontSize: 14, color: COLORS.faint }}>Total Jobs</div>
+                  </div>
+                </div>
+                <div style={{ minWidth: 220, flex: '0 1 300px' }}>
+                  {[['completed', 'Completed'], ['inProgress', 'In Progress'], ['pending', 'Pending'], ['cancelled', 'Cancelled']].map(([key, label]) => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)', fontSize: 14 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ width: 10, height: 10, borderRadius: 3, background: DONUT_COLORS[key] }} />
+                        {label}
+                      </span>
+                      <span style={{ fontWeight: 700 }}>{jobCompletionOverview[key].count} ({jobCompletionOverview[key].pct}%)</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ChartExpand>
+          </div>
           <div className="tp-dashboard-26">
             <div className="tp-dashboard-27">
               <ResponsiveContainer width="100%" height="100%">
@@ -324,7 +368,40 @@ const Dashboard = () => {
         <div className="card afu">
           <div className="card-header">
             <div className="card-title">Monthly Earnings Overview</div>
-            <MonthSelect value={selectedMonth} onChange={setSelectedMonth} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {monthlyEarningsSeries.length > 0 && (
+                <ChartExpand title="Monthly Earnings Overview">
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: COLORS.h1 }}>
+                      {stats.earnings.amount != null ? `₹${stats.earnings.amount.toLocaleString('en-IN')}` : '—'}
+                    </div>
+                    {stats.earnings.changePct != null && (
+                      <div style={{ fontSize: 13, fontWeight: 700, color: stats.earnings.changePct >= 0 ? 'var(--success-text)' : 'var(--danger)' }}>
+                        {stats.earnings.changePct >= 0 ? '↑' : '↓'} {Math.abs(stats.earnings.changePct)}% vs last month
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ width: '100%', height: 'min(420px, 60vh)' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={monthlyEarningsSeries} margin={{ top: 10, right: 16, left: 8, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="earningsFillBig" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={COLORS.brand} stopOpacity={0.25} />
+                            <stop offset="100%" stopColor={COLORS.brand} stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid vertical={false} stroke="#F1F5F9" />
+                        <XAxis dataKey="dayLabel" tick={{ fontSize: 13, fill: COLORS.faint }} axisLine={false} tickLine={false} />
+                        <YAxis width={64} tick={{ fontSize: 13, fill: COLORS.faint }} axisLine={false} tickLine={false} tickFormatter={v => `₹${Math.round(v / 1000)}K`} />
+                        <Tooltip formatter={v => [`₹${Number(v).toLocaleString('en-IN')}`, 'Earned']} labelFormatter={l => `Day ${l}`} />
+                        <Area type="monotone" dataKey="cumulative" stroke={COLORS.brand} strokeWidth={3} fill="url(#earningsFillBig)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartExpand>
+              )}
+              <MonthSelect value={selectedMonth} onChange={setSelectedMonth} />
+            </div>
           </div>
           <div className="tp-dashboard-37">
             <div className="tp-dashboard-38">
@@ -372,7 +449,7 @@ const Dashboard = () => {
         <div className="card afu">
           <div className="card-header">
             <div className="card-title">⏱ Today's Timeline</div>
-            <button onClick={() => navigate('/schedule')} className="tp-dashboard-43">View All →</button>
+            <button onClick={() => go('/schedule')} className="tp-dashboard-43">View All →</button>
           </div>
           <div className="tp-dashboard-44">
             {timeline.length > 0 ? timeline.map((s, i) => {
@@ -405,9 +482,9 @@ const Dashboard = () => {
       <div className="card afu">
         <div className="card-header">
           <div className="card-title">🗓 Today's Jobs — {todayStr}</div>
-          <button onClick={() => navigate('/jobs')} className="tp-dashboard-56">View All Jobs →</button>
+          <button onClick={() => go('/jobs')} className="tp-dashboard-56">View All Jobs →</button>
         </div>
-        {todaysJobs.length > 0 ? todaysJobs.map(job => <div key={job.id} onClick={() => navigate('/jobs')} onMouseEnter={e => e.currentTarget.style.background = '#FAFBFF'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} className="tp-dashboard-57">
+        {todaysJobs.length > 0 ? todaysJobs.map(job => <div key={job.id} onClick={() => go('/jobs')} onMouseEnter={e => e.currentTarget.style.background = '#FAFBFF'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} className="tp-dashboard-57">
             <div className="tp-dashboard-58">
               {TYPE_ICON[job.type] || '🔧'}
             </div>
@@ -505,7 +582,7 @@ const Dashboard = () => {
           <div className="card afu">
             <div className="card-header"><div className="card-title">Quick Actions</div></div>
             <div className="tp-dashboard-81">
-              {quickActions.map(a => <button key={a.label} onClick={() => navigate(a.link)} style={{
+              {quickActions.map(a => <button key={a.label} onClick={() => go(a.link)} style={{
               background: a.bg
             }} className="tp-dashboard-82">
                   <span className="tp-dashboard-83">{a.icon}</span>
@@ -520,7 +597,7 @@ const Dashboard = () => {
               <div style={{ fontSize: 20, marginBottom: 6 }}>🎧</div>
               <div style={{ fontSize: 13, fontWeight: 800, color: COLORS.h1 }}>Need Support?</div>
               <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2, marginBottom: 10 }}>We're here to help you</div>
-              <button onClick={() => navigate('/tickets')} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}>Contact Support</button>
+              <button onClick={() => go('/tickets')} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}>Contact Support</button>
             </div>
            </div> */}
         </div>
@@ -530,7 +607,7 @@ const Dashboard = () => {
       <div style={{
       gridTemplateColumns: upcomingAmcVisit ? "1fr 1fr" : "1fr"
     }} className="tp-dashboard-85">
-        {upcomingAmcVisit && <div className="card afu tp-dashboard-86" onClick={() => navigate('/amc')}>
+        {upcomingAmcVisit && <div className="card afu tp-dashboard-86" onClick={() => go('/amc')}>
             <div className="card-header">
               <div className="card-title">📋 Upcoming AMC Visit</div>
               <span className="tp-dashboard-87">{upcomingAmcVisit.status === 'active' ? 'Active' : 'Expiring'}</span>

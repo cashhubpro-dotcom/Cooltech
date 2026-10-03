@@ -1,7 +1,8 @@
 // ContractsPage.jsx
 import { useState, useEffect } from "react";
 import { contractsApi } from "../../services/api";
-import { contracts as initialContracts } from "../../data/mockData";
+import { useContractTypes } from "../../hooks/useContractTypes";
+import { mergeOptions } from "../../utils/mergeOptions";
 import { COLORS, FONTS } from "../../constants/tokens";
 import { KCard, Thead } from "../../components/ui/Cards";
 import ActionDropdown from "../../components/ui/ActionDropdown";
@@ -803,6 +804,7 @@ const openAudit = async () => {
 const ContractsPage = ({
   openModal
 }) => {
+  const { activeTypes: activeContractTypes } = useContractTypes();   // Settings → Contract Types
   const [open, setOpen] = useState(null);
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -942,7 +944,7 @@ const ContractsPage = ({
       <div className="ap-contracts-page-72">
         <div className="ap-contracts-page-73">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by title, customer, type…" />
-          <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={["AMC", "Service", "Installation", "Maintenance", "Comprehensive"]} allLabel="All Types" />
+          <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={mergeOptions(activeContractTypes, contracts.map(c => c.type))} allLabel="All Types" />
           <FilterSelect value={activeFilters.status} onChange={val => setFilter("status", val)} options={["active", "draft", "expired", "pending_signature", "terminated"]} allLabel="All Statuses" />
           <div className="ap-contracts-page-74">
             <ExportDropdown {...exportProps} />

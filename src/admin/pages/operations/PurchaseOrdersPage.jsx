@@ -14,161 +14,8 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
-import { PAY_STATUS } from '../../data/mockData';
+import { PAY_STATUS } from '../../constants/statusMaps';
 import { fmtDateDMY } from '../../../shared/formatDate';
-
-// ─── Mock SO data (used to seed CustomerSOList while API isn't ready) ─────────
-// FIX #3: was `const [] = [...]` which silently discarded all data
-const MOCK_SO_ORDERS = [{
-  id: 'SO-0091',
-  customer: 'Arjun Mehta',
-  phone: '98765 43210',
-  items: [{
-    name: 'Split AC 1.5T',
-    qty: 1,
-    rate: 42000,
-    total: 42000
-  }, {
-    name: 'Installation Kit',
-    qty: 2,
-    rate: 800,
-    total: 1600
-  }, {
-    name: 'Copper Pipe 3m',
-    qty: 3,
-    rate: 600,
-    total: 1800
-  }],
-  subtotal: 45400,
-  gst: 8172,
-  total: 53572,
-  orderDate: 'Apr 15, 2026',
-  deliveryDate: 'Apr 20, 2026',
-  status: 'delivered',
-  payStatus: 'paid',
-  address: '12, Satellite Road, Ahmedabad',
-  notes: 'Premium installation requested.'
-}, {
-  id: 'SO-0090',
-  customer: 'Priya Sharma',
-  phone: '91234 56789',
-  items: [{
-    name: 'Window AC 1T',
-    qty: 1,
-    rate: 18000,
-    total: 18000
-  }],
-  subtotal: 18000,
-  gst: 3240,
-  total: 21240,
-  orderDate: 'Apr 14, 2026',
-  deliveryDate: 'Apr 18, 2026',
-  status: 'shipped',
-  payStatus: 'paid',
-  address: '45, Navrangpura, Ahmedabad',
-  notes: ''
-}, {
-  id: 'SO-0089',
-  customer: 'Rohan Constructions',
-  phone: '90000 11223',
-  items: [{
-    name: 'Cassette AC 2T',
-    qty: 2,
-    rate: 68000,
-    total: 136000
-  }, {
-    name: 'Stabilizer',
-    qty: 2,
-    rate: 3500,
-    total: 7000
-  }, {
-    name: 'AMC Package',
-    qty: 1,
-    rate: 12000,
-    total: 12000
-  }, {
-    name: 'Installation',
-    qty: 2,
-    rate: 2500,
-    total: 5000
-  }],
-  subtotal: 160000,
-  gst: 28800,
-  total: 188800,
-  orderDate: 'Apr 12, 2026',
-  deliveryDate: 'Apr 16, 2026',
-  status: 'delivered',
-  payStatus: 'paid',
-  address: 'Plot 8, GIDC Estate, Vatva',
-  notes: 'Bulk order — dedicated technician assigned.'
-}, {
-  id: 'SO-0088',
-  customer: 'Sneha Patel',
-  phone: '87654 32109',
-  items: [{
-    name: 'Inverter AC 1.5T',
-    qty: 1,
-    rate: 38000,
-    total: 38000
-  }, {
-    name: 'Extended Warranty',
-    qty: 1,
-    rate: 4500,
-    total: 4500
-  }],
-  subtotal: 42500,
-  gst: 7650,
-  total: 50150,
-  orderDate: 'Apr 10, 2026',
-  deliveryDate: 'Apr 14, 2026',
-  status: 'processing',
-  payStatus: 'pending',
-  address: '7, Paldi Cross Road, Ahmedabad',
-  notes: 'Preferred delivery after 6 PM.'
-}, {
-  id: 'SO-0087',
-  customer: 'Vikram HVAC Works',
-  phone: '99887 76655',
-  items: [{
-    name: 'Duct AC 3T',
-    qty: 1,
-    rate: 95000,
-    total: 95000
-  }, {
-    name: 'Copper Pipe 5m',
-    qty: 4,
-    rate: 900,
-    total: 3600
-  }],
-  subtotal: 98600,
-  gst: 17748,
-  total: 116348,
-  orderDate: 'Apr 9, 2026',
-  deliveryDate: 'Apr 13, 2026',
-  status: 'processing',
-  payStatus: 'pending',
-  address: '22, Iscon Ambli Road, Bopal',
-  notes: ''
-}, {
-  id: 'SO-0086',
-  customer: 'Deepa Iyer',
-  phone: '76543 21098',
-  items: [{
-    name: 'Portable AC 1T',
-    qty: 1,
-    rate: 22000,
-    total: 22000
-  }],
-  subtotal: 22000,
-  gst: 3960,
-  total: 25960,
-  orderDate: 'Apr 7, 2026',
-  deliveryDate: 'Apr 11, 2026',
-  status: 'delivered',
-  payStatus: 'paid',
-  address: '3, Vastrapur Lake Road, Ahmedabad',
-  notes: ''
-}];
 
 // ─── Status maps ──────────────────────────────────────────────────────────────
 export const SO_STATUS = {
@@ -1111,8 +958,7 @@ const CustomerSOList = ({
   openModal
 }) => {
   const [open, setOpen] = useState(null);
-  // FIX #3: seed state with MOCK_SO_ORDERS so the table isn't empty while API loads
-  const [orders, setOrders] = useState(MOCK_SO_ORDERS);
+  const [orders, setOrders] = useState([]);   // real sales orders, loaded below
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [initialEdit, setInitialEdit] = useState(false);
   const normaliseSO = o => {
@@ -1137,7 +983,7 @@ const CustomerSOList = ({
   };
   useEffect(() => {
     salesOrdersApi.list({ limit: 200 }).then(r => {
-      if ((r.data ?? []).length) setOrders(r.data.map(normaliseSO));
+      setOrders((r.data ?? []).map(normaliseSO));   // an empty result now really shows an empty list
     }).catch(() => {});
   }, []);
 

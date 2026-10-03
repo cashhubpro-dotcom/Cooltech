@@ -8,7 +8,7 @@ import ActionDropdown from '../components/ui/ActionDropdown';
 import DeleteConfirmModal from '../components/ui/DeleteConfirmModal';
 import EditableDetailView from '../components/ui/EditableDetailView';
 import { useTableSearch } from '../hooks/useTableSearch';
-import { technicians, customers } from '../data/mockData';
+import { useJobTypes } from '../hooks/useOptionSets';
 import TableSearchBar from '../components/ui/TableSearchBar';
 import FilterSelect from '../components/ui/FilterSelect';
 import { usePagination } from '../hooks/usePagination';
@@ -255,7 +255,7 @@ const JobsPage = ({
   const [sf, setSf] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [jobs, setJobs] = useState([]);
-  const [liveTechs, setLiveTechs] = useState(technicians);
+  const [liveTechs, setLiveTechs] = useState([]);   // real technicians, loaded below
   const [statusUpdating, setStatusUpdating] = useState(false);
 
   // ── Status modal state ────────────────────────────────────────────────────
@@ -276,7 +276,19 @@ const JobsPage = ({
       if (apiTechs.length) setLiveTechs(apiTechs);
     }).catch(() => {});
   }, []);
-  const TECH_OPTIONS = [...new Set(jobs.map(j => j.tech).filter(t => t && t !== 'Unassigned'))].sort();
+  // const TECH_OPTIONS = [...new Set(jobs.map(j => j.tech).filter(t => t && t !== 'Unassigned'))].sort();
+
+  const TECH_OPTIONS = [...new Set([
+    ...liveTechs.map(t => t.name),
+    ...jobs.map(j => j.tech).filter(t => t && t !== 'Unassigned'),
+  ])].filter(Boolean).sort();
+
+  // Job types come from the same admin-managed list as the "New Work Order"
+  // form (Settings → Job Types), so adding / deleting a type there shows up
+  // here too. Types already used by existing jobs are kept in the filter even
+  // if they were later deactivated, so those jobs can still be found.
+  const { activeItems: activeJobTypes } = useJobTypes();
+  const TYPE_OPTIONS = [...new Set([...activeJobTypes, ...jobs.map(j => j.type).filter(Boolean)])];
   const [initialEditMode, setInitialEditMode] = useState(false);
   const [parts, setParts] = useState([]);
 
@@ -631,7 +643,7 @@ const JobsPage = ({
                     <div className="ap-jobs-page-9">
                       {editMode ? <>
                           <select value={editData.type} onChange={set('type')} className="ap-jobs-page-10">
-                            {['Service', 'Repair', 'Installation', 'AMC Visit'].map(t => <option key={t}>{t}</option>)}
+                            {[...new Set([...activeJobTypes, editData.type].filter(Boolean))].map(t => <option key={t}>{t}</option>)}
                           </select>
                           <select value={editData.priority} onChange={set('priority')} className="ap-jobs-page-11">
                             {['Low', 'Medium', 'High', 'Critical'].map(p => <option key={p}>{p}</option>)}
@@ -1004,7 +1016,7 @@ const JobsPage = ({
         }}>
             <TableSearchBar value={q} onChange={setQ} placeholder="Search by job ID, customer, issue…" />
           </div>
-          <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={['Service', 'Repair', 'Installation', 'AMC Visit']} allLabel="All Types" />
+          <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={TYPE_OPTIONS} allLabel="All Types" />
           <FilterSelect value={activeFilters.tech} onChange={val => setFilter('tech', val)} options={TECH_OPTIONS} allLabel="All Technicians" />
           <div className="ap-jobs-page-94"><ExportDropdown {...exportProps} /></div>
         </div>

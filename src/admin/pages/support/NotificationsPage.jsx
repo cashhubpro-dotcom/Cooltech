@@ -6,7 +6,7 @@ import FilterSelect from '../../components/ui/FilterSelect';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { notificationsApi } from '../../services/api';
-import { NOTIF_TYPE_CFG } from '../../data/mockData';
+import { NOTIF_TYPE_CFG } from '../../constants/statusMaps';
 import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Column config for export ─────────────────────────────────────────────────

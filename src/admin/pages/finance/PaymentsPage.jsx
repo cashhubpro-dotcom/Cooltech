@@ -12,6 +12,8 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { paymentsApi } from '../../services/api';
+import { usePaymentMethods } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { VENDOR, NAVY, logoImg, signatureImg } from '../../components/layout/printTemplates';
 
 /* ── Bank Details (static, not backend-driven) ───────────────────────────── */
@@ -163,6 +165,7 @@ const loadRazorpayScript = () => {
 const PaymentsPage = ({
   openModal
 }) => {
+  const { activeItems: activePaymentMethods } = usePaymentMethods();   // Settings → Payment Methods
   const [activeTab, setActiveTab] = useState('transactions');
   const [bankModal, setBankModal] = useState(false);
   const [markPaidModal, setMarkPaidModal] = useState(null);
@@ -674,7 +677,7 @@ const PaymentsPage = ({
           <div className="ap-payments-page-2">
             <TableSearchBar value={q} onChange={setQ} placeholder="Search by pay ID, invoice, customer, ref…" />
             <FilterSelect value={activeFilters.status} onChange={val => setFilter("status", val)} options={["received", "pending", "overdue"]} allLabel="All Statuses" />
-            <FilterSelect value={activeFilters.method} onChange={val => setFilter("method", val)} options={["UPI", "Cash", "Cheque", "Bank Transfer", "Credit Card", "Razorpay"]} allLabel="All Methods" />
+            <FilterSelect value={activeFilters.method} onChange={val => setFilter("method", val)} options={mergeOptions(activePaymentMethods, payments.map(pm => pm.method).filter(m => m && m !== '—'))} allLabel="All Methods" />
             <div className="ap-payments-page-3">
               <ExportDropdown {...exportProps} />
               <button className="btn pay-btn-remind" onClick={() => openModal?.('send_reminder_all')}>📤 Send Reminders</button>
@@ -1167,7 +1170,7 @@ const PaymentsPage = ({
               ...m,
               method: e.target.value
             }))}>
-                  {['Cash', 'UPI', 'Bank Transfer', 'Credit Card', 'Cheque', 'Razorpay'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  {mergeOptions(activePaymentMethods, recordModal.method).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </div>
               <div className="form-row">
@@ -1218,7 +1221,7 @@ const PaymentsPage = ({
               ...m,
               method: e.target.value
             }))}>
-                  {['Cash', 'UPI', 'Bank Transfer', 'Credit Card', 'Cheque', 'Razorpay'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  {mergeOptions(activePaymentMethods, markPaidModal.method).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </div>
               <div className="form-row">

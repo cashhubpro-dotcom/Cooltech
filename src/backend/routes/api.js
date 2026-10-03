@@ -16,6 +16,7 @@ import { createCRUD } from './crudHelper.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 import multer from 'multer';
 import { notifyAdmins, notifyTechnician, notifyClient } from '../utils/notify.js';
+import { syncTechnicianStatus } from '../utils/technicianStatus.js';
 
 const router = express.Router();
 
@@ -56,6 +57,7 @@ const jobRouter = createCRUD(Job, {
 jobRouter.put('/:id/assign', async (req, res) => {
   try {
     const { technicianId, techName } = req.body;
+    const before = await Job.findById(req.params.id).select('technician');   // who had it before (re-assign)
     const job = await Job.findByIdAndUpdate(
       req.params.id,
       { technician: technicianId, techName, status: 'assigned' },
@@ -63,9 +65,11 @@ jobRouter.put('/:id/assign', async (req, res) => {
     ).populate('customer technician');
     if (!job) return res.status(404).json({ message: 'Job not found.' });
 
-    // Update technician status
-    if (technicianId) {
-      await Technician.findByIdAndUpdate(technicianId, { status: 'busy', $inc: { jobs: 1 } });
+    // Re-work the status / open-job count of the new technician AND of the previous one.
+    // (Assigning a job no longer marks someone "busy" - only starting it does.)
+    await syncTechnicianStatus(technicianId);
+    if (before?.technician && String(before.technician) !== String(technicianId)) {
+      await syncTechnicianStatus(before.technician);
     }
      await notifyAdmins({
       title: 'Job assigned',
@@ -103,10 +107,8 @@ jobRouter.put('/:id/complete', async (req, res) => {
     if (!job) return res.status(404).json({ message: 'Job not found.' });
 
     if (job.technician) {
-      await Technician.findByIdAndUpdate(job.technician, {
-        status: 'available',
-        $inc: { jobs: -1, completed: 1 },
-      });
+      await Technician.findByIdAndUpdate(job.technician._id ?? job.technician, { $inc: { completed: 1 } });
+      await syncTechnicianStatus(job.technician);   // available again only if no other job is in progress
     }
     if (job.customer) {
       await Customer.findByIdAndUpdate(job.customer, {

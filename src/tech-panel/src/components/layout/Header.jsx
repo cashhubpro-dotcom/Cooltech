@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, Menu } from 'lucide-react';
 import { TITLES } from '../../constants/navigation';
 import { COLORS } from '../../constants/token';
-import { LOGGED_IN_TECH } from '../../data/mockData';
+import { technicianProfileApi } from '../../services/technicianPortalApi';
+import { getInitials, readStoredUser } from '../../../../shared/initials';
 import { useDarkMode } from '../../../../shared/useDarkMode';
 import { fmtDateDMY } from '../../../../shared/formatDate';
 
@@ -43,6 +44,13 @@ const Header = ({
 }) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  // Who is logged in: instant from what login saved, then refreshed from the API.
+  const [me, setMe] = useState(() => readStoredUser('tech_user'));
+  const [totalJobs, setTotalJobs] = useState(null);
+  useEffect(() => {
+    technicianProfileApi.get().then(r => r?.data && setMe(prev => ({ ...prev, ...r.data }))).catch(() => {});
+    technicianProfileApi.performance().then(r => setTotalJobs(r?.data?.totalJobs ?? null)).catch(() => {});
+  }, []);
   const navigate = useNavigate();
   const title = TITLES[page] || 'Dashboard';
   const [isDark, setIsDark] = useDarkMode();
@@ -57,7 +65,14 @@ const Header = ({
   const statusColor = {
     busy: "var(--warning)",
     available: "var(--success)",
-    off: "var(--faint)"
+    off: "var(--faint)",
+    on_leave: "var(--faint)"
+  };
+  const statusLabel = {
+    busy: "On Job",
+    available: "Available",
+    off: "Off Duty",
+    on_leave: "On Leave"
   };
 
   const normalisedNotifs = notifs.map(normaliseNotif);
@@ -89,10 +104,10 @@ const Header = ({
 
       <div className="hdr-right">
         {/* Status indicator */}
-        <div className="tp-header-3">
-          <span style={{ background: statusColor[LOGGED_IN_TECH.status] }} className="tp-header-4" />
-          <span className="tp-header-5">On Job</span>
-        </div>
+        {me.status && <div className="tp-header-3">
+          <span style={{ background: statusColor[me.status] }} className="tp-header-4" />
+          <span className="tp-header-5">{statusLabel[me.status] || me.status}</span>
+        </div>}
 
         {/* Time */}
         {/* <div className="tp-header-6">
@@ -177,14 +192,14 @@ const Header = ({
         {/* Profile dropdown */}
         <div className="tp-header-7">
           <button onClick={() => { setProfileOpen(o => !o); setNotifOpen(false); }} className="tp-header-8">
-            RK
+            {getInitials(me.name)}
           </button>
 
           {profileOpen && <div className="tp-header-9">
               <div className="tp-header-10">
-                <div className="tp-header-11">{LOGGED_IN_TECH.name}</div>
-                <div className="tp-header-12">{LOGGED_IN_TECH.role}</div>
-                <div className="tp-header-13">⭐ {LOGGED_IN_TECH.rating} rating · {LOGGED_IN_TECH.jobsDone} jobs</div>
+                <div className="tp-header-11">{me.name || 'Technician'}</div>
+                <div className="tp-header-12">{me.role || 'Technician'}</div>
+                <div className="tp-header-13">⭐ {me.rating ?? '—'} rating · {totalJobs ?? '—'} jobs</div>
               </div>
               {[{
             label: '👤 My Profile',

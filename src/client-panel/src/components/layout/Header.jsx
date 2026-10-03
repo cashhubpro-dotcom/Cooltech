@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Menu } from 'lucide-react';
 import { CLIENT_TITLES } from '../../constants/navigation';
 import { COLORS } from '../../constants/tokens';
-import { LOGGED_IN_CLIENT } from '../../data/mockData';
+import { clientProfileApi } from '../../services/clientPortalApi';
+import { getInitials, readStoredUser } from '../../../../shared/initials';
 import { useDarkMode } from '../../../../shared/useDarkMode';
 import { fmtDateDMY } from '../../../../shared/formatDate';
 
@@ -41,6 +42,11 @@ const Header = ({
   onMarkRead,
   onMarkAllRead,
 }) => {
+  // Who is logged in: instant from what login saved, then refreshed from the API.
+  const [me, setMe] = useState(() => readStoredUser('portal_user'));
+  useEffect(() => {
+    clientProfileApi.get().then(r => r?.data && setMe(prev => ({ ...prev, ...r.data }))).catch(() => {});
+  }, []);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
@@ -158,13 +164,13 @@ const Header = ({
         {/* Profile dropdown */}
         <div className="cp-header-2">
           <button onClick={() => { setProfileOpen(o => !o); setNotifOpen(false); }} className="cp-header-3">
-            SH
+            {getInitials(me.name)}
           </button>
 
           {profileOpen && <div className="cp-header-4">
               <div className="cp-header-5">
-                <div className="cp-header-6">{LOGGED_IN_CLIENT.name}</div>
-                <div className="cp-header-7">{LOGGED_IN_CLIENT.email}</div>
+                <div className="cp-header-6">{me.name || 'Client'}</div>
+                <div className="cp-header-7">{me.email || ''}</div>
               </div>
               {[{
             label: '👤 My Profile',

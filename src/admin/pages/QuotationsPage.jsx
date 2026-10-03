@@ -13,6 +13,8 @@ import { useTableSearch } from '../hooks/useTableSearch';
 import TableSearchBar from '../components/ui/TableSearchBar';
 import FilterSelect from '../components/ui/FilterSelect';
 import { usePagination } from '../hooks/usePagination';
+import { useJobTypes } from '../hooks/useOptionSets';
+import { mergeOptions } from '../utils/mergeOptions';
 import Pagination from '../components/ui/Pagination';
 import ExportDropdown from '../components/layout/ExportDropdown';
 import useExport from '../hooks/useExport';
@@ -689,6 +691,7 @@ const QuotationsPage = ({
   } = useBreakpoint();
   const [open, setOpen] = useState(null);
   const [quotations, setQuotations] = useState([]);
+  const { activeItems: activeJobTypes } = useJobTypes();   // Settings → Job Types (same list the quotation form uses)
   const normaliseQuot = q => ({
     ...q,
     id: q.quotId || q._id,
@@ -1094,7 +1097,7 @@ const QuotationsPage = ({
           }}>
               <TableSearchBar value={q} onChange={setQ} placeholder="Search by customer, contact, type…" />
             </div>
-            <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={["Service", "Repair", "Installation", "AMC"]} allLabel="All Types" />
+            <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={mergeOptions(activeJobTypes, quotations.map(q => q.type))} allLabel="All Types" />
             <FilterSelect value={activeFilters.status} onChange={val => setFilter("status", val)} options={["draft", "sent", "approved", "rejected", "Expired"]} allLabel="All Status" />
             <div className="ap-quotations-page-139"><ExportDropdown {...exportProps} /></div>
           </div>

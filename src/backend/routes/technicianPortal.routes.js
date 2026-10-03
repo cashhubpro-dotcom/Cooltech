@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import { protect, technicianOnly } from '../middleware/auth.js';
 import Job from '../models/Job.js';
 import Technician from '../models/Technician.js';
+import { syncTechnicianStatus } from '../utils/technicianStatus.js';
 import { Inventory, Expense } from '../models/index.js';
 import PayrollRun from '../models/Payroll.js';
 import { AdvanceIncentive } from '../models/extendedModels.js';
@@ -352,7 +353,7 @@ router.patch('/jobs/:jobId/start', wrap(async (req, res) => {
   }
   job.status = 'in_progress';
   await job.save();
-  await Technician.findByIdAndUpdate(req.technician._id, { status: 'busy' });
+  await syncTechnicianStatus(req.technician._id);   // busy: this job is now in progress
   res.json({ success: true, data: job });
 }));
 
@@ -412,10 +413,8 @@ router.patch('/jobs/:jobId/complete', wrap(async (req, res) => {
   job.completedAt = new Date();
   await job.save();
 
-  await Technician.findByIdAndUpdate(req.technician._id, {
-    status: 'available',
-    $inc: { jobs: -1, completed: 1 },
-  });
+  await Technician.findByIdAndUpdate(req.technician._id, { $inc: { completed: 1 } });
+  await syncTechnicianStatus(req.technician._id);   // available again only if no other job is in progress
 
   res.json({ success: true, data: job, inventoryWarnings });
 }));

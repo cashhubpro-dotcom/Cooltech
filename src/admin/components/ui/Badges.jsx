@@ -1,5 +1,5 @@
 import { COLORS, FONTS } from '../../constants/tokens';
-import { INV_STATUS } from '../../data/mockData';
+import { INV_STATUS } from '../../constants/statusMaps';
 
 // ─── SBadge ───────────────────────────────────────────────────────────────────
 // Renders a status badge driven by a statusMap entry.

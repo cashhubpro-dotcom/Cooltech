@@ -1,5 +1,6 @@
 node_modules/
 .env
-src/backend/.webjs_auth/
+src/backend/.wwebjs_auth/
 Crashpad/
 *.dmp.wwebjs_auth/
+src/backend/.wwebjs_auth/

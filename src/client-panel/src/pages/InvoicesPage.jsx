@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { COLORS, FONTS } from '../constants/tokens';
-import { STATUS_MAPS } from '../data/mockData';
+import { STATUS_MAPS } from '../constants/statusMaps';
 import { SBadge, Modal, Toast } from '../components/ui/Components';
 import { clientInvoicesApi, clientPaymentsApi } from '../services/clientPortalApi';
 import logoImg from '../assets/logo.png';

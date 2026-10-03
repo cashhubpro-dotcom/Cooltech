@@ -61,7 +61,8 @@ export const KpiSparkline = ({
 
 // ─── RequestsDonut ───────────────────────────────────────────────────────────
 export const RequestsDonut = ({
-  overview
+  overview,
+  large = false // true → big layout used inside the expand overlay
 }) => {
   const pieData = REQUEST_BUCKETS.map(b => ({
     name: b.label,
@@ -69,6 +70,91 @@ export const RequestsDonut = ({
     color: b.color
   }));
   const hasData = overview.total > 0;
+  if (large) {
+    return <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 32,
+      flexWrap: 'wrap'
+    }}>
+        <div style={{
+        position: 'relative',
+        width: 'min(340px, 70vw)',
+        aspectRatio: '1 / 1',
+        flexShrink: 0
+      }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={hasData ? pieData : [{
+              name: 'None',
+              value: 1,
+              color: COLORS.border
+            }]} dataKey="value" nameKey="name" innerRadius="68%" outerRadius="100%" paddingAngle={hasData ? 2 : 0} stroke="none" startAngle={90} endAngle={-270}>
+                {(hasData ? pieData : [{
+                color: COLORS.border
+              }]).map((d, i) => <Cell key={i} fill={d.color} />)}
+              </Pie>
+              {hasData && <Tooltip />}
+            </PieChart>
+          </ResponsiveContainer>
+          <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none'
+        }}>
+            <div style={{
+            fontSize: 40,
+            fontWeight: 800,
+            color: COLORS.h1
+          }}>{overview.total || 0}</div>
+            <div style={{
+            fontSize: 14,
+            color: COLORS.faint
+          }}>Total</div>
+          </div>
+        </div>
+        <div style={{
+        minWidth: 220,
+        flex: '0 1 300px'
+      }}>
+          {REQUEST_BUCKETS.map(b => {
+          const count = overview[b.key] || 0;
+          const pct = overview.total ? Math.round(count / overview.total * 100) : 0;
+          return <div key={b.key} style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            padding: '10px 0',
+            borderBottom: `1px solid ${COLORS.border}`,
+            fontSize: 14
+          }}>
+                <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}>
+                  <span style={{
+                width: 10,
+                height: 10,
+                borderRadius: 3,
+                background: b.color
+              }} />
+                  {b.label}
+                </span>
+                <span style={{
+              fontWeight: 700
+            }}>{count} ({pct}%)</span>
+              </div>;
+        })}
+        </div>
+      </div>;
+  }
   return <div className="cp-dashboard-charts-6">
       <div className="cp-dashboard-charts-7">
         <ResponsiveContainer width="100%" height="100%">
@@ -152,7 +238,8 @@ const TrendTooltip = ({
 // `days` entries are pre-formatted display labels (e.g. "1 Jul", "Jan") —
 // formatting by period happens in Dashboard.jsx before this receives them.
 export const RequestTrendChart = ({
-  trend
+  trend,
+  large = false // true → bigger chart used inside the expand overlay
 }) => {
   const days = trend?.days || [];
   const data = days.map((day, i) => ({
@@ -168,24 +255,28 @@ export const RequestTrendChart = ({
   }
 
   // Show at most ~5 x-axis ticks regardless of how many days/months are plotted
-  const tickInterval = Math.max(0, Math.ceil(data.length / 5) - 1);
+  const tickInterval = Math.max(0, Math.ceil(data.length / (large ? 10 : 5)) - 1);
+  const tickSize = large ? 13 : 11;
   return <div>
       <TrendLegend />
-      <div className="cp-dashboard-charts-27">
+      <div className={large ? undefined : 'cp-dashboard-charts-27'} style={large ? {
+      width: '100%',
+      height: 'min(420px, 60vh)'
+    } : undefined}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{
           top: 8,
           right: 12,
-          left: -20,
+          left: large ? 0 : -20,
           bottom: 0
         }}>
             <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} vertical={false} />
             <XAxis dataKey="day" tick={{
-            fontSize: 11,
+            fontSize: tickSize,
             fill: COLORS.faint
           }} axisLine={false} tickLine={false} interval={tickInterval} />
             <YAxis allowDecimals={false} tick={{
-            fontSize: 11,
+            fontSize: tickSize,
             fill: COLORS.faint
           }} axisLine={false} tickLine={false} />
             <Tooltip content={<TrendTooltip />} />

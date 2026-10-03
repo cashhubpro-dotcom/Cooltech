@@ -10,7 +10,8 @@ import {
   AreaChart, Area, BarChart as ReBarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
-import { NOTIF_TYPE_CFG } from '../data/mockData';
+import { NOTIF_TYPE_CFG } from '../constants/statusMaps';
+import ChartExpand from '../../shared/ChartExpand';
 
 // ─── Breakpoint Hook ──────────────────────────────────────────────────────────
 function useBreakpoint() {
@@ -315,7 +316,17 @@ const Dashboard = ({ setPage, openModal, clockProps }) => {
       <div style={{ display: 'grid', gridTemplateColumns: rowACols, gap: 14, alignItems: 'stretch' }}>
 
         {/* Jobs Overview */}
-        <PanelCard title="Jobs Overview" tag="This Week" periodOptions={['This Week', 'This Month', 'Last Month']} onPeriodChange={setJobsOverviewPeriod}>
+        <PanelCard
+          title="Jobs Overview" tag="This Week" periodOptions={['This Week', 'This Month', 'Last Month']} onPeriodChange={setJobsOverviewPeriod}
+          expandContent={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32, flexWrap: 'wrap' }}>
+              <RcDonut data={jobsOverviewData} centerLabel={jobsOverviewTotal} centerSub="Total Jobs" size={isMobile ? 240 : 340} />
+              <div style={{ minWidth: 220, flex: '0 1 320px' }}>
+                {jobsOverviewData.map(d => <LegendRow key={d.type} label={d.type} count={d.count} pct={d.pct} color={d.color} />)}
+              </div>
+            </div>
+          }
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <RcDonut data={jobsOverviewData} centerLabel={jobsOverviewTotal} centerSub="Total Jobs" />
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -332,7 +343,15 @@ const Dashboard = ({ setPage, openModal, clockProps }) => {
         </PanelCard>
 
         {/* Revenue Overview */}
-        <PanelCard title="Revenue Overview" tag="This Month" periodOptions={['This Month', 'Last Month', 'This Quarter', 'This Year']} onPeriodChange={setRevenuePeriod}>
+        <PanelCard
+          title="Revenue Overview" tag="This Month" periodOptions={['This Month', 'Last Month', 'This Quarter', 'This Year']} onPeriodChange={setRevenuePeriod}
+          expandContent={
+            <>
+              <div style={{ fontSize: 28, fontWeight: 800, color: COLORS.h1, marginBottom: 10 }}>{formatINR(revenue.total)}</div>
+              <RcRevenueChart data={revenueData} height={isMobile ? 280 : 420} detailed />
+            </>
+          }
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.h1 }}>{formatINR(revenue.total)}</div>
             {revenue.changePct !== null && (
@@ -345,7 +364,17 @@ const Dashboard = ({ setPage, openModal, clockProps }) => {
         </PanelCard>
 
         {/* Jobs by Type */}
-        <PanelCard title="Jobs by Type">
+        <PanelCard
+          title="Jobs by Type"
+          expandContent={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32, flexWrap: 'wrap' }}>
+              <RcDonut data={jobsByTypeData} centerLabel={jobsByTypeTotal} centerSub="Total" size={isMobile ? 240 : 340} />
+              <div style={{ minWidth: 220, flex: '0 1 320px' }}>
+                {jobsByTypeData.map(d => <LegendRow key={d.type} label={d.type} count={d.count} pct={d.pct} color={d.color} />)}
+              </div>
+            </div>
+          }
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <RcDonut data={jobsByTypeData} centerLabel={jobsByTypeTotal} centerSub="Total" />
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -377,7 +406,15 @@ const Dashboard = ({ setPage, openModal, clockProps }) => {
       <div style={{ display: 'grid', gridTemplateColumns: rowBCols, gap: 14, alignItems: 'stretch' }}>
 
         {/* Jobs by Category */}
-        <PanelCard title="Jobs by Category" tag="This Month" periodOptions={['This Month', 'Last Month', 'This Quarter']} onPeriodChange={setCategoryPeriod}>
+        <PanelCard
+          title="Jobs by Category" tag="This Month" periodOptions={['This Month', 'Last Month', 'This Quarter']} onPeriodChange={setCategoryPeriod}
+          expandContent={
+            <RcBarChart
+              data={jobsByCategory.map(c => ({ label: c.label, value: c.value }))}
+              color="#3B82F6" height={isMobile ? 280 : 420} maxBarSize={72} fontSize={13}
+            />
+          }
+        >
           <RcBarChart
             data={jobsByCategory.map(c => ({ label: c.label, value: c.value }))}
             color="#3B82F6"
@@ -462,7 +499,7 @@ const Dashboard = ({ setPage, openModal, clockProps }) => {
 // `tag` + `onTagClick` → link-style button, e.g. "View All →"
 // `tag` + `periodOptions` → real dropdown: click to open a menu, pick an
 // option, the pill label updates and `onPeriodChange` (if given) fires.
-const PanelCard = ({ title, tag, onTagClick, periodOptions, onPeriodChange, children }) => {
+const PanelCard = ({ title, tag, onTagClick, periodOptions, onPeriodChange, expandContent, children }) => {
   const [period, setPeriod] = useState(tag);
   const [open, setOpen] = useState(false);
   const isDropdown = Array.isArray(periodOptions) && periodOptions.length > 0;
@@ -477,6 +514,7 @@ const PanelCard = ({ title, tag, onTagClick, periodOptions, onPeriodChange, chil
         <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.h1 }}>{title}</div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {expandContent && <ChartExpand title={title}>{expandContent}</ChartExpand>}
         {isDropdown ? (
           <div style={{ position: 'relative' }}>
             <button
@@ -565,6 +603,7 @@ const tooltipStyle = {
 // Center label is plain overlaid text (recharts has no native center-label
 // support for a donut) sat on top of a transparent ResponsiveContainer.
 const RcDonut = ({ data, centerLabel, centerSub, size = 120 }) => {
+  const big = size > 200;
   const chartData = data.map(d => ({ name: d.type, value: d.count, color: d.color }));
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
@@ -580,25 +619,26 @@ const RcDonut = ({ data, centerLabel, centerSub, size = 120 }) => {
         position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
       }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.h1 }}>{centerLabel}</div>
-        <div style={{ fontSize: 10, color: COLORS.faint }}>{centerSub}</div>
+        <div style={{ fontSize: big ? 40 : 22, fontWeight: 800, color: COLORS.h1 }}>{centerLabel}</div>
+        <div style={{ fontSize: big ? 14 : 10, color: COLORS.faint }}>{centerSub}</div>
       </div>
     </div>
   );
 };
 
 // ─── RcRevenueChart — "Revenue Overview" sparkline area, recharts AreaChart ────
-const RcRevenueChart = ({ data, height = 90 }) => (
+const RcRevenueChart = ({ data, height = 90, detailed = false }) => (
   <ResponsiveContainer width="100%" height={height}>
-    <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+    <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: detailed ? 8 : 0 }}>
       <defs>
         <linearGradient id="dashRevenueFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={COLORS.brand} stopOpacity={0.28} />
           <stop offset="100%" stopColor={COLORS.brand} stopOpacity={0} />
         </linearGradient>
       </defs>
-      <XAxis dataKey="m" hide />
-      <YAxis hide domain={['dataMin', 'dataMax']} />
+      {detailed && <CartesianGrid vertical={false} stroke={COLORS.border} />}
+      <XAxis dataKey="m" hide={!detailed} tick={{ fontSize: 12, fill: COLORS.faint }} axisLine={false} tickLine={false} />
+      <YAxis hide={!detailed} width={70} domain={['dataMin', 'dataMax']} tickFormatter={formatINR} tick={{ fontSize: 12, fill: COLORS.faint }} axisLine={false} tickLine={false} />
       <Tooltip {...tooltipStyle} formatter={v => [formatINR(v), 'Revenue']} />
       <Area type="monotone" dataKey="v" stroke={COLORS.brand} strokeWidth={2} fill="url(#dashRevenueFill)" activeDot={{ r: 4 }} />
     </AreaChart>
@@ -606,14 +646,14 @@ const RcRevenueChart = ({ data, height = 90 }) => (
 );
 
 // ─── RcBarChart — "Jobs by Category" bars, recharts BarChart ───────────────────
-const RcBarChart = ({ data, color = '#3B82F6', height = 170 }) => (
+const RcBarChart = ({ data, color = '#3B82F6', height = 170, maxBarSize = 28, fontSize = 10 }) => (
   <ResponsiveContainer width="100%" height={height}>
     <ReBarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
       <CartesianGrid vertical={false} stroke={COLORS.border} />
-      <XAxis dataKey="label" tick={{ fontSize: 10, fill: COLORS.faint }} axisLine={false} tickLine={false} />
-      <YAxis tick={{ fontSize: 10, fill: COLORS.faint }} axisLine={false} tickLine={false} allowDecimals={false} />
+      <XAxis dataKey="label" tick={{ fontSize, fill: COLORS.faint }} axisLine={false} tickLine={false} />
+      <YAxis tick={{ fontSize, fill: COLORS.faint }} axisLine={false} tickLine={false} allowDecimals={false} />
       <Tooltip {...tooltipStyle} cursor={{ fill: COLORS.bg }} formatter={v => [v, 'Jobs']} />
-      <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} maxBarSize={28} />
+      <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} maxBarSize={maxBarSize} />
     </ReBarChart>
   </ResponsiveContainer>
 );

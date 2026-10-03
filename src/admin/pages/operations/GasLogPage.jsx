@@ -13,6 +13,8 @@ import EditableDetailView from '../../components/ui/EditableDetailView';
 import ActionDropdown from '../../components/ui/ActionDropdown';
 import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
 import { gaslogApi, gasPurchaseApi, gasRateApi } from '../../services/api';
+import { useGasTypes } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Column config for export ─────────────────────────────────────────────────
@@ -188,7 +190,7 @@ const GASPURCHASE_COLUMNS = [{
 }];
 
 // Fixed gas type list used by the purchase form & price rate card
-const GAS_TYPE_OPTIONS = ['R-32', 'R-410A', 'R-22', 'R-134a', 'R-407C', 'R-404A'];
+// Gas types now come from Settings → Gas Types (useGasTypes).
 
 // ─── SectionDivider ───────────────────────────────────────────────────────────
 const SectionDivider = ({
@@ -205,6 +207,7 @@ const GasLogDetailView = ({
   onBack,
   onSave
 }) => {
+  const { activeItems: activeGasTypes } = useGasTypes();   // Settings → Gas Types
   const [activeTab, setActiveTab] = useState('details');
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
@@ -358,7 +361,7 @@ const GasLogDetailView = ({
 
             <SectionDivider title="Gas Usage" icon="🧪" />
             <div className="ap-gas-log-page-30">
-              <Cell fKey="gasType" label="Gas Type" mono highlight type="select" options={['R-32', 'R-410A', 'R-22', 'R-134a', 'R-407C', 'R-404A']} />
+              <Cell fKey="gasType" label="Gas Type" mono highlight type="select" options={mergeOptions(activeGasTypes, d.gasType)} />
               <Cell fKey="cylinders" label="Cylinders Used" mono type="number" />
               <Cell fKey="kgUsed" label="Kg Used" mono warn type="number" />
               <Cell fKey="kgRecovered" label="Kg Recovered" mono type="number" />
@@ -494,6 +497,7 @@ const PriceRateModal = ({
   onClose,
   onSave
 }) => {
+  const { activeItems: activeGasTypes } = useGasTypes();   // Settings → Gas Types
   const [editingType, setEditingType] = useState(null);
   const [draft, setDraft] = useState('');
   const startEdit = type => {
@@ -506,7 +510,7 @@ const PriceRateModal = ({
     setEditingType(null);
   };
   return <ModalShell title="Manage Gas Prices" onClose={onClose}>
-      {GAS_TYPE_OPTIONS.map(type => <div key={type} className="ap-gas-log-page-61">
+      {mergeOptions(activeGasTypes, Object.keys(rates || {})).map(type => <div key={type} className="ap-gas-log-page-61">
           <div>
             <span className="ap-gas-log-page-62">{type}</span>
             <div className="ap-gas-log-page-63">
@@ -534,16 +538,17 @@ const PurchaseFormModal = ({
   onClose,
   onSave
 }) => {
+  const { activeItems: activeGasTypes } = useGasTypes();   // Settings → Gas Types
   const isEdit = !!initial;
   const [form, setForm] = useState(initial ? {
     ...initial,
     date: initial.dateISO || ''
   } : {
-    gasType: 'R-32',
+    gasType: '',
     supplier: '',
     cylinders: 0,
     kgPurchased: '',
-    costPerKg: rates['R-32']?.pricePerKg ?? '',
+    costPerKg: '',
     invoiceNo: '',
     date: ''
   });
@@ -554,6 +559,10 @@ const PurchaseFormModal = ({
       costPerKg: isEdit ? f.costPerKg : rates[type]?.pricePerKg ?? f.costPerKg
     }));
   };
+  // new purchase: pre-select the first managed gas type (and its rate) once the list has loaded
+  useEffect(() => {
+    if (!isEdit && !form.gasType && activeGasTypes.length) handleGasType(activeGasTypes[0]);
+  }, [activeGasTypes]);
   const totalCost = (parseFloat(form.kgPurchased) || 0) * (parseFloat(form.costPerKg) || 0);
   const set = key => e => setForm(f => ({
     ...f,
@@ -574,7 +583,7 @@ const PurchaseFormModal = ({
         <div>
           <span className="ap-gas-log-page-73">Gas Type</span>
           <select value={form.gasType} onChange={e => handleGasType(e.target.value)} className="ap-gas-log-page-74">
-            {GAS_TYPE_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
+            {mergeOptions(activeGasTypes, form.gasType).map(g => <option key={g} value={g}>{g}</option>)}
           </select>
         </div>
         <div>
@@ -619,6 +628,7 @@ const PurchaseFormModal = ({
 const GasLogPage = ({
   openModal
 }) => {
+  const { activeItems: activeGasTypes } = useGasTypes();   // Settings → Gas Types
   const [selectedLog, setSelectedLog] = useState(null);
   const [gasLogs, setGasLogs] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -829,6 +839,7 @@ const GasLogPage = ({
   const totalKg = gasLogs.filter(gasTypeMatch).reduce((s, g) => s + (g.kgUsed || 0), 0);
   const totalCyl = gasLogs.filter(gasTypeMatch).reduce((s, g) => s + (g.cylinders || 0), 0);
   const totalEntries = gasLogs.filter(gasTypeMatch).length;
+  const compliantEntries = gasLogs.filter(gasTypeMatch).filter(g => g.compliant !== false).length;
   const gasTypes = [...new Set(gasLogs.map(g => g.gasType))];
   const totalPurchasedKg = gasPurchases.filter(gasTypeMatch).reduce((s, p) => s + (p.kgPurchased || 0), 0);
   const totalPurchaseCost = gasPurchases.filter(gasTypeMatch).reduce((s, p) => s + (p.totalCost || 0), 0);
@@ -941,7 +952,7 @@ const GasLogPage = ({
           <KCard label="Total Entries" value={totalEntries} sub="this month" icon="🧪" iconBg="#EFF6FF" color="#0369A1" delay="" />
           <KCard label="Total Kg Used" value={`${totalKg.toFixed(1)} kg`} sub="refrigerant" icon="⚗️" iconBg="#FFF7ED" color={COLORS.brand} delay="1" />
           <KCard label="Cylinders Used" value={totalCyl} sub="total" icon="🔵" iconBg="#F0FDF4" color="#16A34A" delay="2" />
-          <KCard label="Compliant" value="100%" sub="all certified" icon="✅" iconBg="#F0FDF4" color="#16A34A" delay="3" />
+          <KCard label="Compliant" value={totalEntries ? `${Math.round(compliantEntries / totalEntries * 100)}%` : '—'} sub={totalEntries ? `${compliantEntries} of ${totalEntries} entries` : 'no entries yet'} icon="✅" iconBg="#F0FDF4" color="#16A34A" delay="3" />
         </div> : <div className="ap-gas-log-page-96">
           <KCard label="Total Purchased" value={`${totalPurchasedKg.toFixed(1)} kg`} sub="refrigerant" icon="🛒" iconBg="#EFF6FF" color="#0369A1" delay="" />
           <KCard label="Total Available" value={`${totalAvailableKg.toFixed(1)} kg`} sub="in stock" icon="✅" iconBg="#F0FDF4" color={totalAvailableKg < 0 ? '#DC2626' : '#16A34A'} delay="1" />
@@ -960,7 +971,7 @@ const GasLogPage = ({
       {activeTab === 'usage' ? <div className="ap-gas-log-page-101">
           <div className="ap-gas-log-page-102">
             <TableSearchBar value={q} onChange={setQ} placeholder="Search by job, technician, customer, gas type…" />
-            <FilterSelect value={gasTypeFilter} onChange={setGasTypeFilter} options={gasTypes} allLabel="All Gas Types" />
+            <FilterSelect value={gasTypeFilter} onChange={setGasTypeFilter} options={mergeOptions(activeGasTypes, gasTypes)} allLabel="All Gas Types" />
             <FilterSelect value={compliantFilter} onChange={setCompliantFilter} options={['Compliant', 'Non-Compliant']} allLabel="Compliance: All" />
             <div className="ap-gas-log-page-103">
               <ExportDropdown {...exportProps} />
@@ -1013,7 +1024,7 @@ const GasLogPage = ({
         </div> : <div className="ap-gas-log-page-136">
           <div className="ap-gas-log-page-137">
             <TableSearchBar value={purchaseQ} onChange={setPurchaseQ} placeholder="Search by supplier, invoice no, gas type…" />
-            <FilterSelect value={gasTypeFilter} onChange={setGasTypeFilter} options={GAS_TYPE_OPTIONS} allLabel="All Gas Types" />
+            <FilterSelect value={gasTypeFilter} onChange={setGasTypeFilter} options={mergeOptions(activeGasTypes, gasPurchases.map(g => g.gasType))} allLabel="All Gas Types" />
             <button onClick={() => setShowRateModal(true)} className="ap-gas-log-page-138">
               💰 Manage Gas Prices
             </button>

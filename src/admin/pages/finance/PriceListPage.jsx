@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { priceItemsApi } from '../../services/api';
+import { usePriceItemCategories } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { TypeTag } from '../../components/ui/Badges';
 import { KCard, SectionHdr, Thead } from '../../components/ui/Cards';
@@ -87,6 +89,7 @@ const PRICE_COLUMNS = [{
 const PriceListPage = ({
   openModal
 }) => {
+  const { activeItems: activePriceCategories } = usePriceItemCategories();   // Settings → Price Item Categories
   const [services, setServices] = useState([]);
   useEffect(() => {
     priceItemsApi.list({
@@ -167,7 +170,7 @@ const PriceListPage = ({
         {/* Toolbar */}
         <div className="ap-price-list-page-8">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by name, category, unit…" />
-          <FilterSelect value={activeFilters.category} onChange={val => setFilter('category', val)} options={cats} allLabel="All Categories" />
+          <FilterSelect value={activeFilters.category} onChange={val => setFilter('category', val)} options={mergeOptions(activePriceCategories, cats)} allLabel="All Categories" />
           <FilterSelect value={statusFilter} onChange={val => setStatusFilter(val)} options={['Active', 'Inactive']} allLabel="All Statuses" />
           <div className="ap-price-list-page-9">
             <ExportDropdown {...exportProps} />

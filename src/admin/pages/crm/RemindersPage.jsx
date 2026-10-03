@@ -9,6 +9,8 @@
 //      registry to know about a new modal type.
 
 import { remindersApi } from '../../services/api';
+import { useReminderTypes } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { useState, useEffect } from 'react';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { SBadge, TypeTag } from '../../components/ui/Badges';
@@ -20,7 +22,7 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
-import { REMINDER_STATUS } from '../../data/mockData';
+import { REMINDER_STATUS } from '../../constants/statusMaps';
 import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Urgency is computed from dueDate, never trusted from stored workflow
@@ -207,6 +209,7 @@ const ReminderDetailModal = ({
 const RemindersPage = ({
   openModal
 }) => {
+  const { activeItems: activeReminderTypes } = useReminderTypes();   // Settings → Reminder Types
   const [reminders, setReminders] = useState([]);
   useEffect(() => {
     remindersApi.list({
@@ -288,7 +291,7 @@ const RemindersPage = ({
         <div className="ap-reminders-page-23">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by customer, AC unit, type…" />
 
-          <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={types} allLabel="All Types" />
+          <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={mergeOptions(activeReminderTypes, types)} allLabel="All Types" />
           <FilterSelect value={statusFilter} onChange={setStatusFilter} options={['overdue', 'due_soon', 'upcoming']} allLabel="All Statuses" />
           <FilterSelect value={sentFilter} onChange={setSentFilter} options={['Sent', 'Not Sent']} allLabel="SMS: All" />
 

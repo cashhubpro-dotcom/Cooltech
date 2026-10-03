@@ -4,6 +4,8 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 import { financeApi, expensesApi } from '../../services/api';
 import { COLORS } from '../../constants/tokens';
 import { fmtDateDMY } from '../../../shared/formatDate';
+import { useExpenseCategories } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 
 const PERIODS = [
   { value: 'this_month', label: 'This Month' },
@@ -12,7 +14,7 @@ const PERIODS = [
 ];
 
 const DONUT_COLORS = ['#EA580C', '#3B82F6', '#F59E0B', '#8B5CF6', '#22C55E', '#EF4444'];
-const CATEGORY_OPTIONS = ['Fuel', 'Tools', 'Miscellaneous', 'Training', 'Office', 'Other'];
+// Expense categories now come from Settings → Expense Categories (useExpenseCategories).
 
 const fmtINR = n => `₹${(n || 0).toLocaleString('en-IN')}`;
 const fmtDate = d => d ? fmtDateDMY(new Date(d)) : '—';
@@ -92,7 +94,12 @@ const MarginBar = ({ pct }) => {
 };
 
 const AddExpenseModal = ({ onClose, onSaved }) => {
-  const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 10), category: CATEGORY_OPTIONS[0], amount: '', description: '' });
+  const { activeItems: activeExpenseCategories } = useExpenseCategories();   // Settings → Expense Categories
+  const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 10), category: '', amount: '', description: '' });
+  // pre-select the first managed category once the list has loaded
+  useEffect(() => {
+    if (!form.category && activeExpenseCategories.length) setForm(f => ({ ...f, category: activeExpenseCategories[0] }));
+  }, [activeExpenseCategories, form.category]);
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -124,7 +131,9 @@ const AddExpenseModal = ({ onClose, onSaved }) => {
               <div className="form-field">
                 <label className="form-label">Category</label>
                 <select className="form-input form-select" value={form.category} onChange={e => set('category', e.target.value)}>
-                  {CATEGORY_OPTIONS.map(c => <option key={c}>{c}</option>)}
+                  {mergeOptions(activeExpenseCategories, form.category).length
+                    ? mergeOptions(activeExpenseCategories, form.category).map(c => <option key={c}>{c}</option>)
+                    : <option value="">None yet</option>}
                 </select>
               </div>
               <div className="form-field">

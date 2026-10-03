@@ -5,9 +5,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import RichTextFileEditor from './RichTextFileEditor';
 import { Avatar } from '../../components/ui/Badges';
 import PDFPreview from '../layout/PDFPreview';
-import { invoices, technicians, jobs } from '../../data/mockData';
 import { DynamicSelect } from './Modals';
-import { invoicesApi, paymentsApi, priceItemsApi, remindersApi, leavesApi, attendanceApi, complaintsApi, jobsApi, techsApi, timelogsApi, gaslogApi, customersApi } from '../../services/api';
+import { invoicesApi, paymentsApi, priceItemsApi, remindersApi, leavesApi, attendanceApi, complaintsApi, jobsApi, techsApi, timelogsApi, gaslogApi, customersApi, tasksApi } from '../../services/api';
 
 // ─── sanitizePayload ──────────────────────────────────────────────────────────
 // Strips MongoDB meta-fields that must never be sent on a POST/PUT body.
@@ -162,7 +161,15 @@ export const SendRemindersModal = ({
   payment = null   // ← NEW: when provided, operates in single-reminder mode
 }) => {
   const isSingle = !!payment;
-  const overdueInvoices = isSingle ? [] : invoices.filter(i => i.status !== 'paid');
+  // Unpaid, non-draft invoices from the backend (loaded when the "remind all" modal opens)
+  const [unpaidInvoices, setUnpaidInvoices] = useState([]);
+  useEffect(() => {
+    if (!open || isSingle) return;
+    invoicesApi.list({ limit: 200 })
+      .then(r => setUnpaidInvoices((r.data ?? []).filter(i => !i.paid && i.status !== 'draft')))
+      .catch(() => setUnpaidInvoices([]));
+  }, [open, isSingle]);
+  const overdueInvoices = isSingle ? [] : unpaidInvoices;
   const [sendVia, setSendVia] = useState('WhatsApp + SMS');
   const [template, setTemplate] = useState(
     isSingle
@@ -222,8 +229,8 @@ export const SendRemindersModal = ({
       ) : (
         <div className="ap-hr-modals-10">
           <div className="ap-hr-modals-11">Overdue & Pending Invoices</div>
-          {overdueInvoices.map(inv => <div key={inv.id} className="ap-hr-modals-12">
-              <span>{inv.id} – {inv.customer}</span>
+          {overdueInvoices.map(inv => <div key={inv._id ?? inv.invoiceNo} className="ap-hr-modals-12">
+              <span>{inv.invoiceNo ?? inv.id ?? inv._id} – {inv.customer}</span>
               <span className="ap-hr-modals-13">₹{inv.total?.toLocaleString()}</span>
             </div>)}
         </div>
@@ -278,10 +285,7 @@ export const RecordPaymentModal = ({
       setLiveInvoices(data);
       if (data.length > 0) setSelectedInvoice(data[0]._id ?? data[0].id);
     }).catch(() => {
-      // Fall back to mock data
-      const unpaid = invoices.filter(i => i.status !== 'paid');
-      setLiveInvoices(unpaid);
-      if (unpaid.length > 0) setSelectedInvoice(unpaid[0].id);
+      setLiveInvoices([]);   // couldn't load invoices - show an empty list instead of sample data
     });
   }, [open]);
   const {
@@ -882,6 +886,8 @@ export const NewTaskModal = ({
   const [files, setFiles] = useState([]);
   const [liveTechs, setLiveTechs] = useState([]);
   const [liveJobs, setLiveJobs] = useState([]);
+  const [liveCustomers, setLiveCustomers] = useState([]);
+  const [liveTasks, setLiveTasks] = useState([]);
   const [form, setForm] = useState({
     title: '',
     category: '',
@@ -904,6 +910,8 @@ export const NewTaskModal = ({
     if (!open) return;
     techsApi.list({ limit: 200 }).then(r => setLiveTechs(r.data ?? [])).catch(() => {});
     jobsApi.list({ limit: 200 }).then(r => setLiveJobs(r.data ?? [])).catch(() => {});
+    customersApi.list({ limit: 200 }).then(r => setLiveCustomers(r.data ?? [])).catch(() => {});
+    tasksApi.list({ limit: 200 }).then(r => setLiveTasks(r.data ?? [])).catch(() => {});
   }, [open]);
   const set = k => e => setForm(f => ({
     ...f,
@@ -1054,9 +1062,7 @@ export const NewTaskModal = ({
           {dependent && <FRow label="Depends On">
               <FSelect value={form.dependsOn} onChange={set('dependsOn')}>
                 <option value="">-- Select task --</option>
-                <option>TSK-041 – Follow up with Gas renewal</option>
-                <option>TSK-040 – Process February salary</option>
-                <option>TSK-039 – Order R-32 refrigerant</option>
+                {liveTasks.map(t => <option key={t._id ?? t.taskId}>{t.taskId} – {t.title}</option>)}
               </FSelect>
             </FRow>}
  
@@ -1064,7 +1070,7 @@ export const NewTaskModal = ({
               <FRow label="Linked Invoice / Customer">
                 <FSelect value={form.billableCustomer} onChange={set('billableCustomer')}>
                   <option value="">-- Select --</option>
-                  {['Sharma Residency', 'Sunrise Hotel', 'TechPark Ltd.', 'City Mall'].map(c => <option key={c}>{c}</option>)}
+                  {liveCustomers.map(c => <option key={c._id ?? c.name}>{c.name}</option>)}
                 </FSelect>
               </FRow>
               <FRow label="Billable Amount (₹)">

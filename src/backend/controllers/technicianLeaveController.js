@@ -9,6 +9,20 @@ const calcDays = (from, to) => {
   return diff > 0 ? diff : 1;
 };
 
+// Company-wide yearly leave entitlement (days per calendar year). This is the
+// single place to change the policy. A technician can override any type by
+// having their own technician.leaveBalance.<type> saved — that value wins.
+const DEFAULT_LEAVE_QUOTA = { casual: 12, sick: 7, earned: 12 };
+
+const getTotals = (technician) => {
+  const lb = technician.leaveBalance || {};
+  return {
+    casual: lb.casual ?? DEFAULT_LEAVE_QUOTA.casual,
+    sick:   lb.sick   ?? DEFAULT_LEAVE_QUOTA.sick,
+    earned: lb.earned ?? DEFAULT_LEAVE_QUOTA.earned,
+  };
+};
+
 // Shape a Leave doc the same way the technician frontend expects
 // (mirrors admin's getLeaves mapping so both panels stay consistent).
 // approvedBy must be populated (see queries below) before this runs —
@@ -39,7 +53,7 @@ const usedByType = async (technicianId) => {
 
 // GET /api/technician/leaves/balance
 export const getMyLeaveBalance = async (req, res) => {
-  const totals = req.technician.leaveBalance || { casual: 12, sick: 7, earned: 12 };
+  const totals = getTotals(req.technician);
   const used = await usedByType(req.technician._id);
 
   const build = (type) => {
@@ -94,7 +108,7 @@ export const applyLeave = async (req, res) => {
   if (overlap) return err(res, 'You already have a leave request overlapping these dates', 400);
 
   // Balance check
-  const totals = req.technician.leaveBalance || { casual: 12, sick: 7, earned: 12 };
+  const totals = getTotals(req.technician);
   const used = await usedByType(req.technician._id);
   const available = Math.max((totals[type] ?? 0) - (used[type] || 0), 0);
   if (days > available)

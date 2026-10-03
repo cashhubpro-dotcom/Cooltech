@@ -10,10 +10,12 @@ import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
 import { warrantyApi, partWarrantyApi } from '../../services/api';
+import { useUnitWarrantyTypes, usePartWarrantyTypes, usePartTypes } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Part types + colour tokens (mirrors the AC Parts mockup, ported to our design system) ──
-const PART_TYPES = ['Compressor', 'PCB Board', 'Capacitor', 'Fan Motor', 'Gas Charge', 'IDU/ODU Coil', 'Remote', 'Sensor', 'Other'];
+// Part types / warranty types now come from Settings (usePartTypes, useUnitWarrantyTypes, usePartWarrantyTypes).
 const PART_TYPE_COLORS = {
   Compressor: "var(--purple)",
   'PCB Board': "var(--info)",
@@ -327,6 +329,8 @@ const WarrantyDetailView = ({
   onRenew,
   openModal
 }) => {
+  const { activeItems: activeUnitWarrantyTypes } = useUnitWarrantyTypes();   // Settings → Unit Warranty Types
+  const { activeItems: activePartWarrantyTypes } = usePartWarrantyTypes();   // Settings → Part Warranty Types
   const [activeTab, setActiveTab] = useState('overview');
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
@@ -473,7 +477,7 @@ const WarrantyDetailView = ({
         return <div className="ap-warranty-page-30">
           <SectionDivider title="Warranty Coverage" icon="🛡️" />
           <div className="ap-warranty-page-31">
-            <Cell fKey="type" label="Warranty Type" type="select" options={isPart ? ['Manufacturer', 'Dealer', 'AMC covered', 'Extended'] : ['Comprehensive', 'Compressor', 'Parts & Labour', 'Parts Only']} />
+            <Cell fKey="type" label="Warranty Type" type="select" options={mergeOptions(isPart ? activePartWarrantyTypes : activeUnitWarrantyTypes, d.type)} />
             <Cell fKey="warrantyEnd" label="Warranty End" type="date" highlight />
             {!isPart && <Cell fKey="compressorEnd" label="Compressor Warranty End" type="date" highlight />}
             {!isPart && <Cell fKey="partsWarranty" label="Parts Warranty Period" />}
@@ -594,6 +598,8 @@ const WarrantyDetailView = ({
 const WarrantyPage = ({
   openModal
 }) => {
+  const { activeItems: activeUnitWarrantyTypes } = useUnitWarrantyTypes();   // Settings → Unit Warranty Types
+  const { activeItems: activePartTypes } = usePartTypes();                   // Settings → Part Types
   const [unitWarranties, setUnitWarranties] = useState([]);
   const [partWarranties, setPartWarranties] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -805,7 +811,7 @@ const WarrantyPage = ({
 
   // ── Distribution: brand (units) or part type (parts) ────────────────────────
   const brands = [...new Set(unitWarranties.map(w => w.brand).filter(Boolean))];
-  const types = tab === 'units' ? [...new Set(unitWarranties.map(w => w.type).filter(Boolean))] : PART_TYPES;
+  const types = tab === 'units' ? mergeOptions(activeUnitWarrantyTypes, unitWarranties.map(w => w.type)) : mergeOptions(activePartTypes, currentRecords.map(r => r.partType));
   const brandData = brands.map(b => ({
     brand: b,
     count: unitWarranties.filter(w => w.brand === b).length,

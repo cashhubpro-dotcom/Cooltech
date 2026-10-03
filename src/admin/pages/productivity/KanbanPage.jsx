@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { jobsApi, techsApi, customersApi } from '../../services/api';
 import { fmtDateDMY } from '../../../shared/formatDate';
 import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
+import { useJobTypes } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 
 // ─── Constants — matched exactly to Job model enums ───────────────────────────
 const priorityColor = {
@@ -119,6 +121,7 @@ const JobModal = ({
   customers
 }) => {
   const isEdit = Boolean(job);
+  const { activeItems: activeJobTypes } = useJobTypes();   // Settings → Job Types
 
   // Normalise existing job fields into form shape
   const initForm = () => {
@@ -232,11 +235,7 @@ const JobModal = ({
             <div>
               <label className="form-label">Type</label>
               <select className="form-select" name="type" value={form.type} onChange={handle}>
-                <option value="Service">Service</option>
-                <option value="Repair">Repair</option>
-                <option value="Installation">Installation</option>
-                <option value="AMC Visit">AMC Visit</option>
-                <option value="Inspection">Inspection</option>
+                {mergeOptions(activeJobTypes, form.type).map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
@@ -354,6 +353,7 @@ const KanbanPage = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
+  const { activeItems: activeJobTypes } = useJobTypes();   // Settings → Job Types
   const [modal, setModal] = useState(null); // null | 'new' | job-object (edit)
   const [viewJob, setViewJob] = useState(null); // job-object (view) | null
   const [deleteTarget, setDeleteTarget] = useState(null); // job-object | null
@@ -476,11 +476,7 @@ const KanbanPage = ({
         <div className="kb-header-actions">
           <select className="form-select kb-filter-select" value={filter} onChange={e => setFilter(e.target.value)}>
             <option value="all">All Types</option>
-            <option value="Service">Service</option>
-            <option value="Repair">Repair</option>
-            <option value="Installation">Installation</option>
-            <option value="AMC Visit">AMC Visit</option>
-            <option value="Inspection">Inspection</option>
+            {mergeOptions(activeJobTypes, jobs.map(j => j.type)).map(t => <option key={t} value={t}>{t}</option>)}
           </select>
           <button className="btn btn-primary" onClick={() => setModal('new')}>+ New Job</button>
           <button className="btn btn-secondary" onClick={fetchAll} title="Refresh">↺</button>

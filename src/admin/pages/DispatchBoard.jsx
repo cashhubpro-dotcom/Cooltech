@@ -37,6 +37,17 @@ function useBreakpoint() {
 }
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
+// "10:30" / "09:05" / "2:15 PM" -> minutes since midnight; unknown or empty -> sorts last
+const timeToMinutes = t => {
+  const m = String(t || '').trim().match(/^(\d{1,2}):(\d{2})\s*([ap]m)?$/i);
+  if (!m) return Infinity;
+  let h = Number(m[1]);
+  const ap = m[3]?.toLowerCase();
+  if (ap === 'pm' && h < 12) h += 12;
+  if (ap === 'am' && h === 12) h = 0;
+  return h * 60 + Number(m[2]);
+};
+
 const isSameDay = (a, b) => !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
 // Transforms a raw Job document from the API into the flat shape this page uses.
@@ -507,6 +518,7 @@ const DispatchBoard = ({
   const [technicians, setTechnicians] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(null);
   const loadJobs = useCallback(async () => {
     const r = await jobsApi.list({
       limit: 200
@@ -525,6 +537,7 @@ const DispatchBoard = ({
     setErrorMsg('');
     try {
       await Promise.all([loadJobs(), loadTechs()]);
+      setLastUpdated(new Date());
     } catch (err) {
       setErrorMsg(err.message || 'Could not load dispatch data.');
     }
@@ -532,6 +545,17 @@ const DispatchBoard = ({
   useEffect(() => {
     setLoading(true);
     loadAll().finally(() => setLoading(false));
+  }, [loadAll]);
+
+  // The board really is "Live": re-load every 30 s while the tab is open and
+  // visible, and straight away when you come back to the tab. It refreshes
+  // quietly (no loading flash), so a technician starting or finishing a job in
+  // the field shows up here without a reload.
+  useEffect(() => {
+    const tick = () => { if (document.visibilityState === 'visible') loadAll(); };
+    const timer = setInterval(tick, 30000);
+    document.addEventListener('visibilitychange', tick);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', tick); };
   }, [loadAll]);
   const unassigned = allJobs.filter(j => (j.tech === 'Unassigned' || !j.technicianId) && !['completed', 'cancelled', 'invoiced'].includes(j.status));
   const busy = technicians.filter(t => t.status === 'busy');
@@ -579,7 +603,7 @@ const DispatchBoard = ({
           </div>
         </div>
         <div className="ap-dispatch-board-101">
-          <div className="ap-dispatch-board-102">
+          <div className="ap-dispatch-board-102" title={lastUpdated ? `Refreshes every 30 seconds \u00b7 last updated ${lastUpdated.toLocaleTimeString('en-IN')}` : 'Refreshes every 30 seconds'}>
             <span className="blink ap-dispatch-board-103" />
             <span className="ap-dispatch-board-104">Live</span>
           </div>
@@ -715,7 +739,10 @@ const DispatchBoard = ({
           <div className="ap-dispatch-board-144">
             <div className="ap-dispatch-board-145">Today's Job Flow</div>
             {(() => {
-            const todaysJobs = allJobs.filter(j => isSameDay(j.rawDate, today));
+            // today's jobs in time order, cancelled ones left out
+            const todaysJobs = allJobs
+              .filter(j => isSameDay(j.rawDate, today) && j.status !== 'cancelled')
+              .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time) || (a.rawDate?.getTime() || 0) - (b.rawDate?.getTime() || 0));
             if (todaysJobs.length === 0) {
               return <div className="ap-dispatch-board-146">No jobs scheduled for today</div>;
             }

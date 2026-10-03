@@ -16,6 +16,7 @@ import ExportDropdown from '../components/layout/ExportDropdown';
 import useExport from '../hooks/useExport';
 import { addToDeleted } from '../store/deletedStore';
 import { fmtDateDMY } from '../../shared/formatDate';
+import { mergeOptions } from '../utils/mergeOptions';
 
 // ─── shared input style ───────────────────────────────────────────────────────
 const iStyle = {
@@ -137,9 +138,8 @@ const CustomersPage = ({
     lastService: c.lastService ?fmtDateDMY(new Date(c.lastService)) : '—'
   });
 
-  const typeNames = customerTypes.length > 0
-  ? customerTypes.filter(t => t.active).map(t => t.name)
-  : ["Residential", "Commercial"];
+  // Customer types come from Settings → Customer Types (no built-in fallback list)
+  const typeNames = customerTypes.filter(t => t.active).map(t => t.name);
 
   // Load all customers on mount
   useEffect(() => {
@@ -253,7 +253,7 @@ const CustomersPage = ({
   }, {
     key: "type",
     type: "select",
-    options: typeNames
+    options: mergeOptions(typeNames, cust?.type)
   }, {
     key: "phone",
     type: "text"
@@ -313,7 +313,7 @@ const CustomersPage = ({
                   </select> : <div className="ap-customers-page-7">{cust.type}</div>} */}
 
                   {editMode ? <select value={editData.type ?? ""} onChange={set("type")} className="ap-customers-page-6">
-    {typeNames.map(t => <option key={t}>{t}</option>)}
+    {mergeOptions(typeNames, editData.type).map(t => <option key={t}>{t}</option>)}
   </select> : <div className="ap-customers-page-7">{cust.type}</div>}
 
                 <div className="ap-customers-page-8">
@@ -416,7 +416,7 @@ const CustomersPage = ({
         <div className="ap-customers-page-40">
           <TableSearchBar value={q} onChange={setQ} placeholder="Search by name, phone, email…" />
           {/* <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={["Residential", "Commercial"]} allLabel="All Types" /> */}
-          <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={typeNames} allLabel="All Types" />
+          <FilterSelect value={activeFilters.type} onChange={val => setFilter("type", val)} options={mergeOptions(typeNames, customers.map(c => c.type))} allLabel="All Types" />
           <FilterSelect value={activeFilters.amc} onChange={val => setFilter("amc", val)} options={["true", "false"]} allLabel="All AMC" renderOption={val => val === "true" ? "AMC Active" : "No AMC"} />
           <div className="ap-customers-page-41">
             <ExportDropdown {...exportProps} />

@@ -10,12 +10,14 @@ import DeleteConfirmModal from '../../components/ui/DeleteConfirmModal';
 import EditableDetailView from '../../components/ui/EditableDetailView';
 import TableSearchBar from '../../components/ui/TableSearchBar';
 import { useTableSearch } from '../../hooks/useTableSearch';
+import { useJobTypes } from '../../hooks/useOptionSets';
+import { useCustomerTypes } from '../../hooks/useCustomerTypes';
+import { mergeOptions } from '../../utils/mergeOptions';
 import FilterSelect from '../../components/ui/FilterSelect';
 import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/ui/Pagination';
 import ExportDropdown from '../../components/layout/ExportDropdown';
 import useExport from '../../hooks/useExport';
-import { LEAD_ACTIVITIES } from '../../data/mockData';
 import { fmtDateDMY } from '../../../shared/formatDate';
 
 // ─── Breakpoint Hook ──────────────────────────────────────────────────────────
@@ -77,7 +79,15 @@ const ACT_ICONS = {
   quote: '📄'
 };
 const SOURCE_OPTIONS = [...new Set([].map(l => l.source).filter(Boolean))].sort();
-const TYPE_OPTIONS = [...new Set([].map(l => l.type).filter(Boolean))].sort();
+// (Lead-type options now come from Settings → Customer Types, see useLeadTypeOptions)
+// Lead Type reuses the Customer Types list, same as the New Lead form.
+// 0 -> "₹0", 950 -> "₹950", 91000 -> "₹91K"
+const kRupees = v => v >= 1000 ? `₹${(v / 1000).toFixed(0)}K` : `₹${Math.round(v || 0)}`;
+
+const useActiveLeadTypes = () => {
+  const { types } = useCustomerTypes();
+  return types.filter(t => t.active).map(t => t.name);
+};
 
 // ─── Export column config ─────────────────────────────────────────────────────
 const LEAD_COLUMNS = [{
@@ -324,8 +334,9 @@ const WonModal = ({
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(null); // { jobId } after success
   const [error, setError] = useState('');
+  const { activeItems: activeJobTypes } = useJobTypes();   // Settings → Job Types
   const [form, setForm] = useState({
-    type: 'Installation',
+    type: '',
     priority: 'normal',
     scheduledDate: '',
     scheduledTime: '',
@@ -338,6 +349,10 @@ const WonModal = ({
     ...p,
     [k]: e.target.value
   }));
+  // pre-select the first managed job type once the list has loaded
+  useEffect(() => {
+    if (!form.type && activeJobTypes.length) setForm(p => ({ ...p, type: activeJobTypes[0] }));
+  }, [activeJobTypes, form.type]);
   const fieldStyle = {
     width: '100%',
     padding: '9px 12px',
@@ -423,7 +438,7 @@ const WonModal = ({
             <div>
               <LabelEl>Job Type *</LabelEl>
               <select value={form.type} onChange={set('type')} onFocus={focusGreen} onBlur={blurBorder} className="ap-leads-page-44">
-                {['Installation', 'Service', 'Repair', 'AMC Visit', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}
+                {activeJobTypes.length === 0 ? <option value="">None yet</option> : activeJobTypes.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
@@ -507,6 +522,7 @@ const LeadDetail = ({
   openModal,
   initialEditMode
 }) => {
+  const activeLeadTypes = useActiveLeadTypes();
   const {
     isMobile,
     isTablet
@@ -644,7 +660,7 @@ const LeadDetail = ({
       {/* Activity Log */}
       <div className="ap-leads-page-69">
         <div className="ap-leads-page-70">Activity Log</div>
-        {(LEAD_ACTIVITIES[lead.id] || [{
+        {(Array.isArray(lead.activities) && lead.activities.length ? lead.activities : [{
         date: '—',
         by: 'Admin',
         note: 'No activity yet.',
@@ -770,7 +786,7 @@ const LeadDetail = ({
                         {stageOrder.map(s => <option key={s} value={s}>{LEAD_STAGES[s].label}</option>)}
                       </select>
                       <select value={val('type')} onChange={setK('type')} className="ap-leads-page-94">
-                        {TYPE_OPTIONS.map(t => <option key={t}>{t}</option>)}
+                        {mergeOptions(activeLeadTypes, val('type')).map(t => <option key={t}>{t}</option>)}
                       </select>
                     </> : <><SBadge s={lead.stage} map={LEAD_STAGES} /><TypeTag type={lead.type} /></>}
                 </div>
@@ -878,6 +894,7 @@ const LeadsPage = ({
   const [initialEditMode, setInitialEditMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [leads, setLeads] = useState([]);
+  const activeLeadTypes = useActiveLeadTypes();
   const [draggingId, setDraggingId] = useState(null);
   const [dragOverCol, setDragOverCol] = useState(null);
   const [dropIndicator, setDropIndicator] = useState(null);
@@ -908,7 +925,15 @@ const LeadsPage = ({
     return () => window.removeEventListener('focus', fetchLeads);
   }, []);
   const totalPipeline = leads.filter(l => !['won', 'lost'].includes(l.stage)).reduce((s, l) => s + (l.value || 0), 0);
-  const wonValue = leads.filter(l => l.stage === 'won').reduce((s, l) => s + (l.value || 0), 0);
+  // "Won This Month": leads that entered the Won stage in the current month.
+  // wonAt is stamped by the backend; older leads without it fall back to their last update.
+  const nowD = new Date();
+  const wonThisMonth = leads.filter(l => {
+    if (l.stage !== 'won') return false;
+    const d = new Date(l.wonAt ?? l.updatedAt ?? Date.now());
+    return d.getMonth() === nowD.getMonth() && d.getFullYear() === nowD.getFullYear();
+  });
+  const wonValue = wonThisMonth.reduce((s, l) => s + (l.value || 0), 0);
   const lead = open ? leads.find(l => l.id === open || l._id === open) : null;
   const handleSave = async (updated, opts = {}) => {
     // Skip backend call when the update was already handled
@@ -1064,10 +1089,10 @@ const LeadsPage = ({
 
       {/* ── KPI cards ── */}
       <div className="quot-kpi-grid">
-        <KCard label="Pipeline Value" value={`₹${(totalPipeline / 1000).toFixed(0)}K`} sub="active leads" icon="🎯" iconBg="#FFF7ED" color="#EA580C" delay="" />
-        <KCard label="Won This Month" value={`₹${(wonValue / 1000).toFixed(0)}K`} sub={`${leads.filter(l => l.stage === 'won').length} closed`} icon="🏆" iconBg="#F0FDF4" color="#16A34A" delay="1" />
+        <KCard label="Pipeline Value" value={kRupees(totalPipeline)} sub="active leads" icon="🎯" iconBg="#FFF7ED" color="#EA580C" delay="" />
+        <KCard label="Won This Month" value={kRupees(wonValue)} sub={`${wonThisMonth.length} closed`} icon="🏆" iconBg="#F0FDF4" color="#16A34A" delay="1" />
         <KCard label="Open Leads" value={leads.filter(l => !['won', 'lost'].includes(l.stage)).length} sub="in progress" icon="📊" iconBg="#EFF6FF" color="#0369A1" delay="2" />
-        <KCard label="Conversion" value="42%" sub="to customer" icon="📈" iconBg="#F5F3FF" color="#7C3AED" delay="3" />
+        <KCard label="Conversion" value={leads.length ? `${Math.round(leads.filter(l => l.stage === 'won').length / leads.length * 100)}%` : '—'} sub="to customer" icon="📈" iconBg="#F5F3FF" color="#7C3AED" delay="3" />
       </div>
 
       {/* ── Kanban ── */}
@@ -1154,7 +1179,7 @@ const LeadsPage = ({
           }}>
                 <TableSearchBar value={q} onChange={setQ} placeholder="Search by name, contact, phone, source…" />
               </div>
-              <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={TYPE_OPTIONS} allLabel="All Types" />
+              <FilterSelect value={activeFilters.type} onChange={val => setFilter('type', val)} options={mergeOptions(activeLeadTypes, leads.map(l => l.type))} allLabel="All Types" />
               <FilterSelect value={activeFilters.stage} onChange={val => setFilter('stage', val)} options={stageOrder} allLabel="All Stages" />
               <div style={{
             marginLeft: isMobile ? "0" : "auto",

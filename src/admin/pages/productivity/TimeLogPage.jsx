@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { techsApi, timelogsApi } from '../../services/api';
+import { useActivityTypes } from '../../hooks/useOptionSets';
+import { mergeOptions } from '../../utils/mergeOptions';
 import { COLORS, FONTS } from '../../constants/tokens';
 import { Avatar } from '../../components/ui/Badges';
 import { KCard, SectionHdr, Thead } from '../../components/ui/Cards';
@@ -103,7 +105,7 @@ const TIMELOG_COLUMNS = [{
 const TIMELOG_FIELDS = [
   { key: 'tech', label: 'Technician', large: true },
   { key: 'job', label: 'Job / Activity' },
-  { key: 'type', label: 'Type', type: 'select', options: ['Service', 'Repair', 'Installation', 'AMC Visit', 'Training', 'Other'] },
+  { key: 'type', label: 'Type', type: 'select', options: [] },   // options filled from Settings → Activity Types inside TimeLogPage
   { key: 'customer', label: 'Customer' },
   { key: 'date', label: 'Date', type: 'date' },
   { key: 'start', label: 'Start Time', type: 'time' },
@@ -117,6 +119,7 @@ const TIMELOG_FIELDS = [
 const TimeLogPage = ({
   openModal
 }) => {
+  const { activeItems: activeActivityTypes } = useActivityTypes();   // Settings → Activity Types
   const [timeLogs, setTimeLogs] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   useEffect(() => {
@@ -208,7 +211,7 @@ const TimeLogPage = ({
       id={log.id || log._id}
       breadcrumb="Time Tracker"
       onBack={() => setSelectedLog(null)}
-      fields={TIMELOG_FIELDS}
+      fields={TIMELOG_FIELDS.map(f => f.key === 'type' ? { ...f, options: mergeOptions(activeActivityTypes, timeLogs.map(t => t.type)) } : f)}
       data={formattedLog}
       initialEditMode={editMode}
       onSave={handleSaveLog}

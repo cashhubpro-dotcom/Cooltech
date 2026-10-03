@@ -8,6 +8,32 @@ import { NewTicketModal, StatusUpdateModal } from '../../components/modals/Modal
 
 // ─── TicketsPage ───────────────────────────────────────────────────────────────
 
+// Average first-response time, worked out from the real conversation on each ticket.
+// For every ticket where the customer wrote in, we take the time from the customer's
+// FIRST message to the first support reply that came after it. Tickets nobody has
+// replied to yet (or that the customer never wrote on) are left out of the average.
+// Shown as minutes under an hour, hours under a day, otherwise days; "—" when there is no data.
+const formatResponseTime = ms => {
+  const mins = ms / 60000;
+  if (mins < 1) return '<1m';
+  if (mins < 60) return `${Math.round(mins)}m`;
+  const hrs = mins / 60;
+  if (hrs < 24) return `${hrs.toFixed(1)}h`;
+  return `${(hrs / 24).toFixed(1)}d`;
+};
+const averageResponseTime = tickets => {
+  const gaps = [];
+  tickets.forEach(t => {
+    const msgs = (t.messages || []).filter(m => m.time).slice().sort((a, b) => new Date(a.time) - new Date(b.time));
+    const firstClient = msgs.find(m => m.isClient);
+    if (!firstClient) return;
+    const firstReply = msgs.find(m => !m.isClient && new Date(m.time) >= new Date(firstClient.time));
+    if (!firstReply) return;
+    gaps.push(new Date(firstReply.time) - new Date(firstClient.time));
+  });
+  return gaps.length ? formatResponseTime(gaps.reduce((a, b) => a + b, 0) / gaps.length) : '—';
+};
+
 const TicketsPage = ({
   openModal
 }) => {
@@ -293,6 +319,7 @@ const TicketsPage = ({
   const openCount = tickets.filter(t => t.status === "open").length;
   const inProgCount = tickets.filter(t => t.status === "in_progress").length;
   const resolvedCount = tickets.filter(t => t.status === "resolved").length;
+  const avgResponse = averageResponseTime(tickets);
   return <div className="fu">
 
       {/* ── Header ── */}
@@ -329,7 +356,7 @@ const TicketsPage = ({
         bg: "#F0FDF4"
       }, {
         label: "Avg Response",
-        value: "2.3h",
+        value: avgResponse,
         icon: "⚡",
         color: "#3B82F6",
         bg: "#EFF6FF"

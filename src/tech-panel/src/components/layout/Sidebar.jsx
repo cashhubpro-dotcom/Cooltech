@@ -1,6 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { NAV, PATHS } from '../../constants/navigation';
+import { technicianProfileApi } from '../../services/technicianPortalApi';
+import { getInitials, readStoredUser } from '../../../../shared/initials';
 
 const TECH_PREFIX = '/tech';
 const pathFor = id => {
@@ -11,6 +14,11 @@ const pathFor = id => {
 };
 
 const Sidebar = ({ open, setOpen, notifs = [] }) => {
+  // Who is logged in: instant from what login saved, then refreshed from the API.
+  const [me, setMe] = useState(() => readStoredUser('tech_user'));
+  useEffect(() => {
+    technicianProfileApi.get().then(r => r?.data && setMe(prev => ({ ...prev, ...r.data }))).catch(() => {});
+  }, []);
   const location = useLocation();
   const relativePath = location.pathname.replace(/^\/tech\/?/, '/');
   const activePage = Object.entries(PATHS).find(([, p]) => p === relativePath)?.[0] ?? 'dashboard';
@@ -70,10 +78,10 @@ const Sidebar = ({ open, setOpen, notifs = [] }) => {
 
         <div className="sb-footer">
           <div className="sb-user">
-            <div className="sb-avatar">RK</div>
+            <div className="sb-avatar">{getInitials(me.name)}</div>
             {!collapsed && <div className="sb-footer-info">
-                <div className="sb-user-name">Ramesh Kumar</div>
-                <div className="sb-user-role">Senior Technician</div>
+                <div className="sb-user-name">{me.name || 'Technician'}</div>
+                <div className="sb-user-role">{me.role || 'Technician'}</div>
               </div>}
           </div>
         </div>

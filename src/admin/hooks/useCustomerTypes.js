@@ -2,18 +2,14 @@
 // API-backed customer types hook
 import { useState, useEffect } from 'react';
 import { customerTypesApi } from '../services/api';
-
-const INIT_TYPES = [
-  { name: 'Residential', active: true },
-  { name: 'Commercial',  active: true },
-  { name: 'Industrial',  active: true },
-  { name: 'Institution', active: true },
-  { name: 'AMC Client',  active: true },
-];
+import { useDataVersion } from '../../shared/dataSync';
 
 export function useCustomerTypes() {
-  const [types, setTypes] = useState(INIT_TYPES);
+  const [types, setTypes] = useState([]);   // filled from Settings → Customer Types
   const [loading, setLoading] = useState(true);
+  // Reload whenever customer types change anywhere, so every instance of this
+  // hook (App.jsx, settings page, modals) stays in sync without a page refresh.
+  const version = useDataVersion(['customer-types']);
 
   useEffect(() => {
     customerTypesApi.list({ limit: 200 })
@@ -21,9 +17,9 @@ export function useCustomerTypes() {
         const raw = res?.data || res || [];
         setTypes(raw.map(t => ({ ...t, name: t.name, active: t.isActive !== false })));
       })
-      .catch(() => { /* fall back to defaults */ })
+      .catch(() => { /* keep whatever is loaded; never invent types */ })
       .finally(() => setLoading(false));
-  }, []);
+  }, [version]);
 
   const addType = async (name) => {
     if (!name?.trim()) return;

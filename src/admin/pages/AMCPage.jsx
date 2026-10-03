@@ -1,5 +1,7 @@
 // AMCPage.jsx — SearchBar + FilterDropdowns + ExportDropdown + Pagination + PDF (matches detail view)
 import { amcApi, invoicesApi } from '../services/api';
+import { usePlans } from '../hooks/usePlans';
+import { mergeOptions } from '../utils/mergeOptions';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { COLORS, FONTS } from '../constants/tokens';
@@ -590,6 +592,7 @@ const AMCDetail = ({
   initialEditMode,
   goToInvoices
 }) => {
+  const { activePlans } = usePlans();   // Settings → Plans
   const [showPDF, setShowPDF] = useState(false);
 
   // ── Action modal state ──────────────────────────────────────────────────
@@ -806,7 +809,7 @@ const AMCDetail = ({
                               <option value="expiring">Expiring</option>
                             </select>
                             <select value={val("plan")} onChange={setK("plan")} className="ap-amc-page-77">
-                              {["Comprehensive", "Premium", "Basic"].map(p => <option key={p}>{p}</option>)}
+                              {mergeOptions(activePlans, val("plan")).map(p => <option key={p}>{p}</option>)}
                             </select>
                           </> : <>
                             <span style={{
@@ -920,6 +923,7 @@ const AMCPage = ({
   openModal,
   goToInvoices
 }) => {
+  const { activePlans } = usePlans();   // Settings → Plans
   const [open, setOpen] = useState(null);
   const [tab, setTab] = useState("contracts");
   const [contracts, setContracts] = useState([]);
@@ -993,7 +997,7 @@ const AMCPage = ({
   const totalUnits = contracts.reduce((s, c) => s + c.units, 0);
   const visitsAllTotal = contracts.reduce((s, c) => s + c.visits, 0);
   const visitsDone = contracts.reduce((s, c) => s + c.done, 0);
-  const planBreakdown = ["Comprehensive", "Premium", "Basic"].map(p => ({
+  const planBreakdown = mergeOptions(activePlans, contracts.map(c => c.plan)).map(p => ({
     plan: p,
     count: contracts.filter(c => c.plan === p).length,
     value: contracts.filter(c => c.plan === p).reduce((s, c) => s + c.value, 0)
@@ -1112,7 +1116,7 @@ const AMCPage = ({
         {/* ── Search + Filter + Export ── */}
           <div className="ap-amc-page-132">
             <TableSearchBar value={q} onChange={setQ} placeholder="Search by customer, contract ID, plan…" />
-            <FilterSelect value={activeFilters.plan} onChange={val => setFilter("plan", val)} options={["Comprehensive", "Premium", "Basic"]} allLabel="All Plans" />
+            <FilterSelect value={activeFilters.plan} onChange={val => setFilter("plan", val)} options={mergeOptions(activePlans, contracts.map(c => c.plan))} allLabel="All Plans" />
             <FilterSelect value={activeFilters.status} onChange={val => setFilter("status", val)} options={["active", "expiring"]} allLabel="All Status" />
             <div className="ap-amc-page-133">
                 <ExportDropdown {...exportProps} />

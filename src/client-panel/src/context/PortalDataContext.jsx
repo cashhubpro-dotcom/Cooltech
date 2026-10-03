@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { clientDashboardApi } from '../services/clientPortalApi';
+import { useDataVersion } from '../../../shared/dataSync';
 
 const PortalDataContext = createContext(null);
 
@@ -8,18 +9,22 @@ export function PortalDataProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const refresh = useCallback(() => {
-    setLoading(true);
+  // silent = true keeps the current numbers on screen while auto-refreshing
+  // (no loading flash in the sidebar badges / welcome toast).
+  const refresh = useCallback((silent = false) => {
+    if (!silent) setLoading(true);
     return clientDashboardApi.summary()
       .then(res => { setData(res.data); setError(null); })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  // Sidebar badges / dashboard totals reload after any add / edit / delete.
+  const version = useDataVersion();
+  useEffect(() => { refresh(version > 0); }, [refresh, version]);
 
   return (
-    <PortalDataContext.Provider value={{ data, loading, error, refresh }}>
+    <PortalDataContext.Provider value={{ data, loading, error, refresh: () => refresh() }}>
       {children}
     </PortalDataContext.Provider>
   );
